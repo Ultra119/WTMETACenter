@@ -64,11 +64,12 @@ def extract_br(raw: str) -> float:
 
 def clean_dataframe(df: pd.DataFrame, vehicle_db) -> pd.DataFrame:
     if "vehicle_type" in df.columns:
-        df["Type"] = df["vehicle_type"].fillna(
-            df.get("_dir_category", "Uncategorized")
-        )
+        vt = df["vehicle_type"].astype(str).str.strip()
+        vt = vt.replace({"nan": "", "None": "", "none": ""})
+        fallback = df["_dir_category"] if "_dir_category" in df.columns else "Uncategorized"
+        df["Type"] = vt.where(vt != "", fallback)
     else:
-        df["Type"] = df.get("_dir_category", "Uncategorized")
+        df["Type"] = df["_dir_category"] if "_dir_category" in df.columns else "Uncategorized"
 
     if "Name" in df.columns:
         df["Name"] = (

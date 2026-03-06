@@ -13,7 +13,7 @@ BR_MAX = float(max(WT_BR_STEPS))
 
 # Отметки на слайдере БР: только целые числа подписаны
 BR_MARKS = {
-    v: {"label": str(int(v)), "style": {"color": "#94a3b8", "fontSize": "10px"}}
+    v: {"label": str(int(v)), "style": {"color": "#e2e8f0", "fontSize": "12px", "fontWeight": "600"}}
     if v == int(v) else {"label": ""}
     for v in WT_BR_STEPS
 }

@@ -7,7 +7,7 @@ from dash import Input, Output, State, html
 import dash_bootstrap_components as dbc
 from dash import dash_table
 
-from ui.helpers import add_name_display, generate_card_html
+from ui.helpers import add_name_display, generate_vehicle_card
 from ui.callbacks.common import init, get_types, apply_type_filter, build_filters
 
 _META_COLS = [
@@ -131,10 +131,10 @@ def register(app, core, all_nations, all_types, tf_data) -> None:
                 "fontSize": "12px", "padding": "6px 10px",
             },
             style_cell_conditional=[
-                {"if": {"column_id": "Name_Display"},   "fontWeight": "600", "minWidth": "180px"},
+                {"if": {"column_id": "Name_Display"},   "fontWeight": "600", "minWidth": "140px", "maxWidth": "200px", "textAlign": "left", "paddingLeft": "10px"},
                 {"if": {"column_id": "META_SCORE"},     "color": "#34d399", "fontWeight": "700"},
                 {"if": {"column_id": "FARM_SCORE"},     "color": "#a78bfa", "fontWeight": "700"},
-                {"if": {"column_id": "Type_Display"},   "color": "#94a3b8", "fontSize": "11px", "minWidth": "130px"},
+                {"if": {"column_id": "Type_Display"},   "color": "#94a3b8", "fontSize": "11px", "minWidth": "110px", "maxWidth": "140px"},
             ],
             style_data_conditional=[
                 {"if": {"state": "selected"},
@@ -188,7 +188,6 @@ def register(app, core, all_nations, all_types, tf_data) -> None:
             else:
                 merged = row_dict
 
-            card_html = generate_card_html(merged)
-            return html.Div(dangerouslySetInnerHTML={"__html": card_html}), json.dumps(merged)
+            return generate_vehicle_card(merged), json.dumps(merged)
         except Exception as e:
             return dbc.Alert(f"Ошибка карточки: {e}", color="danger"), None

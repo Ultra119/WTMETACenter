@@ -1,0 +1,141 @@
+/* ══════════════════════════════════════════════════════════════════
+   WT META CENTER — dark theme overrides
+   Целевые классы взяты из реального DOM (Dash 2.x Radix-based)
+   ══════════════════════════════════════════════════════════════════ */
+
+/* ── Всплывающая оболочка (Radix popper) ───────────────────────── */
+.dash-dropdown-content {
+    background-color: #1e293b !important;
+    border: 1px solid #334155 !important;
+    border-radius: 6px !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.75) !important;
+    color: #e2e8f0 !important;
+}
+
+/* ── Поиск ─────────────────────────────────────────────────────── */
+.dash-dropdown-search-container {
+    background-color: #162032 !important;
+    border-bottom: 1px solid #334155 !important;
+    padding: 6px 8px !important;
+}
+
+.dash-dropdown-search {
+    background-color: #0f172a !important;
+    color: #e2e8f0 !important;
+    border: 1px solid #334155 !important;
+    border-radius: 4px !important;
+    outline: none !important;
+    width: 100% !important;
+    font-size: 12px !important;
+}
+
+.dash-dropdown-search:focus {
+    border-color: #10b981 !important;
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2) !important;
+}
+
+.dash-dropdown-search-icon {
+    color: #64748b !important;
+}
+
+/* ── Список опций ──────────────────────────────────────────────── */
+.dash-options-list,
+.dash-dropdown-options {
+    background-color: #1e293b !important;
+    padding: 4px 0 !important;
+}
+
+.dash-options-list-option,
+.dash-dropdown-option {
+    background-color: #1e293b !important;
+    color: #e2e8f0 !important;
+    cursor: pointer !important;
+    padding: 7px 12px !important;
+    font-size: 13px !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    border: none !important;
+    width: 100% !important;
+}
+
+.dash-options-list-option:hover,
+.dash-dropdown-option:hover {
+    background-color: #334155 !important;
+    color: #a7f3d0 !important;
+}
+
+.dash-options-list-option.selected,
+.dash-dropdown-option[aria-selected="true"] {
+    background-color: #064e3b !important;
+    color: #34d399 !important;
+}
+
+.dash-options-list-option-text {
+    color: inherit !important;
+}
+
+.dash-options-list-option-checkbox {
+    accent-color: #10b981 !important;
+}
+
+/* ── Основной контрол (триггер) ────────────────────────────────── */
+.dash-dropdown {
+    background-color: #1e293b !important;
+    border: 1px solid #334155 !important;
+    border-radius: 4px !important;
+    color: #e2e8f0 !important;
+}
+
+/* ── Legacy React-Select ────────────────────────────────────────── */
+.Select-control,
+.Select.is-focused > .Select-control,
+.Select.is-open > .Select-control {
+    background-color: #1e293b !important;
+    border-color: #334155 !important;
+    color: #e2e8f0 !important;
+}
+.Select-value-label, .Select-placeholder,
+.Select--single > .Select-control .Select-value { color: #e2e8f0 !important; }
+.Select-input > input { background-color: transparent !important; color: #e2e8f0 !important; }
+.Select-menu-outer {
+    background-color: #1e293b !important;
+    border-color: #334155 !important;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.7) !important;
+}
+.Select-option { background-color: #1e293b !important; color: #e2e8f0 !important; }
+.Select-option:hover, .Select-option.is-focused { background-color: #334155 !important; color: #a7f3d0 !important; }
+.Select-option.is-selected { background-color: #064e3b !important; color: #34d399 !important; }
+.Select-arrow { border-top-color: #94a3b8 !important; }
+.Select.is-open .Select-arrow { border-bottom-color: #94a3b8 !important; }
+.Select-noresults { background-color: #1e293b !important; color: #64748b !important; }
+.Select--multi .Select-value { background-color: #1e3a5f !important; border-color: #334155 !important; color: #e2e8f0 !important; }
+.Select--multi .Select-value-icon { border-right-color: #334155 !important; color: #94a3b8 !important; }
+.Select--multi .Select-value-icon:hover { background-color: #ef4444 !important; color: #fff !important; }
+
+/* ── dbc.Input ────────────────────────────────────────────────── */
+.form-control {
+    background-color: #1e293b !important;
+    border-color: #334155 !important;
+    color: #e2e8f0 !important;
+}
+.form-control:focus {
+    background-color: #1e293b !important;
+    border-color: #10b981 !important;
+    color: #e2e8f0 !important;
+    box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25) !important;
+}
+
+/* ── Слайдер ─────────────────────────────────────────────────── */
+.rc-slider-mark-text { color: #e2e8f0 !important; font-size: 12px !important; }
+.rc-slider-track { background-color: #10b981 !important; }
+.rc-slider-handle { border-color: #10b981 !important; background-color: #10b981 !important; }
+.rc-slider-handle:hover, .rc-slider-handle:active { border-color: #34d399 !important; box-shadow: 0 0 6px #34d399 !important; }
+
+/* ── DataTable filter row ────────────────────────────────────── */
+.dash-filter input { background-color: #1e293b !important; color: #e2e8f0 !important; border-color: #334155 !important; }
+
+/* ── Scrollbar ───────────────────────────────────────────────── */
+.dash-dropdown-options::-webkit-scrollbar { width: 5px; }
+.dash-dropdown-options::-webkit-scrollbar-track { background: #0f172a; }
+.dash-dropdown-options::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
