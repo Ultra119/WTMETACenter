@@ -50,7 +50,8 @@ def register(app, core, all_types, tf_data) -> None:
         return dash_table.DataTable(
             data=df[cols].round(2).to_dict("records"),
             columns=[{"name": _RB_NAMES.get(c, c), "id": c} for c in cols],
-            style_table={"overflowX": "auto", "maxHeight": "600px", "overflowY": "auto"},
+            virtualization=True,
+            style_table={"overflowX": "auto", "height": "600px", "overflowY": "auto"},
             style_header={
                 "backgroundColor": "#1e293b", "color": "#a7f3d0",
                 "fontWeight": "600", "fontSize": "11px",
@@ -66,8 +67,8 @@ def register(app, core, all_types, tf_data) -> None:
                 {"if": {"filter_query": "{Сыграно игр} < 100"}, "color": "#f87171"},
                 {"if": {"state": "selected"}, "backgroundColor": "rgba(16,185,129,0.12)"},
             ],
+            fixed_rows={"headers": True},
             sort_action="native",
             sort_by=[{"column_id": "Сыграно игр", "direction": "asc"}],
-            fixed_rows={"headers": True},
-            page_size=100,
+            page_action="none",
         )

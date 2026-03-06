@@ -28,7 +28,6 @@ _META_COL_NAMES = {
     "Net SL за игру": "Net SL/игру",
 }
 
-
 # Колонки, которые сохраняем в Store для карточки
 _STORE_KEEP = [
     "Name", "Nation", "BR", "Type", "WR", "KD",
@@ -76,7 +75,6 @@ def register(app, core, all_nations, all_types, tf_data) -> None:
             )
 
         df = add_name_display(df)
-        # Колонка с иконкой + конкретным типом вместо категории
         df["Type_Display"] = df["Type"].apply(fmt_type)
         cols_avail = [c for c in _META_COLS if c in df.columns]
 
@@ -88,14 +86,19 @@ def register(app, core, all_nations, all_types, tf_data) -> None:
             html.I("Кликните строку для карточки", style={"color": "#64748b"}),
         ], style={"fontSize": "0.75rem", "color": "#94a3b8"})
 
+        table_records = df[cols_avail + ["Name"]].round(2).to_dict("records")
+        for rec in table_records:
+            rec["id"] = rec["Name"]
+
         table = dash_table.DataTable(
             id="meta-table",
-            data=df[cols_avail].round(2).to_dict("records"),
+            data=table_records,
             columns=[
                 {"name": _META_COL_NAMES.get(c, c), "id": c,
                  "type": "numeric" if c not in ("Name_Display", "Nation", "Type_Display") else "text"}
                 for c in cols_avail
             ],
+            virtualization=True,
             style_table={"overflowX": "auto", "minWidth": "100%",
                          "height": "600px", "overflowY": "auto"},
             style_header={
@@ -140,32 +143,25 @@ def register(app, core, all_nations, all_types, tf_data) -> None:
 
         return table, info, store, json.dumps(filters)
 
-    # ── Карточка по выбору строки ─────────────────────────────────────────
     @app.callback(
         Output("meta-card-container",    "children"),
         Output("store-selected-vehicle", "data"),
-        Input("meta-table",    "selected_rows"),
-        Input("meta-table",    "derived_virtual_data"),
+        Input("meta-table",    "selected_row_ids"),
         State("store-meta-df", "data"),
         prevent_initial_call=True,
     )
-    def show_card(sel_rows, virtual_data, store_json):
-        if not sel_rows or not store_json:
+    def show_card(sel_ids, store_json):
+        if not sel_ids or not store_json:
             return "", None
         try:
-            idx      = sel_rows[0]
-            row_dict = (virtual_data or [])[idx] if virtual_data else None
-            if row_dict is None:
+            selected_name = sel_ids[0]  # id = Name
+
+            store_df = pd.DataFrame(json.loads(store_json))
+            match    = store_df[store_df["Name"] == selected_name]
+            if match.empty:
                 return "", None
 
-            # Обогащаем vdb_ полями из store
-            store_df = pd.DataFrame(json.loads(store_json))
-            match    = store_df[store_df["Name"] == row_dict.get("Name", "")]
-            if not match.empty:
-                merged = {**row_dict, **match.iloc[0].to_dict()}
-            else:
-                merged = row_dict
-
+            merged    = match.iloc[0].to_dict()
             card_html = generate_card_html(merged)
             return html.Div(dangerouslySetInnerHTML={"__html": card_html}), json.dumps(merged)
         except Exception as e:

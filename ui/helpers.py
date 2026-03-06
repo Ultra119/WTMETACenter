@@ -81,6 +81,7 @@ def dark_table(
     table_id: str | None = None,
     page_size: int = 100,
     max_height: str = "520px",
+    virtualize: bool = True,
 ) -> dash_table.DataTable:
     cols_avail = [c for c in columns if c in df.columns]
     kwargs: dict = dict(
@@ -93,14 +94,16 @@ def dark_table(
             }
             for c in cols_avail
         ],
-        style_table={"overflowX": "auto", "minWidth": "100%", "maxHeight": max_height, "overflowY": "auto"},
+        virtualization=virtualize,
+        style_table={"overflowX": "auto", "minWidth": "100%",
+                     "height": max_height, "overflowY": "auto"},
         style_header=_HEADER_STYLE,
         style_cell=_CELL_STYLE,
         style_data_conditional=_SEL_STYLE + (extra_cond_styles or []),
         fixed_rows={"headers": True},
         sort_action="native",
         sort_by=sort_by or [],
-        page_size=page_size,
+        page_action="none",
         style_as_list_view=False,
     )
     if selectable:
@@ -144,7 +147,8 @@ def pivot_table(pivot: pd.DataFrame) -> html.Div | dash_table.DataTable:
     return dash_table.DataTable(
         data=records,
         columns=[{"name": c, "id": c} for c in pivot.columns],
-        style_table={"overflowX": "auto", "minWidth": "100%", "maxHeight": "520px", "overflowY": "auto"},
+        virtualization=True,
+        style_table={"overflowX": "auto", "minWidth": "100%", "height": "520px", "overflowY": "auto"},
         style_header=_HEADER_STYLE,
         style_cell={**_CELL_STYLE, "minWidth": "60px"},
         style_cell_conditional=[
@@ -153,7 +157,7 @@ def pivot_table(pivot: pd.DataFrame) -> html.Div | dash_table.DataTable:
         style_data_conditional=styles,
         fixed_rows={"headers": True},
         sort_action="native",
-        page_size=200,
+        page_action="none",
     )
 
 
