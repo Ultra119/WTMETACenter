@@ -112,7 +112,12 @@ def _tab_meta(all_nations: list) -> html.Div:
             ], width=10),
         ], className="panel mb-3"),
         html.Div(id="meta-info", className="caption-text"),
-        html.Div(id="meta-table-container"),
+        dcc.Loading(
+            id="loading-meta",
+            type="dot",
+            color="#10b981",
+            children=html.Div(id="meta-table-container"),
+        ),
     ], style={"padding": "4px"})
 
 
@@ -137,7 +142,12 @@ def _tab_redbook(all_nations: list) -> html.Div:
             ], width=10),
         ], className="panel mb-3"),
         html.P("💀 Техника с наименьшим числом боёв — «вымирающие» машины.", className="caption-text"),
-        html.Div(id="rb-table-container"),
+        dcc.Loading(
+            id="loading-rb",
+            type="dot",
+            color="#10b981",
+            children=html.Div(id="rb-table-container"),
+        ),
     ], style={"padding": "4px"})
 
 
@@ -201,21 +211,24 @@ def _tab_brackets() -> html.Div:
                 _br_controls("meta"),
                 html.P("Средний META_SCORE топ-N машин нации в кронштейне. Золото = лучшая нация.", className="caption-text"),
                 dbc.Button("🔄 Пересчитать", id="br-calc-meta", color="success", size="sm", className="mb-2"),
-                html.Div(id="br-pivot-meta"),
+                dcc.Loading(id="loading-br-meta", type="dot", color="#10b981",
+                    children=html.Div(id="br-pivot-meta")),
             ]),
 
             dbc.Tab(label="⚔️ MM-Контекст", tab_id="br-mm", children=[
                 _br_controls("mm"),
                 html.P("Скор с учётом позиции в окне MM (±1.0 BR). Высокий META при низком MM = сила только в топе.", className="caption-text"),
                 dbc.Button("🔄 Пересчитать", id="br-calc-mm", color="success", size="sm", className="mb-2"),
-                html.Div(id="br-pivot-mm"),
+                dcc.Loading(id="loading-br-mm", type="dot", color="#10b981",
+                    children=html.Div(id="br-pivot-mm")),
             ]),
 
             dbc.Tab(label="🌍 Топ Наций", tab_id="br-nations", children=[
                 _br_controls("nat", with_step=False),
                 html.P("Power Score наций по среднему META топ-N машин.", className="caption-text"),
                 dbc.Button("🔄 Пересчитать", id="br-calc-nat", color="success", size="sm", className="mb-2"),
-                html.Div(id="br-nations-table"),
+                dcc.Loading(id="loading-br-nat", type="dot", color="#10b981",
+                    children=html.Div(id="br-nations-table")),
             ]),
         ]),
     ], style={"padding": "4px"})
@@ -265,7 +278,12 @@ def _tab_farm(all_nations: list, tf_data: TypeFilterData) -> html.Div:
             style={"width": "100%", "fontFamily": "Rajdhani", "fontWeight": "700",
                    "letterSpacing": "0.15em", "fontSize": "1rem"},
         ),
-        html.Div(id="farm-result", style={"marginTop": "20px"}),
+        dcc.Loading(
+            id="loading-farm",
+            type="dot",
+            color="#10b981",
+            children=html.Div(id="farm-result", style={"marginTop": "20px"}),
+        ),
     ], style={"padding": "4px"})
 
 
