@@ -132,11 +132,16 @@ def pivot_table(pivot: pd.DataFrame) -> html.Div | dash_table.DataTable:
             if row_max <= 0:
                 continue
             if val == row_max:
-                s = {"backgroundColor": "#854d0e", "color": "#fef08a", "fontWeight": "bold"}
+                # Золотой лидер: насыщенный янтарный фон + жирный светлый текст
+                s = {
+                    "backgroundColor": "#b45309",
+                    "color": "#fef3c7",
+                    "fontWeight": "800",
+                }
             elif val >= row_max * 0.90:
-                s = {"color": "#a7f3d0"}
+                s = {"backgroundColor": "rgba(16,185,129,0.12)", "color": "#a7f3d0", "fontWeight": "600"}
             elif val >= row_max * 0.75:
-                s = {"color": "#fcd34d"}
+                s = {"backgroundColor": "rgba(251,191,36,0.07)", "color": "#fcd34d"}
             elif val > 0:
                 s = {"color": "#f87171"}
             else:

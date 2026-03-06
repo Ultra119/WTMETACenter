@@ -191,7 +191,7 @@ def _tab_brackets() -> html.Div:
 
 def _tab_farm(all_nations: list, tf_data: TypeFilterData) -> html.Div:
     return html.Div([
-        html.H5("⚙️ Конструктор Сетапа",
+        html.H5("💰 Фарм-Гайд",
                 style={"fontFamily": "Rajdhani", "color": "#a7f3d0", "letterSpacing": "0.1em"}),
         dbc.Row([
             dbc.Col([
@@ -229,7 +229,7 @@ def _tab_farm(all_nations: list, tf_data: TypeFilterData) -> html.Div:
             ], width=3),
         ], className="panel mb-3"),
         dbc.Button(
-            "🚀 Подобрать сетап", id="farm-calc", color="success", size="lg",
+            "💰 Подобрать фарм-сет", id="farm-calc", color="success", size="lg",
             style={"width": "100%", "fontFamily": "Rajdhani", "fontWeight": "700",
                    "letterSpacing": "0.15em", "fontSize": "1rem"},
         ),
@@ -303,7 +303,7 @@ def build(all_nations: list, all_types: list, tf_data: TypeFilterData) -> html.D
                     dbc.Tab(_tab_meta(all_nations),          label="🏆 META Рейтинг",      tab_id="tab-meta"),
                     dbc.Tab(_tab_redbook(all_nations),       label="💀 Красная Книга",      tab_id="tab-redbook"),
                     dbc.Tab(_tab_brackets(),                 label="📊 БР Кронштейны",      tab_id="tab-brackets"),
-                    dbc.Tab(_tab_farm(all_nations, tf_data), label="⚙️ Конструктор Сетапа", tab_id="tab-farm"),
+                    dbc.Tab(_tab_farm(all_nations, tf_data), label="💰 Фарм-Гайд", tab_id="tab-farm"),
                 ], style={"marginTop": "6px"}),
             ], width=9, xl=10, style={"padding": "8px 16px"}),
         ], style={"margin": 0, "flexWrap": "nowrap"}),
