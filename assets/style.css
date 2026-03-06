@@ -127,34 +127,95 @@ input:focus, .form-control:focus {
     border-color: var(--accent-green) !important;
 }
 
-/* ── Sliders ───────────────────────────────────────────────────── */
-.rc-slider-rail       { background: var(--bg-elevated) !important; }
-.rc-slider-track      { background: var(--accent-green) !important; }
-.rc-slider-handle     { border-color: var(--accent-green) !important; background: var(--bg-dark) !important; }
-.rc-slider-handle:hover { box-shadow: 0 0 8px var(--accent-green) !important; }
-.rc-slider-mark-text  { color: var(--text-muted) !important; font-size: 0.6rem !important; }
-
-/* Dash dcc.RangeSlider / dcc.Slider — перекраска фиолетового в зелёный */
-.dash-slider-container input[type=range]::-webkit-slider-thumb { background: var(--accent-green) !important; }
-.dash-slider-container input[type=range]::-moz-range-thumb     { background: var(--accent-green) !important; }
-
-/* Новый Dash Slider (>= 2.9) использует .rc-slider внутри */
-.rc-slider-track-1      { background: var(--accent-green) !important; }
-.rc-slider-handle-1,
-.rc-slider-handle-2     {
-    border-color: var(--accent-green) !important;
-    background:   var(--bg-dark) !important;
-    box-shadow: 0 0 0 2px rgba(16,185,129,0.25) !important;
-    opacity: 1 !important;
+/* ── Sliders (Dash >= 2.9 Radix-based) ─────────────────────────── */
+.dash-slider-root {
+    position: relative;
+    display: flex;
+    align-items: center;
+    user-select: none;
+    touch-action: none;
+    width: 100%;
+    height: 20px;
 }
-.rc-slider-handle-1:hover,
-.rc-slider-handle-2:hover,
-.rc-slider-handle-1:active,
-.rc-slider-handle-2:active {
+
+/* Track background */
+.dash-slider-track {
+    background: var(--bg-elevated) !important;
+    position: relative;
+    flex-grow: 1;
+    border-radius: 9999px;
+    height: 4px;
+}
+
+/* Filled range */
+.dash-slider-range {
+    position: absolute;
+    background: var(--accent-green) !important;
+    border-radius: 9999px;
+    height: 100%;
+}
+
+/* Thumb handles */
+.dash-slider-thumb {
+    display: block;
+    width: 16px !important;
+    height: 16px !important;
+    background: var(--bg-dark) !important;
+    border: 2px solid var(--accent-green) !important;
+    border-radius: 50% !important;
+    cursor: pointer;
+    box-shadow: 0 0 0 2px rgba(16,185,129,0.25) !important;
+    transition: box-shadow .15s;
+    outline: none;
+}
+.dash-slider-thumb:hover,
+.dash-slider-thumb:focus {
     box-shadow: 0 0 10px var(--accent-green) !important;
     border-color: var(--accent-green2) !important;
 }
-.rc-slider-dot-active { border-color: var(--accent-green) !important; }
+
+/* Mark labels */
+.dash-slider-mark {
+    color: var(--text-primary) !important;
+    font-size: 0.72rem !important;
+    font-weight: 600 !important;
+    font-family: 'JetBrains Mono', monospace !important;
+    margin-top: 4px;
+}
+
+/* Tooltip (shown on drag) */
+.dash-slider-tooltip {
+    background: var(--bg-surface) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 4px !important;
+    padding: 2px 6px !important;
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: 0.7rem !important;
+    color: var(--accent-green2) !important;
+    white-space: nowrap;
+}
+
+/* ── Legacy rc-slider (Dash < 2.9 fallback) ────────────────────── */
+.rc-slider-rail       { background: var(--bg-elevated) !important; }
+.rc-slider-track      { background: var(--accent-green) !important; }
+.rc-slider-track-1    { background: var(--accent-green) !important; }
+.rc-slider-handle,
+.rc-slider-handle-1,
+.rc-slider-handle-2   {
+    border-color: var(--accent-green) !important;
+    background: var(--bg-dark) !important;
+    box-shadow: 0 0 0 2px rgba(16,185,129,0.25) !important;
+    opacity: 1 !important;
+}
+.rc-slider-handle:hover,
+.rc-slider-handle-1:hover, .rc-slider-handle-2:hover,
+.rc-slider-handle-1:active, .rc-slider-handle-2:active {
+    box-shadow: 0 0 10px var(--accent-green) !important;
+    border-color: var(--accent-green2) !important;
+}
+.rc-slider-mark-text    { color: var(--text-primary) !important; font-size: 0.72rem !important; font-weight: 600 !important; }
+.rc-slider-dot          { border-color: var(--border) !important; background: var(--bg-dark) !important; }
+.rc-slider-dot-active   { border-color: var(--accent-green) !important; }
 .rc-slider-tooltip-inner {
     background: var(--bg-surface) !important;
     color: var(--accent-green2) !important;
@@ -162,9 +223,6 @@ input:focus, .form-control:focus {
     font-family: 'JetBrains Mono', monospace !important;
     font-size: 0.7rem !important;
 }
-
-.rc-slider-dot        { border-color: var(--border) !important; background: var(--bg-dark) !important; }
-.rc-slider-dot-active { border-color: var(--accent-green) !important; }
 
 /* ── Buttons ───────────────────────────────────────────────────── */
 .btn-primary, .btn-success {
@@ -246,8 +304,8 @@ input:focus, .form-control:focus {
 
 /* ── DataTable ─────────────────────────────────────────────────── */
 .dash-table-container { font-family: 'JetBrains Mono', monospace; }
-.dash-header { background: var(--bg-surface) !important; color: var(--accent-green2); font-size: 0.7rem !important; letter-spacing: 0.1em !important; text-transform: uppercase !important; border-bottom: 1px solid var(--border) !important; }
-.dash-cell   { background: var(--bg-dark) !important; color: var(--text-primary); border-bottom: 1px solid var(--border) !important; font-size: 0.78rem; }
+.dash-header { background: var(--bg-surface) !important; color: var(--accent-green2) !important; font-size: 0.7rem !important; letter-spacing: 0.1em !important; text-transform: uppercase !important; border-bottom: 1px solid var(--border) !important; }
+.dash-cell   { background: var(--bg-dark) !important; color: var(--text-primary) !important; border-bottom: 1px solid var(--border) !important; font-size: 0.78rem !important; }
 .dash-cell:hover { background: var(--bg-surface) !important; }
 .dash-spreadsheet-container .dash-spreadsheet-inner th { background: var(--bg-surface) !important; }
 .row-selected td { background: rgba(16,185,129,0.12) !important; }
