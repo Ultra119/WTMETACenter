@@ -124,7 +124,7 @@ def pivot_table(pivot: pd.DataFrame) -> html.Div | dash_table.DataTable:
     nation_cols = [c for c in pivot.columns if c != idx_col]
     records = pivot.to_dict("records")
 
-    styles = [{"if": {"state": "active"}, "backgroundColor": "rgba(16,185,129,0.1)"}]
+    styles = [{"if": {"state": "active"}, "backgroundColor": "rgba(16,185,129,0.15)"}]
     for row_i, row in enumerate(records):
         vals = {c: float(row.get(c, 0) or 0) for c in nation_cols}
         row_max = max(vals.values()) if vals else 0
@@ -132,22 +132,18 @@ def pivot_table(pivot: pd.DataFrame) -> html.Div | dash_table.DataTable:
             if row_max <= 0:
                 continue
             if val == row_max:
-                # Золотой лидер: насыщенный янтарный фон + жирный светлый текст
-                s = {
-                    "backgroundColor": "#b45309",
-                    "color": "#fef3c7",
-                    "fontWeight": "800",
-                }
+                s = {"backgroundColor": "#b45309", "color": "#fef3c7", "fontWeight": "800"}
             elif val >= row_max * 0.90:
-                s = {"backgroundColor": "rgba(16,185,129,0.12)", "color": "#a7f3d0", "fontWeight": "600"}
+                s = {"backgroundColor": "rgba(16,185,129,0.18)", "color": "#a7f3d0", "fontWeight": "600"}
             elif val >= row_max * 0.75:
-                s = {"backgroundColor": "rgba(251,191,36,0.07)", "color": "#fcd34d"}
+                s = {"backgroundColor": "rgba(251,191,36,0.10)", "color": "#fcd34d"}
             elif val > 0:
                 s = {"color": "#f87171"}
             else:
                 s = {"color": "#475569"}
             styles.append({"if": {"row_index": row_i, "column_id": col}, **s})
 
+    _pivot_cell = {k: v for k, v in _CELL_STYLE.items() if k != "backgroundColor"}
     return dash_table.DataTable(
         data=records,
         columns=[{"name": c, "id": c} for c in pivot.columns],
@@ -155,7 +151,8 @@ def pivot_table(pivot: pd.DataFrame) -> html.Div | dash_table.DataTable:
         style_table={"overflowX": "auto", "minWidth": "100%",
                      "height": "520px", "overflowY": "auto"},
         style_header=_HEADER_STYLE,
-        style_cell={**_CELL_STYLE, "minWidth": "60px"},
+        style_cell={**_pivot_cell, "minWidth": "60px"},
+        style_data={"backgroundColor": "#0f172a"},
         style_cell_conditional=[
             {"if": {"column_id": idx_col}, "color": "#94a3b8", "fontSize": "11px", "minWidth": "80px"}
         ],

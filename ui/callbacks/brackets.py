@@ -16,6 +16,15 @@ from ui.callbacks.common import (
 def register(app, core, all_types, tf_data) -> None:
     init(all_types, tf_data)
 
+    # ── Блокировка Топ-N при «Все машины» ─────────────────────────────────
+    for _sfx in ("meta", "mm", "nat"):
+        @app.callback(
+            Output(f"br-topn-{_sfx}", "disabled"),
+            Input(f"br-all-{_sfx}",   "value"),
+        )
+        def _toggle_topn(all_checked):
+            return bool(all_checked)
+
     # ── Инфо-подпись ──────────────────────────────────────────────────────
     @app.callback(
         Output("brackets-info", "children"),

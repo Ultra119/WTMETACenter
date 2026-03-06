@@ -149,16 +149,48 @@ def _tab_brackets() -> html.Div:
                 html.Div("Детализация", className="section-label"),
                 dcc.Dropdown(id=f"br-step-{sfx}", options=_STEP_OPTS, value=1, clearable=False, searchable=False),
             ], width=3))
-        cols += [
+        cols.append(
             dbc.Col([
                 html.Div("Топ-N машин нации", className="section-label"),
-                dbc.Input(id=f"br-topn-{sfx}", type="number", value=5, min=1, max=50),
-            ], width=2),
-            dbc.Col([
-                html.Div("", className="section-label"),
-                dbc.Checkbox(id=f"br-all-{sfx}", label="Все машины", value=False),
-            ], width=2, style={"marginTop": "4px"}),
-        ]
+                html.Div([
+                    dbc.Input(
+                        id=f"br-topn-{sfx}",
+                        type="number", value=5, min=1, max=50,
+                        style={
+                            "width": "68px", "flexShrink": "0",
+                            "border": "none", "backgroundColor": "transparent",
+                            "color": "#e2e8f0", "padding": "4px 8px",
+                            "boxShadow": "none",
+                        },
+                    ),
+                    html.Div(style={
+                        "width": "1px", "alignSelf": "stretch",
+                        "background": "#334155", "margin": "4px 0",
+                    }),
+                    html.Div([
+                        dbc.Switch(
+                            id=f"br-all-{sfx}",
+                            value=False,
+                            style={"margin": "0"},
+                        ),
+                        html.Span("Все", style={
+                            "fontSize": "12px", "color": "#94a3b8",
+                            "userSelect": "none",
+                        }),
+                    ], style={
+                        "display": "flex", "alignItems": "center",
+                        "gap": "6px", "padding": "0 10px",
+                    }),
+                ], style={
+                    "display": "inline-flex",
+                    "alignItems": "center",
+                    "border": "1px solid #334155",
+                    "borderRadius": "6px",
+                    "backgroundColor": "#1e293b",
+                    "overflow": "hidden",
+                }),
+            ], width="auto"),
+        )
         return dbc.Row(cols, className="mb-3")
 
     return html.Div([
@@ -191,7 +223,7 @@ def _tab_brackets() -> html.Div:
 
 def _tab_farm(all_nations: list, tf_data: TypeFilterData) -> html.Div:
     return html.Div([
-        html.H5("💰 Фарм-Гайд",
+        html.H5("⚙️ Конструктор Сетапа",
                 style={"fontFamily": "Rajdhani", "color": "#a7f3d0", "letterSpacing": "0.1em"}),
         dbc.Row([
             dbc.Col([
@@ -229,7 +261,7 @@ def _tab_farm(all_nations: list, tf_data: TypeFilterData) -> html.Div:
             ], width=3),
         ], className="panel mb-3"),
         dbc.Button(
-            "💰 Подобрать фарм-сет", id="farm-calc", color="success", size="lg",
+            "🚀 Подобрать сетап", id="farm-calc", color="success", size="lg",
             style={"width": "100%", "fontFamily": "Rajdhani", "fontWeight": "700",
                    "letterSpacing": "0.15em", "fontSize": "1rem"},
         ),
@@ -280,7 +312,6 @@ def build(all_nations: list, all_types: list, tf_data: TypeFilterData) -> html.D
         dcc.Store(id="store-meta-df"),
         dcc.Store(id="store-meta-filters"),
         dcc.Store(id="store-selected-vehicle"),
-        dcc.Store(id="store-history", data=[]),
 
         # Модальное окно карточки
         vehicle_modal,
@@ -290,9 +321,6 @@ def build(all_nations: list, all_types: list, tf_data: TypeFilterData) -> html.D
             html.Span("🛡️", style={"fontSize": "1.5rem"}),
             html.H3("WT META CENTER"),
             html.Span("Dash Edition", className="topbar-badge"),
-            html.Div(style={"flex": "1"}),          # spacer — pushes history to the right
-            html.Div(id="history-widget",
-                     style={"marginRight": "12px", "display": "flex", "alignItems": "center"}),
         ]),
 
         # Two-column layout: sidebar + content
@@ -303,7 +331,7 @@ def build(all_nations: list, all_types: list, tf_data: TypeFilterData) -> html.D
                     dbc.Tab(_tab_meta(all_nations),          label="🏆 META Рейтинг",      tab_id="tab-meta"),
                     dbc.Tab(_tab_redbook(all_nations),       label="💀 Красная Книга",      tab_id="tab-redbook"),
                     dbc.Tab(_tab_brackets(),                 label="📊 БР Кронштейны",      tab_id="tab-brackets"),
-                    dbc.Tab(_tab_farm(all_nations, tf_data), label="💰 Фарм-Гайд", tab_id="tab-farm"),
+                    dbc.Tab(_tab_farm(all_nations, tf_data), label="⚙️ Конструктор Сетапа", tab_id="tab-farm"),
                 ], style={"marginTop": "6px"}),
             ], width=9, xl=10, style={"padding": "8px 16px"}),
         ], style={"margin": 0, "flexWrap": "nowrap"}),
