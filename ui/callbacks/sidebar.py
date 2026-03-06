@@ -2,7 +2,6 @@
 Колбэки сайдбара: предупреждения, поиск техники, карточка.
 """
 import json
-import pandas as pd
 from dash import Input, Output, State, html
 import dash_bootstrap_components as dbc
 from dash import dcc
@@ -81,11 +80,10 @@ def register(app, core) -> None:
     @app.callback(
         Output("sb-card-display", "children"),
         Input("sb-show-card", "n_clicks"),
-        State("sb-pick",        "value"),
-        State("store-meta-df",  "data"),
+        State("sb-pick", "value"),
         prevent_initial_call=True,
     )
-    def show_card(n, pick_val, meta_df_json):
+    def show_card(n, pick_val):
         if not pick_val:
             return ""
 
@@ -93,7 +91,16 @@ def register(app, core) -> None:
         name   = parts[0]
         nation = parts[1] if len(parts) > 1 else ""
 
-        row = _find_row(core, name, nation, meta_df_json)
+        # Приоритет: текущий display_df (отфильтрованный), затем full_df.
+        row = core.get_vehicle_row(name, nation)
+        if row is None and not core.full_df.empty:
+            # Техника есть в базе, но не попала в текущий фильтр — берём из full_df.
+            mask = core.full_df["Name"] == name
+            if nation and "Nation" in core.full_df.columns:
+                mask &= core.full_df["Nation"] == nation
+            sub = core.full_df[mask]
+            row = sub.iloc[0].to_dict() if not sub.empty else None
+
         if row is None:
             return dbc.Alert("Техника не найдена.", color="warning",
                              style={"fontSize": "0.8rem"})
@@ -102,30 +109,3 @@ def register(app, core) -> None:
             html.Hr(),
             generate_vehicle_card(row),
         ])
-
-
-# ── Private helpers ───────────────────────────────────────────────────────────
-def _find_row(core, name: str, nation: str, meta_df_json) -> dict | None:
-    """Ищет строку в порядке: display_df → store → full_df."""
-    def _match(df: pd.DataFrame):
-        mask = df["Name"] == name
-        if nation and "Nation" in df.columns:
-            mask &= df["Nation"] == nation
-        sub = df[mask]
-        return sub.iloc[0].to_dict() if not sub.empty else None
-
-    if not core.display_df.empty:
-        row = _match(core.display_df)
-        if row:
-            return row
-
-    if meta_df_json:
-        try:
-            df = pd.DataFrame(json.loads(meta_df_json))
-            row = _match(df)
-            if row:
-                return row
-        except Exception:
-            pass
-
-    return _match(core.full_df)

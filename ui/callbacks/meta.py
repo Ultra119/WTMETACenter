@@ -2,8 +2,7 @@
 Колбэки вкладки 🏆 META Рейтинг.
 """
 import json
-import pandas as pd
-from dash import Input, Output, State, html
+from dash import Input, Output, html
 import dash_bootstrap_components as dbc
 from dash import dash_table
 
@@ -99,6 +98,10 @@ def register(app, core, all_nations, all_types, tf_data) -> None:
         # Колонка с иконкой + конкретным типом вместо категории
         df["Type_Display"] = df["Type"].apply(lambda t: _TYPE_ICON.get(str(t), str(t)))
         cols_avail = [c for c in _META_COLS if c in df.columns]
+        # raw «Name» включается в data, но не в columns —
+        # это делает его невидимым в таблице, но доступным в derived_virtual_data,
+        # что позволяет show_card читать его без обращения к store.
+        data_cols  = list(dict.fromkeys(cols_avail + (["Name"] if "Name" in df.columns else [])))
 
         mode_note = " · данные из Realistic Battles" if mode == "All/Mixed" else ""
         info = html.Span([
@@ -110,7 +113,7 @@ def register(app, core, all_nations, all_types, tf_data) -> None:
 
         table = dash_table.DataTable(
             id="meta-table",
-            data=df[cols_avail].round(2).to_dict("records"),
+            data=df[data_cols].round(2).to_dict("records"),
             columns=[
                 {"name": _META_COL_NAMES.get(c, c), "id": c,
                  "type": "numeric" if c not in ("Name_Display", "Nation", "Type_Display") else "text"}
@@ -155,10 +158,11 @@ def register(app, core, all_nations, all_types, tf_data) -> None:
             page_action="none",
         )
 
-        # Store: только нужные колонки + vdb_*
-        vdb_cols = [c for c in df.columns if c.startswith("vdb_")]
-        keep     = [c for c in _STORE_KEEP + vdb_cols if c in df.columns]
-        store    = df[keep].to_json(orient="records")
+        # Store: минимальный индекс для поиска — только Name, Nation, Name_Display.
+        # Полные данные карточки берутся из core.display_df на сервере (см. show_card).
+        # Размер: ~3 строки × N машин вместо прежних 30+ колонок × N машин.
+        idx_cols = [c for c in ("Name", "Nation", "Name_Display") if c in df.columns]
+        store    = df[idx_cols].to_json(orient="records")
 
         return table, info, store, json.dumps(filters)
 
@@ -168,26 +172,27 @@ def register(app, core, all_nations, all_types, tf_data) -> None:
         Output("store-selected-vehicle", "data"),
         Input("meta-table",    "selected_rows"),
         Input("meta-table",    "derived_virtual_data"),
-        State("store-meta-df", "data"),
         prevent_initial_call=True,
     )
-    def show_card(sel_rows, virtual_data, store_json):
-        if not sel_rows or not store_json:
+    def show_card(sel_rows, virtual_data):
+        if not sel_rows or not virtual_data:
             return "", None
         try:
-            idx      = sel_rows[0]
-            row_dict = (virtual_data or [])[idx] if virtual_data else None
-            if row_dict is None:
-                return "", None
+            row_dict = virtual_data[sel_rows[0]]
+            # raw Name живёт в data, но не отображается в columns таблицы
+            name   = row_dict.get("Name") or row_dict.get("Name_Display", "")
+            nation = row_dict.get("Nation", "")
 
-            # Обогащаем vdb_ полями из store
-            store_df = pd.DataFrame(json.loads(store_json))
-            match    = store_df[store_df["Name"] == row_dict.get("Name", "")]
-            if not match.empty:
-                merged = {**row_dict, **match.iloc[0].to_dict()}
-            else:
-                merged = row_dict
+            # Полные данные (включая vdb_*) берутся из серверного display_df —
+            # ничего тяжёлого не передаётся через браузер.
+            full_row = core.get_vehicle_row(name, nation)
+            if full_row is None:
+                # Крайний случай: техника исчезла из display_df (напр. после перерасчёта)
+                full_row = row_dict
 
-            return generate_vehicle_card(merged), json.dumps(merged)
+            merged = {**row_dict, **full_row}
+            return generate_vehicle_card(merged), json.dumps({
+                "Name": name, "Nation": nation,
+            })
         except Exception as e:
             return dbc.Alert(f"Ошибка карточки: {e}", color="danger"), None

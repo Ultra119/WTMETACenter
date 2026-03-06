@@ -108,3 +108,18 @@ class AnalyticsCore:
 
     def get_mm_context(self, step: int = 1, top_n: "int | None" = None) -> pd.DataFrame:
         return _get_mm_context(self.display_df, step, top_n)
+
+    def get_vehicle_row(self, name: str, nation: str = "") -> dict | None:
+        """
+        Ищет строку техники в display_df (текущий результат calculate_meta).
+        Возвращает dict со всеми колонками, включая vdb_*.
+        Возвращает None, если техника не найдена или display_df пуст.
+        """
+        df = self.display_df
+        if df.empty or "Name" not in df.columns:
+            return None
+        mask = df["Name"] == name
+        if nation and "Nation" in df.columns:
+            mask &= df["Nation"] == nation
+        sub = df[mask]
+        return sub.iloc[0].to_dict() if not sub.empty else None
