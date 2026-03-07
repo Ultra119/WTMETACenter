@@ -184,7 +184,7 @@ def build_progression_data(df: pd.DataFrame, nation: str) -> pd.DataFrame:
 
     # Проход 2-S: вердикты
     for branch, grp in std_df.groupby("_branch"):
-        srt = grp.sort_values("BR")
+        srt = grp.sort_values(["BR", "Local_Score"], ascending=[True, False])
         p60 = srt["Local_Score"].quantile(0.60)
 
         for pos, (row_idx, row) in enumerate(srt.iterrows()):
