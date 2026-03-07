@@ -8,9 +8,9 @@ RANK_PENALTY: dict[int, float] = {
     -1: 0.90,
      0: 1.00,
     +1: 1.00,
-    +2: 0.40,
-    +3: 0.30,
-    +4: 0.20,
+    +2: 0.35,
+    +3: 0.15,
+    +4: 0.06,
 }
 
 RANK_PENALTY_PREMIUM: dict[int, float] = {
@@ -20,10 +20,20 @@ RANK_PENALTY_PREMIUM: dict[int, float] = {
     -1: 1.00,
      0: 1.00,
     +1: 1.00,
-    +2: 0.40,
-    +3: 0.30,
-    +4: 0.20,
+    +2: 0.35,
+    +3: 0.15,
+    +4: 0.06,
 }
+
+_MM_WINDOW = 1.0
+
+
+def _br_decay(researcher_br: float, target_br: float) -> float:
+    gap = target_br - researcher_br
+    if gap <= _MM_WINDOW:
+        return 1.0
+    excess = gap - _MM_WINDOW
+    return float(max(0.02, np.exp(-1.1 * excess)))
 
 ROMAN: dict[int, str] = {
     1: "I", 2: "II", 3: "III", 4: "IV",
@@ -76,29 +86,47 @@ def _rank_penalty_std(researcher_era: int, target_era: int) -> float:
     diff = target_era - researcher_era
     if diff < 0:
         return RANK_PENALTY.get(diff, 0.05)
-    return RANK_PENALTY.get(diff, 0.20)
+    return RANK_PENALTY.get(diff, 0.06)
 
 
 def _rank_penalty_prem(researcher_era: int, target_era: int) -> float:
     diff = target_era - researcher_era
     if diff <= 1:
         return RANK_PENALTY_PREMIUM.get(diff, 1.00)
-    return RANK_PENALTY_PREMIUM.get(diff, 0.20)
+    return RANK_PENALTY_PREMIUM.get(diff, 0.06)
+
+
+def _combined_penalty(
+    researcher_era: int, researcher_br: float,
+    target_era: int,    target_br: float,
+    is_prem: bool = False,
+) -> float:
+    rank_pen = (
+        _rank_penalty_prem(researcher_era, target_era)
+        if is_prem else
+        _rank_penalty_std(researcher_era, target_era)
+    )
+    return rank_pen * _br_decay(researcher_br, target_br)
 
 
 def _calc_prem_boost(
     prem_era: int,
+    prem_br:  float,
     prem_score: float,
     std_branch: pd.DataFrame,
     target_era: int,
+    target_br:  float,
 ) -> float:
-    prem_grind = prem_score * _rank_penalty_prem(prem_era, target_era)
+    prem_grind = prem_score * _combined_penalty(
+        prem_era, prem_br, target_era, target_br, is_prem=True
+    )
 
     best_free = 0.0
     for _, row in std_branch.iterrows():
-        std_era   = int(row["_era_int"])
-        std_score = float(row["Local_Score"])
-        eff       = std_score * _rank_penalty_std(std_era, target_era)
+        eff = float(row["Local_Score"]) * _combined_penalty(
+            int(row["_era_int"]), float(row["BR"]),
+            target_era, target_br,
+        )
         if eff > best_free:
             best_free = eff
 
@@ -169,17 +197,22 @@ def build_progression_data(df: pd.DataFrame, nation: str) -> pd.DataFrame:
             if not prev.empty:
                 best_eff         = 0.0
                 best_name        = ""
-                best_penalty_pct = 0.0
+
+                target_br = float(row["BR"])
 
                 for prev_idx, prev_row in prev.iterrows():
                     if std_df.at[prev_idx, "Verdict"] == VERDICT_SKIP:
                         continue
-                    pen = _rank_penalty_std(int(prev_row["_era_int"]), era)
+                    pen = _combined_penalty(
+                        researcher_era=int(prev_row["_era_int"]),
+                        researcher_br=float(prev_row["BR"]),
+                        target_era=era,
+                        target_br=target_br,
+                    )
                     eff = float(prev_row["Local_Score"]) * pen
                     if eff > best_eff:
-                        best_eff         = eff
-                        best_name        = str(prev_row["Name"])
-                        best_penalty_pct = pen * 100.0
+                        best_eff  = eff
+                        best_name = str(prev_row["Name"])
 
                 if best_eff > loc_s * 1.05:
                     should_skip = True
@@ -218,9 +251,12 @@ def build_progression_data(df: pd.DataFrame, nation: str) -> pd.DataFrame:
             prem_df.at[row_idx, "Verdict"]       = VERDICT_PREM
             prem_df.at[row_idx, "Prem_Pain_Fix"] = prem_era in pain_eras
 
-            # Стандартная техника той же ветки для расчёта буста
             std_branch = std_df[std_df["_branch"] == branch]
-            boost = _calc_prem_boost(prem_era, prem_score, std_branch, target_era=prem_era)
+            boost = _calc_prem_boost(
+                prem_era, float(row["BR"]), prem_score,
+                std_branch,
+                target_era=prem_era, target_br=float(row["BR"]),
+            )
             prem_df.at[row_idx, "Prem_Boost"] = boost
 
     # ── Объединяем ────────────────────────────────────────────────────────────
