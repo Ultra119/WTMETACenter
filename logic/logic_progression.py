@@ -35,7 +35,7 @@ VERDICT_PASS = "PASS"
 VERDICT_SKIP = "SKIP"
 VERDICT_PREM = "PREM"
 
-_PREM_CLASSES = {"Premium", "Pack", "Squadron", "Marketplace"}
+_PREM_CLASSES = {"Premium", "Pack", "Squadron", "Marketplace", "Gift"}
 
 
 def _shop_sort_key(df: pd.DataFrame) -> pd.Series:
@@ -171,7 +171,9 @@ def build_progression_data(df: pd.DataFrame, nation: str) -> pd.DataFrame:
                 best_name        = ""
                 best_penalty_pct = 0.0
 
-                for _, prev_row in prev.iterrows():
+                for prev_idx, prev_row in prev.iterrows():
+                    if std_df.at[prev_idx, "Verdict"] == VERDICT_SKIP:
+                        continue
                     pen = _rank_penalty_std(int(prev_row["_era_int"]), era)
                     eff = float(prev_row["Local_Score"]) * pen
                     if eff > best_eff:

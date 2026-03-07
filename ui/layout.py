@@ -33,6 +33,7 @@ def _sidebar(all_nations: list, tf_data: TypeFilterData) -> html.Div:
         {"label": "📦 Пак",          "value": "Pack"},
         {"label": "✦ Эскадрилья",   "value": "Squadron"},
         {"label": "🏪 Маркетплейс",  "value": "Marketplace"},
+        {"label": "🎁 Подарок",      "value": "Gift"},
     ]
     return html.Div(id="sidebar", children=[
         html.H5("🎛️ НАСТРОЙКИ"),
@@ -78,7 +79,7 @@ def _sidebar(all_nations: list, tf_data: TypeFilterData) -> html.Div:
         dcc.Dropdown(
             id="sb-classes",
             options=class_opts,
-            value=["Standard", "Premium", "Pack", "Squadron", "Marketplace"],
+            value=["Standard", "Premium", "Pack", "Squadron", "Marketplace", "Gift"],
             multi=True, clearable=False, searchable=False, placeholder="Все классы",
         ),
         html.Hr(),
