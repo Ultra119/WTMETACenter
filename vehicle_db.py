@@ -2,9 +2,6 @@ from __future__ import annotations
 
 import json
 import os
-import re
-from difflib import SequenceMatcher
-from functools import lru_cache
 from typing import Optional
 
 import pandas as pd
@@ -14,75 +11,8 @@ try:
 except ImportError:
     _UnitsCsvTranslator = None
 
-NATION_TO_COUNTRY: dict[str, str] = {
-    "usa":         "usa",
-    "germany":     "germany",
-    "ussr":        "ussr",
-    "britain":     "britain",
-    "japan":       "japan",
-    "italy":       "italy",
-    "france":      "france",
-    "sweden":      "sweden",
-    "israel":      "israel",
-    "china":       "china",
-    "finland":     "finland",
-    "netherlands": "netherlands",
-    "hungary":     "hungary",
-    "benelux":     "netherlands",
-}
 
-_ID_PREFIXES: tuple[str, ...] = (
-    "us_", "uk_", "germ_", "ussr_", "jp_",
-    "it_", "fr_", "sw_", "cn_", "il_",
-    "fi_", "nl_", "hu_",
-)
-
-_ROMAN_PAIRS: list[tuple[str, str]] = [
-    ("viii", "8"), ("vii",  "7"), ("vi",  "6"),
-    ("iv",   "4"), ("ix",   "9"), ("iii", "3"),
-    ("ii",   "2"), ("v",    "5"), ("xl",  "40"),
-    ("xc",  "90"), ("x",   "10"), ("i",    "1"),
-]
-
-FUZZY_THRESHOLD: float = 0.65
-FUZZY_WARN_THRESHOLD: float = 0.82
-
-def _roman_to_arabic(s: str) -> str:
-    parts = re.split(r"(\d+)", s)
-    result = []
-    for part in parts:
-        if part.isdigit():
-            result.append(part)
-            continue
-        tokens = re.findall(r"[a-z]+|[^a-z]+", part)
-        converted = []
-        for tok in tokens:
-            replaced = tok
-            for roman, arabic in _ROMAN_PAIRS:
-                if replaced == roman:
-                    replaced = arabic
-                    break
-            converted.append(replaced)
-        result.append("".join(converted))
-    return "".join(result)
-
-
-@lru_cache(maxsize=8192)
-def normalize_name(raw: str) -> str:
-    s = str(raw).lower().strip()
-
-    for pfx in _ID_PREFIXES:
-        if s.startswith(pfx):
-            s = s[len(pfx):]
-            break
-
-    s = re.sub(r"[\-_./()+,]+", " ", s)
-    s = re.sub(r"\s+", " ", s).strip()
-
-    s = _roman_to_arabic(s)
-    s = re.sub(r"[^a-z0-9]", "", s)
-
-    return s
+# ── JSON helpers ──────────────────────────────────────────────────────────────
 
 def _parse_json_field(raw, default):
     if isinstance(raw, (dict, list)):
@@ -260,38 +190,18 @@ def _build_vdb_row(v: dict) -> dict:
 
     return row
 
+
 class VehicleDB:
     def __init__(self, vehicles_json_path: str) -> None:
-        self._index:        dict[tuple[str, str], dict]              = {}
-        self._by_country:   dict[str, list[tuple[str, str]]]         = {}
-        self._by_country_br: dict[tuple[str, float], list[tuple[str, str]]] = {}
+        self._index: dict[str, dict] = {}
         self._units = None
-
         self._load(vehicles_json_path)
-
-    _FUZZY_LOG_FILE: str = "fuzzy_matches.log"
 
     def _load(self, path: str) -> None:
         dataset_dir = os.path.dirname(os.path.abspath(path)) if path else ""
+
         if _UnitsCsvTranslator is not None:
             self._units = _UnitsCsvTranslator(dataset_dir)
-        else:
-            self._units = None
-
-        aliases_path = os.path.join(os.path.dirname(path), "aliases.json")
-        self._aliases: dict[tuple[str, str], str] = {}
-        if os.path.exists(aliases_path):
-            try:
-                with open(aliases_path, "r", encoding="utf-8") as _af:
-                    raw_aliases: dict = json.load(_af)
-                for akey, identifier in raw_aliases.items():
-                    parts   = akey.split("/", 1)
-                    acountry = parts[0].strip().lower() if len(parts) == 2 else ""
-                    aname    = parts[-1].strip()
-                    self._aliases[(normalize_name(aname), acountry)] = identifier
-                print(f"[VehicleDB] 📖 Загружено {len(self._aliases)} алиасов из aliases.json")
-            except Exception as _ae:
-                print(f"[VehicleDB] ⚠️  Ошибка чтения aliases.json: {_ae}")
 
         if not os.path.exists(path):
             print(f"[VehicleDB] ⚠️  vehicles.json не найден: {path}")
@@ -314,232 +224,65 @@ class VehicleDB:
         for v in data:
             if not isinstance(v, dict):
                 continue
-            country    = str(v.get("country", "") or "").lower().strip()
-            identifier = str(v.get("identifier", "") or "")
-            norm       = normalize_name(identifier)
-
-            vdb_row = _build_vdb_row(v)
-
-            key = (norm, country)
-            if key not in self._index:
-                self._index[key] = vdb_row
-                self._by_country.setdefault(country, []).append(key)
-                _br_fields = (
-                    "arcade_br", "realistic_br", "simulator_br",
-                    "realistic_ground_br", "simulator_ground_br",
-                )
-                _seen_brs: set[float] = set()
-                for _bf in _br_fields:
-                    _raw_br = v.get(_bf)
-                    if _raw_br and float(_raw_br) > 0:
-                        _br_key = round(float(_raw_br), 1)
-                        if _br_key not in _seen_brs:
-                            _seen_brs.add(_br_key)
-                            _cbr = (country, _br_key)
-                            self._by_country_br.setdefault(_cbr, []).append(key)
+            identifier = str(v.get("identifier", "") or "").strip()
+            if not identifier:
+                continue
+            self._index[identifier] = _build_vdb_row(v)
 
         print(f"[VehicleDB] ✅ Загружено {len(self._index)} записей из vehicles.json")
 
-    @staticmethod
-    def _nation_to_country(nation: str) -> str:
-        return NATION_TO_COUNTRY.get(nation.lower().strip(), nation.lower().strip())
-
-    @staticmethod
-    def _score(a: str, b: str) -> float:
-        return SequenceMatcher(None, a, b).ratio()
-
-    def find_match(
-        self,
-        name:   str,
-        nation: str,
-        br:     float = 0.0,
-        mode:   str   = "",
-    ) -> tuple[Optional[dict], float]:
-        if not self._index:
-            return None, 0.0
-
-        norm    = normalize_name(name)
-        country = self._nation_to_country(nation)
-
-        alias_id = self._aliases.get((norm, country))
-        if alias_id:
-            alias_norm = normalize_name(alias_id)
-            alias_row  = self._index.get((alias_norm, country))
-            if alias_row:
-                return alias_row, 1.0
-
-        if self._units is not None and self._units.loaded:
-            units_id = self._units.find_id(name)
-            if units_id:
-                units_norm = normalize_name(units_id)
-                row_exact = self._index.get((units_norm, country))
-                if row_exact is not None:
-                    return row_exact, 1.0
-                for (n, c), candidate_row in self._index.items():
-                    if n == units_norm:
-                        return candidate_row, 0.97
-
-        exact = self._index.get((norm, country))
-        if exact is not None:
-            return exact, 1.0
-
-        _MODE_BR_FIELDS: dict[str, list[str]] = {
-            "Arcade":    ["arcade_br"],
-            "Realistic": ["realistic_br", "realistic_ground_br", "arcade_br"],
-            "Simulator": ["simulator_br", "simulator_ground_br", "realistic_br"],
-            "Mixed":     ["realistic_br", "arcade_br", "simulator_br"],
-            "":          ["realistic_br", "arcade_br", "simulator_br"],
-        }
-        _br_fields_for_mode = _MODE_BR_FIELDS.get(
-            mode, _MODE_BR_FIELDS[""]
-        )
-        _BR_WINDOWS: list[float] = [0.0, 0.3, 0.7]
-
-        if br > 0.0:
-            br_r = round(br, 1)
-            for window in _BR_WINDOWS:
-                candidate_keys: set[tuple[str, str]] = set()
-                _step = 0.1
-                _cur  = br_r - window
-                while _cur <= br_r + window + 0.01:
-                    _k = round(_cur, 1)
-                    candidate_keys.update(self._by_country_br.get((country, _k), []))
-                    _cur = round(_cur + _step, 1)
-
-                if not candidate_keys:
-                    continue
-
-                br_best_row:   Optional[dict] = None
-                br_best_score: float          = 0.0
-                for ckey in candidate_keys:
-                    s = self._score(norm, ckey[0])
-                    row_cand = self._index[ckey]
-                    for _bf in _br_fields_for_mode:
-                        _cand_br = float(row_cand.get(_bf) or 0)
-                        if _cand_br > 0 and abs(_cand_br - br) <= 0.15:
-                            s = min(1.0, s + 0.08)
-                            break
-                    if s > br_best_score:
-                        br_best_score = s
-                        br_best_row   = row_cand
-
-                br_threshold = max(FUZZY_THRESHOLD - 0.25 + window * 0.35, 0.38)
-                if br_best_score >= br_threshold:
-                    return br_best_row, br_best_score
-
-        best_row:   Optional[dict] = None
-        best_score: float          = 0.0
-
-        for key in self._by_country.get(country, []):
-            s = self._score(norm, key[0])
-            if s > best_score:
-                best_score = s
-                best_row   = self._index[key]
-
-        if best_score >= FUZZY_THRESHOLD:
-            return best_row, best_score
-
-        g_best_row:   Optional[dict] = None
-        g_best_score: float          = 0.0
-
-        for (cand_norm, cand_country), row in self._index.items():
-            s = self._score(norm, cand_norm)
-            if cand_country != country:
-                s *= 0.85
-            if s > g_best_score:
-                g_best_score = s
-                g_best_row   = row
-
-        if g_best_score >= FUZZY_THRESHOLD:
-            return g_best_row, g_best_score
-
-        return None, 0.0
+    def find_by_id(self, identifier: str) -> Optional[dict]:
+        return self._index.get(identifier)
 
     def enrich_dataframe(self, df: pd.DataFrame) -> pd.DataFrame:
-        if df.empty or "Name" not in df.columns:
+        if df.empty or "id" not in df.columns:
+            df["vdb_match_score"] = 0.0
             return df
 
         df = df.copy()
 
-        _pair_cols = [c for c in ["Name", "Nation", "BR", "Mode"] if c in df.columns]
-        pairs = df[_pair_cols].drop_duplicates()
-        if "Nation" not in pairs.columns:
-            pairs = pairs.assign(Nation="")
-        if "BR" not in pairs.columns:
-            pairs = pairs.assign(BR=0.0)
-        if "Mode" not in pairs.columns:
-            pairs = pairs.assign(Mode="")
+        unique_ids = df["id"].dropna().astype(str).unique()
+        cache: dict[str, Optional[dict]] = {
+            uid: self.find_by_id(uid) for uid in unique_ids
+        }
 
-        cache: dict[tuple[str, str], tuple[Optional[dict], float]] = {}
-        fuzzy_log_lines: list[str] = []
-
-        for _, row in pairs.iterrows():
-            k     = (str(row["Name"]), str(row.get("Nation", "")))
-            k_br  = float(row.get("BR", 0.0) or 0.0)
-            k_mode = str(row.get("Mode", "") or "")
-            if k in cache:
-                continue
-            vdb_row, match_score = self.find_match(k[0], k[1], br=k_br, mode=k_mode)
-            cache[k] = (vdb_row, match_score)
-
-            if vdb_row is not None and match_score < FUZZY_WARN_THRESHOLD:
-                matched_id = vdb_row.get("vdb_identifier", "?")
-                line = f"score={match_score:.3f} | {k[1]}/{k[0]} -> {matched_id}"
-                fuzzy_log_lines.append(line)
-                if len(fuzzy_log_lines) <= 10:
-                    print(f"[VehicleDB] ⚡ {line}")
-
-        if fuzzy_log_lines:
-            try:
-                with open(self._FUZZY_LOG_FILE, "w", encoding="utf-8") as _fl:
-                    _fl.write("# VehicleDB fuzzy match log\n")
-                    _fl.write("# Формат: score | нация/имя_в_статистике -> identifier_в_vehicles.json\n")
-                    _fl.write("# Чтобы исправить: добавьте запись в dataset/aliases.json:\n")
-                    _fl.write('#   { "нация/имя_в_статистике": "правильный_identifier" }\n\n')
-                    _fl.write("\n".join(fuzzy_log_lines))
-                print(f"[VehicleDB] 📝 {len(fuzzy_log_lines)} нечётких матчей -> {self._FUZZY_LOG_FILE}")
-            except Exception as _le:
-                print(f"[VehicleDB] ⚠️  Не удалось записать fuzzy лог: {_le}")
-
-        sample = next((r for r, _ in cache.values() if r is not None), None)
+        sample = next((r for r in cache.values() if r is not None), None)
         if sample is None:
+            print("[VehicleDB] ⚠️  Ни одного совпадения — проверьте поле 'id' в датасете")
             df["vdb_match_score"] = 0.0
             return df
 
-        vdb_keys = list(sample.keys())
-
-        for k in vdb_keys:
-            val = sample[k]
-            if isinstance(val, bool):
-                df[k] = False
-            elif isinstance(val, int):
-                df[k] = 0
-            elif isinstance(val, float):
-                df[k] = 0.0
-            elif isinstance(val, list):
-                df[k] = [[] for _ in range(len(df))]
-            else:
-                df[k] = None
+        for k, val in sample.items():
+            if isinstance(val, bool):    df[k] = False
+            elif isinstance(val, int):   df[k] = 0
+            elif isinstance(val, float): df[k] = 0.0
+            elif isinstance(val, list):  df[k] = [[] for _ in range(len(df))]
+            else:                        df[k] = None
 
         df["vdb_match_score"] = 0.0
 
-        def _fill(row: pd.Series) -> pd.Series:
-            key = (str(row["Name"]), str(row.get("Nation", "")))
-            vdb_row, score = cache.get(key, (None, 0.0))
-            row["vdb_match_score"] = round(score, 3)
+        for idx, row in df.iterrows():
+            uid = str(row.get("id", "") or "")
+            vdb_row = cache.get(uid)
             if vdb_row:
-                for vdb_k in vdb_keys:
-                    row[vdb_k] = vdb_row.get(vdb_k)
-            return row
-
-        df = df.apply(_fill, axis=1)
+                df.at[idx, "vdb_match_score"] = 1.0
+                for vdb_k in sample.keys():
+                    df.at[idx, vdb_k] = vdb_row.get(vdb_k)
 
         matched = int((df["vdb_match_score"] > 0).sum())
-        avg     = df.loc[df["vdb_match_score"] > 0, "vdb_match_score"].mean()
-        print(
-            f"[VehicleDB] 🔗 Сопоставлено {matched}/{len(df)} "
-            f"(avg confidence: {avg:.2f})"
-        )
+        total   = len(df)
+        pct     = 100.0 * matched / total if total else 0.0
+        print(f"[VehicleDB] 🔗 Сопоставлено {matched}/{total} ({pct:.1f}%) по прямому id-матчу")
+
+        if matched < total:
+            missing_ids = [
+                str(row["id"]) for _, row in df[df["vdb_match_score"] == 0].iterrows()
+                if str(row.get("id", ""))
+            ]
+            if missing_ids:
+                sample_missing = missing_ids[:10]
+                print(f"[VehicleDB] ⚠️  Не найдено {total - matched} записей, первые 10: {sample_missing}")
+
         return df
 
     @property
@@ -547,17 +290,10 @@ class VehicleDB:
         return len(self._index) > 0
 
     def get_by_identifier(self, identifier: str) -> Optional[dict]:
-        norm = normalize_name(identifier)
-        for (n, _c), row in self._index.items():
-            if n == norm:
-                return row
-        return None
+        return self._index.get(identifier)
 
     def stats(self) -> dict:
-        countries = {}
-        for (_n, c) in self._index:
-            countries[c] = countries.get(c, 0) + 1
-        return {"total": len(self._index), "by_country": countries}
+        return {"total": len(self._index)}
 
     def __len__(self) -> int:
         return len(self._index)

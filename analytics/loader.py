@@ -178,6 +178,7 @@ def clean_dataframe(df: pd.DataFrame, vehicle_db) -> pd.DataFrame:
     if vehicle_db is not None and vehicle_db.loaded:
         df = vehicle_db.enrich_dataframe(df)
         df = df.copy()
+
         matched = int((df.get("vdb_match_score", 0) > 0).sum())
         log_debug(
             f"[VehicleDB] vdb_ матч завершён. "
@@ -185,9 +186,7 @@ def clean_dataframe(df: pd.DataFrame, vehicle_db) -> pd.DataFrame:
         )
 
         if "vdb_vehicle_type" in df.columns:
-            good_match = (
-                df.get("vdb_match_score", pd.Series(0.0, index=df.index)) > 0
-            )
+            good_match = df.get("vdb_match_score", pd.Series(0.0, index=df.index)) > 0
             vdb_vt = df["vdb_vehicle_type"].astype(str).str.strip()
             valid  = good_match & vdb_vt.isin(["", "nan"]).eq(False)
             df.loc[valid, "Type"] = df.loc[valid, "vdb_vehicle_type"]
