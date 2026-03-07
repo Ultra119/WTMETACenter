@@ -109,15 +109,35 @@ class AnalyticsCore:
     def get_mm_context(self, step: int = 1, top_n: "int | None" = None) -> pd.DataFrame:
         return _get_mm_context(self.display_df, step, top_n)
 
-    def get_progression_data(self, nation: str) -> "pd.DataFrame":
+    def get_progression_data(self, nation: str, mode: str = "All/Mixed") -> "pd.DataFrame":
         """
         Возвращает scored DataFrame для одной нации.
-        НЕ мутирует self.display_df / self.nation_stats.
-        Используется вкладкой Optimal Progression.
         """
+        _MODE_PRIORITY = ["Realistic", "Simulator", "Arcade"]
+
         df = self.full_df.copy()
         if nation != "All":
             df = df[df["Nation"] == nation]
+        if df.empty:
+            return pd.DataFrame()
+
+        # ── Фильтр/дедупликация по режиму ────────────────────────────────
+        if "Mode" in df.columns:
+            if mode != "All/Mixed":
+                df = df[df["Mode"] == mode]
+            else:
+                key_cols = [c for c in ["Name", "Nation"] if c in df.columns]
+                chosen_parts = []
+                for _, grp in df.groupby(key_cols, sort=False):
+                    for preferred in _MODE_PRIORITY:
+                        subset = grp[grp["Mode"] == preferred]
+                        if not subset.empty:
+                            chosen_parts.append(subset)
+                            break
+                    else:
+                        chosen_parts.append(grp)
+                df = pd.concat(chosen_parts, ignore_index=True) if chosen_parts else df
+
         if df.empty:
             return pd.DataFrame()
 
