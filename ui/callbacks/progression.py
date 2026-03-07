@@ -149,17 +149,19 @@ def _vehicle_card(row: dict, card_id: str) -> html.Div:
         ))
 
     # ── Причина скипа: вынесена в "подвал" без курсива ────────────────────────
-    if verdict == VERDICT_SKIP and reason:
+    if verdict == VERDICT_SKIP:
+        skip_children = []
+        if reason:
+            skip_children.append(html.Div(
+                reason,
+                style={"color": "#fecaca", "fontSize": "9px", "marginTop": "2px", "lineHeight": "1.4"},
+            ))
         children.append(html.Div(
-            reason,
+            skip_children,
             style={
-                "fontSize": "9px",
-                "fontWeight": "normal",
-                "color": "#fecaca",
                 "marginTop": "5px",
                 "paddingTop": "5px",
-                "borderTop": f"1px solid rgba(248,113,113,0.25)",
-                "lineHeight": "1.4",
+                "borderTop": "1px solid rgba(248,113,113,0.25)",
             },
         ))
 
@@ -542,9 +544,9 @@ def _build_unified_grid(
 
 def _legend() -> html.Div:
     items = [
-        (VERDICT_MUST, "Must Play — лидер ветки, сажать экспертов"),
+        (VERDICT_MUST, "Must Play — лидер ветки, сажать экспертов, фокус на RP"),
         (VERDICT_PASS, "Passable — проходная, не задерживаться"),
-        (VERDICT_SKIP, "Hard Skip — НЕ сажать экипаж, грайндить предыдущей"),
+        (VERDICT_SKIP, "Hard Skip — исследуй по дереву, но НЕ сажай экипаж"),
         (VERDICT_PREM, "Premium Fix — решение для болезненного ранга"),
     ]
     return html.Div([

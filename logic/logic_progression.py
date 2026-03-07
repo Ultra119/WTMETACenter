@@ -64,6 +64,9 @@ def _br_to_era(br: float) -> int:
     return 8
 
 
+_MUST_MIN_META = 42.0
+
+
 def _minmax(series: pd.Series) -> pd.Series:
     mn, mx = series.min(), series.max()
     if mx - mn < 1e-9:
@@ -71,15 +74,8 @@ def _minmax(series: pd.Series) -> pd.Series:
     return (series - mn) / (mx - mn) * 100.0
 
 
-def _local_score(branch_df: pd.DataFrame) -> pd.Series:
-    wr = _minmax(branch_df["WR"])
-    kd = _minmax(branch_df["KD"])
-    if "META_SCORE" in branch_df.columns:
-        meta_vals = branch_df["META_SCORE"].fillna(0)
-        if meta_vals.std() > 0.1:
-            meta = _minmax(meta_vals)
-            return (0.40 * wr + 0.30 * kd + 0.30 * meta).clip(0, 100)
-    return (0.55 * wr + 0.45 * kd).clip(0, 100)
+def _get_score(row: pd.Series) -> float:
+    return float(row.get("META_SCORE", 0) or 0)
 
 
 def _rank_penalty_std(researcher_era: int, target_era: int) -> float:
@@ -177,33 +173,50 @@ def build_progression_data(df: pd.DataFrame, nation: str) -> pd.DataFrame:
         prem_df["_sort_key"] = _shop_sort_key(prem_df)
         prem_df = prem_df.sort_values("_sort_key").drop(columns=["_sort_key"])
 
-    # Проход 1-S: Local_Score только среди стандартной техники в каждой ветке
-    for branch, grp in std_df.groupby("_branch"):
-        scores = _local_score(grp)
-        std_df.loc[grp.index, "Local_Score"] = scores.values
+    # Проход 1-S: Local_Score = META_SCORE напрямую (глобальный, не нормализуем)
+    if "META_SCORE" in std_df.columns:
+        std_df["Local_Score"] = pd.to_numeric(std_df["META_SCORE"], errors="coerce").fillna(0)
 
     # Проход 2-S: вердикты
+    _GROUND_BRANCHES   = {"medium_tank", "light_tank", "heavy_tank", "tank_destroyer", "spaa"}
+    _AVIATION_BRANCHES = {"fighter", "bomber", "assault", "attack_helicopter", "utility_helicopter"}
+
+    def _super_cat(branch: str) -> str:
+        if branch in _GROUND_BRANCHES:   return "Ground"
+        if branch in _AVIATION_BRANCHES: return "Aviation"
+        return "Fleet"
+
+    has_groups = "vdb_shop_group" in std_df.columns
+
     for branch, grp in std_df.groupby("_branch"):
-        srt = grp.sort_values(["BR", "Local_Score"], ascending=[True, False])
-        p60 = srt["Local_Score"].quantile(0.60)
+        srt   = grp.sort_values(["BR", "Local_Score"], ascending=[True, False])
+        p60   = srt["Local_Score"].quantile(0.60)
 
         for pos, (row_idx, row) in enumerate(srt.iterrows()):
-            era   = int(row["_era_int"])
-            loc_s = float(row["Local_Score"])
+            era     = int(row["_era_int"])
+            loc_s   = float(row["Local_Score"])
+            no_data = loc_s < 1.0
+
+            # Группа папки — не скипаем технику из той же shop-группы
+            our_group = str(row.get("vdb_shop_group", "") or "") if has_groups else ""
 
             prev = srt.iloc[:pos]
-            should_skip     = False
-            reason          = ""
-            alt_name        = ""
+            should_skip = False
+            reason      = ""
+            alt_name    = ""
 
-            if not prev.empty:
-                best_eff         = 0.0
-                best_name        = ""
-
+            if not prev.empty and not no_data:
+                best_eff  = 0.0
+                best_name = ""
                 target_br = float(row["BR"])
 
                 for prev_idx, prev_row in prev.iterrows():
                     if std_df.at[prev_idx, "Verdict"] == VERDICT_SKIP:
+                        continue
+                    if float(prev_row.get("META_SCORE", 0) or 0) < 1.0:
+                        continue
+                    prev_group = str(prev_row.get("vdb_shop_group", "") or "") if has_groups else ""
+                    if our_group and our_group == prev_group:
                         continue
                     pen = _combined_penalty(
                         researcher_era=int(prev_row["_era_int"]),
@@ -220,7 +233,7 @@ def build_progression_data(df: pd.DataFrame, nation: str) -> pd.DataFrame:
                     should_skip = True
                     reason = (
                         f"Эффективнее прокачивать ветку на «{best_name}» "
-                        f"(LS {best_eff:.0f} vs {loc_s:.0f})"
+                        f"(META {best_eff:.0f} vs {loc_s:.0f})"
                     )
                     alt_name = best_name
 
@@ -228,24 +241,19 @@ def build_progression_data(df: pd.DataFrame, nation: str) -> pd.DataFrame:
                 std_df.at[row_idx, "Verdict"]     = VERDICT_SKIP
                 std_df.at[row_idx, "Skip_Reason"] = reason
                 std_df.at[row_idx, "Alt_Vehicle"] = alt_name
-            elif loc_s >= p60:
-                std_df.at[row_idx, "Verdict"] = VERDICT_MUST
             else:
-                std_df.at[row_idx, "Verdict"] = VERDICT_PASS
+                qualifies_must = (
+                    not no_data
+                    and (loc_s >= p60)
+                    and (loc_s >= _MUST_MIN_META)
+                )
+                std_df.at[row_idx, "Verdict"] = VERDICT_MUST if qualifies_must else VERDICT_PASS
 
     _CROSS_THRESHOLD  = 1.30
     _CROSS_BR_WINDOW  = 0.7
+    _SKIP_CROSS       = {"spaa"}
 
-    _GROUND_BRANCHES   = {"medium_tank", "light_tank", "heavy_tank", "tank_destroyer", "spaa"}
-    _AVIATION_BRANCHES = {"fighter", "bomber", "assault", "attack_helicopter", "utility_helicopter"}
-    _SKIP_CROSS        = {"spaa"}   # ЗСУ не участвуют в межветочном сравнении
-
-    def _super_cat(branch: str) -> str:
-        if branch in _GROUND_BRANCHES:   return "Ground"
-        if branch in _AVIATION_BRANCHES: return "Aviation"
-        return "Fleet"
-
-    # Предвычисляем суперкатегорию для каждой строки один раз
+    # Предвычисляем суперкатегорию один раз
     std_df["_super_cat"] = std_df["_branch"].apply(_super_cat)
 
     if "META_SCORE" in std_df.columns:
@@ -271,14 +279,17 @@ def build_progression_data(df: pd.DataFrame, nation: str) -> pd.DataFrame:
                 (std_df["BR"] >= our_br - _CROSS_BR_WINDOW) &
                 (std_df["BR"] <= our_br + _CROSS_BR_WINDOW) &
                 (std_df["BR"]         != our_br) &
-                (std_df["Verdict"] != VERDICT_SKIP)
+                (std_df["Verdict"]    != VERDICT_SKIP)
             )
             for alt_idx, alt_row in std_df[mask].iterrows():
                 alt_meta = float(alt_row.get("META_SCORE", 0) or 0)
-                if alt_meta > best_cross_meta:
-                    best_cross_meta = alt_meta
+                alt_br   = float(alt_row["BR"])
+                decay        = _br_decay(alt_br, our_br)
+                eff_meta     = alt_meta * decay
+                if eff_meta > best_cross_meta:
+                    best_cross_meta = eff_meta
                     best_cross_name = str(alt_row["Name"])
-                    best_cross_br   = float(alt_row["BR"])
+                    best_cross_br   = alt_br
 
             if best_cross_meta > our_meta * _CROSS_THRESHOLD:
                 std_df.at[row_idx, "Cross_Alt"]  = best_cross_name
@@ -347,10 +358,9 @@ def build_progression_data(df: pd.DataFrame, nation: str) -> pd.DataFrame:
     pain_eras = set(era_has_must[~era_has_must].index.tolist())
 
     if not prem_df.empty:
-        # Local_Score внутри премиума по веткам
-        for branch, grp in prem_df.groupby("_branch"):
-            scores = _local_score(grp)
-            prem_df.loc[grp.index, "Local_Score"] = scores.values
+        # Local_Score для премиума = его META_SCORE напрямую
+        for idx in prem_df.index:
+            prem_df.at[idx, "Local_Score"] = _get_score(prem_df.loc[idx])
 
         for row_idx, row in prem_df.iterrows():
             prem_era   = int(row["_era_int"])
