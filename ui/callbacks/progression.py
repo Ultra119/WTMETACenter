@@ -224,6 +224,131 @@ def _empty_cell() -> html.Div:
     })
 
 
+def _group_bracket(cards: list, group_name: str = "", first_vehicle_name: str = "") -> html.Div:
+    label = first_vehicle_name.strip() if first_vehicle_name else group_name.replace("_", " ").strip()
+
+    header = []
+    if label:
+        header = [html.Div(
+            f"📁 {label}",
+            style={
+                "fontSize": "8px",
+                "color": "#475569",
+                "letterSpacing": "0.05em",
+                "marginBottom": "2px",
+                "paddingLeft": "4px",
+                "textTransform": "uppercase",
+                "whiteSpace": "nowrap",
+                "overflow": "hidden",
+                "textOverflow": "ellipsis",
+            },
+        )]
+
+    styled_cards = []
+    for i, card in enumerate(cards):
+        is_last = i == len(cards) - 1
+        extra_style = {}
+        if len(cards) > 1:
+            if i == 0:
+                extra_style = {
+                    "borderBottomLeftRadius":  "0",
+                    "borderBottomRightRadius": "0",
+                    "marginBottom":            "1px",
+                }
+            elif is_last:
+                extra_style = {
+                    "borderTopLeftRadius":  "0",
+                    "borderTopRightRadius": "0",
+                    "marginBottom":         "0",
+                }
+            else:
+                extra_style = {
+                    "borderRadius":  "0",
+                    "marginBottom":  "1px",
+                }
+        # Клонируем card, докидывая стили
+        orig_style = card.style or {}
+        new_style  = {**orig_style, **extra_style}
+        styled_cards.append(html.Div(
+            card.children,
+            id=card.id,
+            style=new_style,
+        ))
+
+    return html.Div(
+        header + styled_cards,
+        style={
+            "borderLeft":        "2px solid #334155",
+            "borderBottom":      "1px solid #1e293b",
+            "borderTop":         "1px solid #1e293b",
+            "borderRight":       "1px solid #1e293b",
+            "borderRadius":      "0 4px 4px 0",
+            "paddingTop":        "4px",
+            "paddingBottom":     "4px",
+            "paddingLeft":       "0",
+            "paddingRight":      "0",
+            "marginBottom":      "4px",
+            "backgroundColor":   "rgba(30,41,59,0.35)",
+        },
+    )
+
+
+def _render_cell_cards(cell_df: "pd.DataFrame", prefix: str, counter: list) -> list:
+    import pandas as pd
+
+    result = []
+
+    has_groups = "vdb_shop_group" in cell_df.columns
+
+    if has_groups:
+        # Разбиваем на группы, сохраняя порядок строк
+        seen_groups: dict = {}        # group_name → list of cards
+        seen_groups_names: dict = {}  # group_name → display name of first vehicle
+        ungrouped:   list = []
+
+        for _, r in cell_df.iterrows():
+            g = str(r.get("vdb_shop_group", "") or "").strip()
+            cid = f"{prefix}-{counter[0]}"
+            counter[0] += 1
+            card = _vehicle_card(r.to_dict(), cid)
+
+            if g:
+                if g not in seen_groups:
+                    seen_groups[g] = []
+                    seen_groups_names[g] = str(r.get("Name", "") or "").strip()
+                seen_groups[g].append(card)
+            else:
+                ungrouped.append((card, g))
+
+        ordered: list = []
+        seen_groups_added: set = set()
+
+        temp_counter_offset = counter[0] - len(cell_df)
+        for row_pos, (_, r) in enumerate(cell_df.iterrows()):
+            g = str(r.get("vdb_shop_group", "") or "").strip()
+            if g:
+                if g not in seen_groups_added:
+                    seen_groups_added.add(g)
+                    grp_cards = seen_groups[g]
+                    if len(grp_cards) > 1:
+                        first_name = seen_groups_names.get(g, "")
+                        ordered.append(_group_bracket(grp_cards, g, first_name))
+                    else:
+                        ordered.extend(grp_cards)
+            else:
+                # ungrouped: берём следующую карточку из ungrouped
+                ordered.append(ungrouped.pop(0)[0])
+
+        result = ordered
+    else:
+        for _, r in cell_df.iterrows():
+            cid = f"{prefix}-{counter[0]}"
+            counter[0] += 1
+            result.append(_vehicle_card(r.to_dict(), cid))
+
+    return result
+
+
 def _build_unified_grid(std_df: "pd.DataFrame", prem_df: "pd.DataFrame") -> html.Div:
     import pandas as pd
 
@@ -336,11 +461,7 @@ def _build_unified_grid(std_df: "pd.DataFrame", prem_df: "pd.DataFrame") -> html
                 cells.append(_empty_cell())
                 continue
 
-            cards = []
-            for _, r in cell_df.iterrows():
-                cid = f"pgc-{counter[0]}"
-                counter[0] += 1
-                cards.append(_vehicle_card(r.to_dict(), cid))
+            cards = _render_cell_cards(cell_df, "pgc", counter)
             cells.append(html.Div(cards, style={"padding": "3px"}))
 
         # Ячейка «ОСОБАЯ» для этого ранга (без Roman numeral — он слева)
@@ -355,11 +476,7 @@ def _build_unified_grid(std_df: "pd.DataFrame", prem_df: "pd.DataFrame") -> html
                 else:
                     pera_df = pera_df.sort_values("BR")
 
-                cards = []
-                for _, r in pera_df.iterrows():
-                    cid = f"pgp-{counter[0]}"
-                    counter[0] += 1
-                    cards.append(_vehicle_card(r.to_dict(), cid))
+                cards = _render_cell_cards(pera_df, "pgp", counter)
                 cells.append(html.Div(cards, style={"padding": "3px"}))
             else:
                 cells.append(_empty_cell())
