@@ -109,6 +109,51 @@ class AnalyticsCore:
     def get_mm_context(self, step: int = 1, top_n: "int | None" = None) -> pd.DataFrame:
         return _get_mm_context(self.display_df, step, top_n)
 
+    def get_progression_data(self, nation: str) -> "pd.DataFrame":
+        """
+        Возвращает scored DataFrame для одной нации.
+        НЕ мутирует self.display_df / self.nation_stats.
+        Используется вкладкой Optimal Progression.
+        """
+        df = self.full_df.copy()
+        if nation != "All":
+            df = df[df["Nation"] == nation]
+        if df.empty:
+            return pd.DataFrame()
+
+        group_cols = [c for c in ["Name", "Nation", "BR", "Type"] if c in df.columns]
+        try:
+            df_grouped = (
+                df.groupby(group_cols, group_keys=True)
+                  .apply(aggregate_modes, include_groups=False)
+                  .reset_index()
+            )
+        except TypeError:
+            df_grouped = (
+                df.groupby(group_cols, group_keys=True)
+                  .apply(aggregate_modes)
+                  .reset_index()
+            )
+
+        if df_grouped.empty:
+            return pd.DataFrame()
+
+        # Переносим VehicleClass и vdb_* из full_df (они теряются при groupby)
+        aux_cols = ["VehicleClass"] + [c for c in df.columns if c.startswith("vdb_")]
+        aux_cols = [c for c in aux_cols if c in df.columns and c not in df_grouped.columns]
+        if aux_cols:
+            key_cols = [c for c in ["Name", "Nation"] if c in df.columns and c in df_grouped.columns]
+            aux = df.drop_duplicates(subset=key_cols)[key_cols + aux_cols]
+            df_grouped = df_grouped.merge(aux, on=key_cols, how="left")
+
+        if "VehicleClass" not in df_grouped.columns:
+            df_grouped["VehicleClass"] = "Standard"
+        else:
+            df_grouped["VehicleClass"] = df_grouped["VehicleClass"].fillna("Standard")
+
+        df_scored = score(df_grouped, self.settings)
+        return df_scored.round(2)
+
     def get_vehicle_row(self, name: str, nation: str = "") -> dict | None:
         """
         Ищет строку техники в display_df (текущий результат calculate_meta).

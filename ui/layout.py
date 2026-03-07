@@ -288,6 +288,65 @@ def _tab_farm(all_nations: list, tf_data: TypeFilterData) -> html.Div:
 
 
 # ─────────────────────────────────────────────────────────────────────────────
+
+
+def _tab_progression(all_nations: list) -> html.Div:
+    nations_no_all = [n for n in all_nations if n != "All"]
+    return html.Div([
+        dbc.Row([
+            dbc.Col([
+                html.Div("Нация", className="section-label"),
+                dcc.Dropdown(
+                    id="prog-nation",
+                    options=[{"label": n, "value": n} for n in nations_no_all],
+                    value=nations_no_all[0] if nations_no_all else None,
+                    clearable=False, searchable=False,
+                ),
+            ], width=3),
+            dbc.Col([
+                html.Div("Ветка техники", className="section-label"),
+                dbc.RadioItems(
+                    id="prog-branch",
+                    options=[
+                        {"label": "🚜 Наземка",  "value": "Ground"},
+                        {"label": "✈️ Авиация",  "value": "Aviation"},
+                        {"label": "⚓ Флот",     "value": "Fleet"},
+                    ],
+                    value="Ground",
+                    inline=True,
+                    inputStyle={"marginRight": "5px", "marginLeft": "12px"},
+                    labelStyle={"color": "#e2e8f0", "fontSize": "13px"},
+                ),
+            ], width=5),
+            dbc.Col([
+                html.Div(id="prog-info", className="caption-text"),
+            ], width=4),
+        ], className="panel mb-3"),
+        html.Div([
+            html.Span([
+                html.Span("🟢", style={"marginRight": "3px"}),
+                html.Span("Must Play — лидер ветки, экипаж экспертов",   style={"color": "#94a3b8"}),
+            ], style={"marginRight": "16px", "fontSize": "11px"}),
+            html.Span([
+                html.Span("🟡", style={"marginRight": "3px"}),
+                html.Span("Passable — проходная, не задерживаться",       style={"color": "#94a3b8"}),
+            ], style={"marginRight": "16px", "fontSize": "11px"}),
+            html.Span([
+                html.Span("🔴", style={"marginRight": "3px"}),
+                html.Span("Hard Skip — НЕ сажать экипаж, грайндить предыдущей", style={"color": "#94a3b8"}),
+            ], style={"marginRight": "16px", "fontSize": "11px"}),
+            html.Span([
+                html.Span("👑", style={"marginRight": "3px"}),
+                html.Span("Premium Fix — решение для болезненного ранга", style={"color": "#94a3b8"}),
+            ], style={"fontSize": "11px"}),
+        ], style={"marginBottom": "10px", "padding": "0 2px"}),
+        dcc.Loading(
+            id="loading-prog",
+            type="dot", color="#10b981",
+            children=html.Div(id="prog-grid"),
+        ),
+    ], style={"padding": "4px"})
+
 def build(all_nations: list, all_types: list, tf_data: TypeFilterData) -> html.Div:
     # ── Модальное окно карточки техники ───────────────────────────────────
     vehicle_modal = dbc.Modal(
@@ -330,7 +389,6 @@ def build(all_nations: list, all_types: list, tf_data: TypeFilterData) -> html.D
         dcc.Store(id="store-meta-df"),
         dcc.Store(id="store-meta-filters"),
         dcc.Store(id="store-selected-vehicle"),
-        dcc.Store(id="store-history", data=[]),
 
         # Модальное окно карточки
         vehicle_modal,
@@ -340,7 +398,6 @@ def build(all_nations: list, all_types: list, tf_data: TypeFilterData) -> html.D
             html.Span("🛡️", style={"fontSize": "1.5rem"}),
             html.H3("WT META CENTER"),
             html.Span("Dash Edition", className="topbar-badge"),
-            html.Div(id="history-widget", style={"marginLeft": "auto"}),
         ]),
 
         # Two-column layout: sidebar + content
@@ -352,6 +409,7 @@ def build(all_nations: list, all_types: list, tf_data: TypeFilterData) -> html.D
                     dbc.Tab(_tab_redbook(all_nations),       label="💀 Красная Книга",      tab_id="tab-redbook"),
                     dbc.Tab(_tab_brackets(),                 label="📊 БР Кронштейны",      tab_id="tab-brackets"),
                     dbc.Tab(_tab_farm(all_nations, tf_data), label="⚙️ Конструктор Сетапа", tab_id="tab-farm"),
+                    dbc.Tab(_tab_progression(all_nations), label="🗺 Прогрессия", tab_id="tab-progression"),
                 ], style={"marginTop": "6px"}),
             ], width=9, xl=10, style={"padding": "8px 16px"}),
         ], style={"margin": 0, "flexWrap": "nowrap"}),
