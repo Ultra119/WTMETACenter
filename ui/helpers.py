@@ -18,6 +18,7 @@ CLASS_PREFIX: dict[str, str] = {
     "Squadron":    "✦ ",
     "Marketplace": "🏪 ",
     "Gift":        "🎁 ",
+    "Event":       "🎪 ",
     "Standard":    "",
 }
 
