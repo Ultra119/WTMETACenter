@@ -196,6 +196,7 @@ def _build_vdb_row(v: dict) -> dict:
     row["vdb_shop_nation"] = ""
     row["vdb_shop_branch"] = ""
     row["vdb_shop_order"]  = 99999
+    row["vdb_shop_is_gift"] = False
 
     return row
 
@@ -235,6 +236,7 @@ class VehicleDB:
                 self._index[vid]["vdb_shop_nation"] = sdata["shop_nation"]
                 self._index[vid]["vdb_shop_branch"] = sdata["shop_branch"]
                 self._index[vid]["vdb_shop_order"]  = sdata["shop_order"]
+                self._index[vid]["vdb_shop_is_gift"] = sdata.get("shop_is_gift", False)
                 updated += 1
 
         print(

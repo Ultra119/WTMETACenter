@@ -199,10 +199,11 @@ def clean_dataframe(df: pd.DataFrame, vehicle_db) -> pd.DataFrame:
         if int(row.get("vdb_is_pack",          0) or 0): return "Pack"
         if int(row.get("vdb_on_marketplace",   0) or 0): return "Marketplace"
         if int(row.get("vdb_squadron_vehicle", 0) or 0): return "Squadron"
+        if     row.get("vdb_shop_is_gift",  False):      return "Gift"
         if int(row.get("vdb_is_premium",       0) or 0): return "Premium"
         return "Standard"
 
-    _vdb_flag_cols = ["vdb_is_premium", "vdb_is_pack", "vdb_squadron_vehicle", "vdb_on_marketplace"]
+    _vdb_flag_cols = ["vdb_is_premium", "vdb_is_pack", "vdb_squadron_vehicle", "vdb_on_marketplace", "vdb_shop_is_gift"]
     if all(c in df.columns for c in _vdb_flag_cols):
         df["VehicleClass"] = df.apply(_derive_class, axis=1)
     else:
