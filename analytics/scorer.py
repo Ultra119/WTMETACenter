@@ -6,7 +6,6 @@ import pandas as pd
 from analytics.constants import ROLE_WEIGHTS
 
 
-_MODE_PRIORITY: list[str] = ["Realistic", "Simulator", "Arcade"]
 _C_CONF = 500.0
 
 _TYPE_GROUP: dict[str, str] = {
@@ -33,20 +32,6 @@ _TYPE_GROUP: dict[str, str] = {
     "barge":            "Fleet",
 }
 
-
-def aggregate_modes(x: pd.DataFrame) -> pd.Series:
-    if len(x) == 1:
-        return x.iloc[0].copy()
-    if "Mode" in x.columns:
-        for preferred in _MODE_PRIORITY:
-            subset = x[x["Mode"] == preferred]
-            if not subset.empty:
-                res = subset.iloc[0].copy()
-                res["Mode"] = "Mixed"
-                return res
-    res = x.iloc[0].copy()
-    res["Mode"] = "Mixed"
-    return res
 
 def _wilson_lower(wr_pct: pd.Series, n_games: pd.Series, z: float) -> pd.Series:
     p  = (wr_pct / 100.0).clip(0.0, 1.0)

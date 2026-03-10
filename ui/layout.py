@@ -37,8 +37,8 @@ def _sidebar(all_nations: list, tf_data: TypeFilterData) -> html.Div:
         html.Div("Режим игры", className="section-label"),
         dcc.Dropdown(
             id="sb-mode",
-            options=[{"label": m, "value": m} for m in ["All/Mixed", "Realistic", "Arcade", "Sim"]],
-            value="All/Mixed", clearable=False, searchable=False,
+            options=[{"label": m, "value": m} for m in ["Realistic", "Arcade", "Simulator"]],
+            value="Realistic", clearable=False, searchable=False,
         ),
         html.Hr(),
 

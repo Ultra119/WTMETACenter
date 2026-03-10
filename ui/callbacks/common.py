@@ -43,7 +43,7 @@ def build_filters(
 ) -> dict:
     return {
         "type":            "All",
-        "mode":            mode or "All/Mixed",
+        "mode":            mode,
         "search":          "",
         "nation":          nation or "All",
         "min_br":          float(br_range[0]) if br_range else BR_MIN,

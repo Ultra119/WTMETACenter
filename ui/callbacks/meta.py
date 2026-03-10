@@ -82,11 +82,10 @@ def register(app, core, all_nations, all_types, tf_data) -> None:
         df["Type_Display"] = df["Type"].apply(fmt_type)
         cols_avail = [c for c in _META_COLS if c in df.columns]
 
-        mode_note = " · данные из Realistic Battles" if mode == "All/Mixed" else ""
         info = html.Span([
             html.B(f"{len(df)} машин"),
             f"  ·  БР {filters['min_br']} – {filters['max_br']}",
-            f"  ·  {mode or 'All/Mixed'}{mode_note}  ·  ",
+            f"  ·  {mode or 'Realistic'}  ·  ",
             html.I("Кликните строку для карточки", style={"color": "#64748b"}),
         ], style={"fontSize": "0.75rem", "color": "#94a3b8"})
 

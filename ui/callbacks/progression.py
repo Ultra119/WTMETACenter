@@ -619,7 +619,7 @@ def register(app, core, all_nations, all_types, tf_data) -> None:
         excluded_types = [t for t in branch_types if t not in active_set]
         min_lineup     = int(slots or 4)
 
-        df = core.get_progression_data(nation, mode=mode or "All/Mixed")
+        df = core.get_progression_data(nation, mode=mode)
         if df.empty:
             return dbc.Alert(f"Нет данных для нации «{nation}».", color="info"), ""
 

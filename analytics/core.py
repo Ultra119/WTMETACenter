@@ -4,7 +4,7 @@ import pandas as pd
 
 from analytics.config    import load_settings
 from analytics.loader    import load_json_files, clean_dataframe
-from analytics.scorer    import aggregate_modes, score
+from analytics.scorer    import score
 from vehicle_db          import VehicleDB
 from logic.logic_nations  import calculate_nation_dominance
 from logic.logic_farm     import get_farm_set      as _get_farm_set
@@ -41,7 +41,7 @@ class AnalyticsCore:
     def calculate_meta(self, filters: dict) -> pd.DataFrame:
         """
           type        — тип техники ("All" = без фильтра)
-          mode        — игровой режим ("All/Mixed" = без фильтра)
+          mode        — игровой режим ("Realistic" / "Arcade" / "Simulator")
           search      — строка поиска по Name (пустая строка = без фильтра)
           nation      — нация ("All" = без фильтра)
           min_br      — минимальный BR
@@ -54,7 +54,7 @@ class AnalyticsCore:
 
         if filters["type"] != "All":
             df = df[df["Type"] == filters["type"]]
-        if filters["mode"] != "All/Mixed":
+        if filters["mode"]:
             df = df[df["Mode"] == filters["mode"]]
         if filters["search"]:
             df = df[df["Name"].str.contains(filters["search"], case=False, na=False)]
@@ -69,11 +69,7 @@ class AnalyticsCore:
         group_cols    = ["Name", "Nation", "BR", "Type"]
         existing_cols = [c for c in group_cols if c in df.columns]
 
-        df_grouped = (
-            df.groupby(existing_cols, group_keys=True)
-              .apply(aggregate_modes, include_groups=False)
-              .reset_index()
-        )
+        df_grouped = df.copy()
 
         df_grouped = df_grouped[
             (df_grouped["BR"]          >= filters["min_br"])   &
@@ -110,49 +106,22 @@ class AnalyticsCore:
     ) -> pd.DataFrame:
         return _get_bracket_stats(self.display_df, step, top_n, exclude_spaa)
 
-    def get_progression_data(self, nation: str, mode: str = "All/Mixed") -> "pd.DataFrame":
+    def get_progression_data(self, nation: str, mode: str = "Realistic") -> "pd.DataFrame":
         """
         Возвращает scored DataFrame для одной нации.
         """
-        _MODE_PRIORITY = ["Realistic", "Simulator", "Arcade"]
-
         df = self.full_df.copy()
         if df.empty:
             return pd.DataFrame()
 
-        # ── Фильтр/дедупликация по режиму ────────────────────────────────
-        if "Mode" in df.columns:
-            if mode != "All/Mixed":
-                df = df[df["Mode"] == mode]
-            else:
-                key_cols = [c for c in ["Name", "Nation"] if c in df.columns]
-                chosen_parts = []
-                for _, grp in df.groupby(key_cols, sort=False):
-                    for preferred in _MODE_PRIORITY:
-                        subset = grp[grp["Mode"] == preferred]
-                        if not subset.empty:
-                            chosen_parts.append(subset)
-                            break
-                    else:
-                        chosen_parts.append(grp)
-                df = pd.concat(chosen_parts, ignore_index=True) if chosen_parts else df
+        if "Mode" in df.columns and mode:
+            df = df[df["Mode"] == mode]
 
         if df.empty:
             return pd.DataFrame()
 
         group_cols = [c for c in ["Name", "Nation", "BR", "Type"] if c in df.columns]
-        try:
-            df_grouped = (
-                df.groupby(group_cols, group_keys=True)
-                  .apply(aggregate_modes, include_groups=False)
-                  .reset_index()
-            )
-        except TypeError:
-            df_grouped = (
-                df.groupby(group_cols, group_keys=True)
-                  .apply(aggregate_modes)
-                  .reset_index()
-            )
+        df_grouped = df.copy()
 
         if df_grouped.empty:
             return pd.DataFrame()
