@@ -78,12 +78,6 @@ def _sidebar(all_nations: list, tf_data: TypeFilterData) -> html.Div:
             value=["Standard", "Premium", "Pack", "Squadron", "Marketplace", "Gift", "Event"],
             multi=True, clearable=False, searchable=False, placeholder="Все классы",
         ),
-        html.Hr(),
-
-        html.Div("🔍 Карточка техники", className="section-label"),
-        dbc.Input(id="sb-search", type="text", placeholder="Tiger, T-34, F-16…", debounce=True),
-        html.Div(id="sb-search-results", style={"marginTop": "6px"}),
-        html.Div(id="sb-card-display",   style={"marginTop": "8px"}),
     ])
 
 
@@ -439,6 +433,68 @@ def _tab_progression(all_nations: list) -> html.Div:
         ),
     ], style={"padding": "4px"})
 
+
+# ── Global search widget (topbar) ─────────────────────────────────────────────
+def _global_search_widget() -> html.Div:
+    return html.Div([
+        # Иконка + поле ввода
+        html.Div([
+            html.Span(
+                "🔍",
+                style={
+                    "fontSize": "14px",
+                    "padding": "0 8px 0 10px",
+                    "color": "#475569",
+                    "userSelect": "none",
+                    "lineHeight": "1",
+                },
+            ),
+            dcc.Input(
+                id="global-search",
+                type="search",
+                placeholder="Поиск техники…",
+                debounce=False,
+                autoComplete="off",
+                spellCheck=False,
+                style={
+                    "background": "transparent",
+                    "border": "none",
+                    "outline": "none",
+                    "color": "#e2e8f0",
+                    "fontSize": "12px",
+                    "fontFamily": "'JetBrains Mono', monospace",
+                    "width": "200px",
+                    "padding": "6px 8px 6px 0",
+                    "boxShadow": "none",
+                },
+            ),
+        ], style={
+            "display": "flex",
+            "alignItems": "center",
+            "border": "1px solid #334155",
+            "borderRadius": "6px",
+            "backgroundColor": "#1e293b",
+            "transition": "border-color 0.15s",
+        }),
+
+        # Плавающий список результатов
+        html.Div(
+            id="global-search-results",
+            style={
+                "position":        "absolute",
+                "top":             "calc(100% + 4px)",
+                "right":           "0",
+                "width":           "360px",
+                "zIndex":          "9999",
+                "display":         "none",   # скрыт пока нет результатов
+            },
+        ),
+    ], style={
+        "position":   "relative",
+        "marginLeft": "12px",
+    })
+
+
 def build(all_nations: list, all_types: list, tf_data: TypeFilterData) -> html.Div:
     vehicle_modal = dbc.Modal(
         id="vehicle-modal",
@@ -480,6 +536,7 @@ def build(all_nations: list, all_types: list, tf_data: TypeFilterData) -> html.D
         dcc.Store(id="store-meta-filters"),
         dcc.Store(id="store-selected-vehicle"),
         dcc.Store(id="store-history", data=[]),
+        dcc.Store(id="store-search-debounced", data=""),
 
         vehicle_modal,
 
@@ -487,6 +544,7 @@ def build(all_nations: list, all_types: list, tf_data: TypeFilterData) -> html.D
             html.Span("🛡️", style={"fontSize": "1.5rem"}),
             html.H3("WT META CENTER"),
             html.Span("Dash Edition", className="topbar-badge"),
+            _global_search_widget(),
             html.Div(id="history-widget", style={"marginLeft": "auto"}),
         ]),
 
