@@ -1,0 +1,183 @@
+{
+  "common": {
+    "loading":      "Loading data…",
+    "no_data":      "No data for the selected criteria.",
+    "error_load":   "Data load error: {msg}",
+    "close":        "Close",
+    "calculate":    "Calculate",
+    "all":          "All",
+    "nation":       "Nation",
+    "type":         "Type",
+    "br":           "BR",
+    "battles":      "Battles",
+    "wr":           "WR%",
+    "kd":           "K/D",
+    "meta":         "META",
+    "farm":         "FARM",
+    "net_sl":       "Net SL/game",
+    "vehicle":      "Vehicle",
+    "top_n":        "Top-N vehicles",
+    "top_all":      "All vehicles",
+    "dataset":      "DATASET",
+    "records":      "{n} records"
+  },
+
+  "tabs": {
+    "meta":        "META Rating",
+    "redbook":     "Red Book",
+    "brackets":    "BR Grid",
+    "farm":        "Lineup",
+    "progression": "Tech Tree"
+  },
+
+  "sidebar": {
+    "mode":           "MODE",
+    "br_range":       "BR RANGE",
+    "min_battles":    "MIN BATTLES",
+    "vehicle_class":  "VEHICLE CLASS",
+    "vehicle_type":   "VEHICLE TYPE",
+    "ground":         "Ground",
+    "aviation":       "Aviation",
+    "large_fleet":    "Large Fleet",
+    "small_fleet":    "Small Fleet",
+    "warn_none":      "⚠️ No vehicle class selected",
+    "warn_mix":       "⚠️ Mixed: fleet + ground/aviation",
+    "dataset_date":   "🕐 {date}"
+  },
+
+  "topbar": {
+    "title":          "WT META Center",
+    "search_hint":    "Search vehicles…",
+    "search_header":  "🔍 RESULTS",
+    "search_empty":   "Nothing found"
+  },
+
+  "meta_tab": {
+    "info":           "{n} vehicles · BR {min}–{max} · {mode} · click row for details",
+    "nation_label":   "Nation"
+  },
+
+  "redbook_tab": {
+    "title":          "💀 Red Book",
+    "description":    "Vehicles with the fewest battles played — they are going extinct.",
+    "show_top":       "Show top-N",
+    "nation_label":   "Nation"
+  },
+
+  "brackets_tab": {
+    "br_step":        "BR step",
+    "top_n":          "Top-N vehicles",
+    "excl_spaa":      "Exclude SPAA",
+    "description":    "Weighted META SCORE by nation and BR bracket",
+    "no_data":        "No data for the selected filters."
+  },
+
+  "farm_tab": {
+    "target_br":      "Target BR",
+    "nation":         "Nation",
+    "veh_type":       "Vehicle type",
+    "anchor_label":   "⚓ ANCHOR:",
+    "anchor_br":      "({br})",
+    "anchor_farm":    "Farm Score:",
+    "main_set":       "🛠️ MAIN LINEUP",
+    "gems":           "💎 GEMS (Low BR / High Efficiency)",
+    "gems_empty":     "No gems in -2.0 BR range with Farm Score above anchor.",
+    "no_anchor":      "❌ No anchor vehicle found at this BR with the current filters.",
+    "role":           "Role",
+    "role_anchor":    "⚓ Anchor",
+    "role_top":       "💰 Top farmer",
+    "role_reserve":   "🔄 Reserve",
+    "col_vehicle":    "Vehicle",
+    "col_nation":     "Nation",
+    "col_battles":    "Battles",
+    "col_farm":       "Farm",
+    "col_net_sl":     "Net SL"
+  },
+
+  "progression_tab": {
+    "nation":         "Nation",
+    "color_by":       "Color by",
+    "color_meta":     "META Score",
+    "color_farm":     "FARM Score",
+    "color_wr":       "Win Rate",
+    "info":           "{n} vehicles in tree · sorted by research rank",
+    "no_data":        "No tech tree data for this nation. Make sure build_data.py exports vdb_shop_rank."
+  },
+
+  "vehicle_card": {
+    "stats":          "📊 STATISTICS",
+    "scores":         "🏆 SCORES",
+    "armor":          "🛡️ ARMOR (mm)",
+    "mobility":       "⚙️ MOBILITY",
+    "weapons":        "🔫 WEAPONS",
+    "economy":        "💰 ECONOMY",
+    "nation":         "Nation",
+    "type":           "Type",
+    "battles":        "Battles",
+    "wr":             "Win Rate",
+    "kd":             "K/D",
+    "meta_score":     "META SCORE",
+    "farm_score":     "FARM SCORE",
+    "net_sl":         "Net SL/game",
+    "armor_front":    "Front",
+    "armor_side":     "Side",
+    "armor_rear":     "Rear",
+    "armor_hull":     "Hull",
+    "armor_turret":   "Turret",
+    "speed_rb":       "Speed (RB)",
+    "reverse_rb":     "Reverse speed",
+    "hp_rb":          "Horsepower (RB)",
+    "speed_unit":     "km/h",
+    "hp_unit":        "hp",
+    "caliber":        "Caliber",
+    "shell_speed":    "Shell velocity",
+    "caliber_unit":   "mm",
+    "speed_unit_ms":  "m/s",
+    "thermal":        "Thermals",
+    "atgm":           "ATGM",
+    "heat":           "HEAT",
+    "aphe":           "APHE",
+    "repair_rb":      "Repair (RB)",
+    "sl_per_game":    "SL/game",
+    "era":            "Era",
+    "no_vdb":         "—"
+  },
+
+  "vehicle_types": {
+    "medium_tank":        "Medium Tank",
+    "light_tank":         "Light Tank",
+    "heavy_tank":         "Heavy Tank",
+    "tank_destroyer":     "Tank Destroyer",
+    "spaa":               "SPAA",
+    "fighter":            "Fighter",
+    "bomber":             "Bomber",
+    "assault":            "Assault",
+    "utility_helicopter": "Utility Heli",
+    "attack_helicopter":  "Attack Heli",
+    "destroyer":          "Destroyer",
+    "heavy_cruiser":      "Heavy Cruiser",
+    "light_cruiser":      "Light Cruiser",
+    "battleship":         "Battleship",
+    "battlecruiser":      "Battlecruiser",
+    "boat":               "Boat",
+    "heavy_boat":         "Heavy Boat",
+    "frigate":            "Frigate",
+    "barge":              "Barge"
+  },
+
+  "vehicle_classes": {
+    "Standard":    "Standard",
+    "Premium":     "Premium",
+    "Pack":        "Pack",
+    "Squadron":    "Squadron",
+    "Marketplace": "Marketplace",
+    "Gift":        "Gift",
+    "Event":       "Event"
+  },
+
+  "modes": {
+    "Realistic":  "RB",
+    "Arcade":     "AB",
+    "Simulator":  "SB"
+  }
+}

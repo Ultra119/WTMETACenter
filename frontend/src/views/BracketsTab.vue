@@ -1,0 +1,131 @@
+<template>
+  <div>
+    <v-row dense class="mb-3" align="center">
+      <v-col cols="auto">
+        <v-select v-model="stepsPerBracket" :items="[1,2,3,4,6]"
+          :label="t('brackets_tab.br_step')" density="compact" variant="outlined" hide-details style="width:100px" />
+      </v-col>
+      <v-col cols="auto">
+        <v-select v-model="topN" :items="topNOptions" item-title="label" item-value="value"
+          :label="t('brackets_tab.top_n')" density="compact" variant="outlined" hide-details style="width:150px" />
+      </v-col>
+      <v-col cols="auto">
+        <v-checkbox v-model="excludeSpaa" :label="t('brackets_tab.excl_spaa')"
+          density="compact" hide-details color="warning" />
+      </v-col>
+      <v-col>
+        <div class="tab-info">{{ t('brackets_tab.description') }}</div>
+      </v-col>
+    </v-row>
+
+    <div v-if="pivot.rows.length" class="pivot-wrapper">
+      <table class="pivot-table">
+        <thead>
+          <tr>
+            <th class="br-col">{{ t('common.br') }}</th>
+            <th v-for="nat in pivot.nations" :key="nat">{{ nat }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="row in pivot.rows" :key="row.bracket">
+            <td class="br-cell">{{ row.bracket }}</td>
+            <td v-for="nat in pivot.nations" :key="nat" class="score-cell" :style="{ color: scoreColor(row[nat]) }">
+              {{ row[nat] > 0 ? row[nat].toFixed(1) : '—' }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <v-alert v-else type="info" variant="tonal" density="compact">
+      {{ t('brackets_tab.no_data') }}
+    </v-alert>
+  </div>
+</template>
+
+<script setup>
+import { ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useDataStore, WT_BR_STEPS } from '../stores/useDataStore.js'
+import { metaColor } from '../composables/useVehicleFormatting.js'
+
+const { t }  = useI18n()
+const store  = useDataStore()
+
+const stepsPerBracket = ref(3)
+const topN            = ref(5)
+const excludeSpaa     = ref(false)
+
+const topNOptions = computed(() => [
+  { label: t('common.top_all'), value: 0 },
+  { label: 'Top-3',  value: 3 },
+  { label: 'Top-5',  value: 5 },
+  { label: 'Top-7',  value: 7 },
+  { label: 'Top-10', value: 10 },
+])
+
+function buildWtBrackets(stepsN) {
+  const step = Math.max(1, stepsN)
+  const n    = WT_BR_STEPS.length
+  const boundaryIndices = []
+  for (let i = 0; i < n; i += step) boundaryIndices.push(i)
+  if (boundaryIndices[boundaryIndices.length - 1] !== n - 1) boundaryIndices.push(n - 1)
+  const boundaryBrs = boundaryIndices.map(i => WT_BR_STEPS[i])
+  return boundaryBrs.slice(0, -1).map((br, i) => ({
+    label: step === 1 ? br.toFixed(1) : `${br.toFixed(1)}–${boundaryBrs[i + 1].toFixed(1)}`,
+    min:   br,
+    max:   boundaryBrs[i + 1] + 0.01,
+  }))
+}
+
+function weightedMeta(pool) {
+  if (!pool.length) return 0
+  const total = pool.reduce((s, v) => s + (v['Сыграно игр'] ?? 0), 0)
+  if (total < 1) return pool.reduce((s, v) => s + v.META_SCORE, 0) / pool.length
+  return pool.reduce((s, v) => s + v.META_SCORE * (v['Сыграно игр'] ?? 0), 0) / total
+}
+
+const pivot = computed(() => {
+  let vehicles = store.filteredVehicles
+  if (excludeSpaa.value) vehicles = vehicles.filter(v => v.Type !== 'spaa')
+  if (!vehicles.length) return { rows: [], nations: [] }
+
+  const brackets = buildWtBrackets(stepsPerBracket.value)
+  const nations  = [...new Set(vehicles.map(v => v.Nation))].sort()
+  const n        = topN.value || null
+
+  const rows = brackets.map(b => {
+    const inBracket = vehicles.filter(v => v.BR >= b.min && v.BR < b.max)
+    const row = { bracket: b.label }
+    for (const nat of nations) {
+      const pool = n
+        ? [...inBracket.filter(v => v.Nation === nat)].sort((a, b) => b.META_SCORE - a.META_SCORE).slice(0, n)
+        : inBracket.filter(v => v.Nation === nat)
+      row[nat] = Math.round(weightedMeta(pool) * 10) / 10
+    }
+    return row
+  })
+
+  return { rows: rows.filter(r => nations.some(nat => r[nat] > 0)), nations }
+})
+
+function scoreColor(score) {
+  if (!score) return '#334155'
+  return metaColor(score)
+}
+</script>
+
+<style scoped>
+.tab-info { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #64748b; }
+.pivot-wrapper { overflow-x: auto; border: 1px solid #1e3a5f; border-radius: 8px; max-height: calc(100vh - 230px); overflow-y: auto; }
+.pivot-table { border-collapse: collapse; width: 100%; font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+.pivot-table thead th {
+  background: #1e293b; color: #a7f3d0; font-family: 'Rajdhani', sans-serif; font-weight: 600;
+  font-size: 11px; letter-spacing: .08em; padding: 8px 12px; text-align: center;
+  border-bottom: 1px solid #1e3a5f; white-space: nowrap; position: sticky; top: 0; z-index: 1;
+}
+.pivot-table tbody tr:hover td { background: #1e293b; }
+.pivot-table td { background: #0f172a; color: #e2e8f0; padding: 6px 12px; text-align: center; border-bottom: 1px solid #1e293b; }
+.br-col, .br-cell { text-align: left !important; padding-left: 14px !important; color: #94a3b8 !important; font-weight: 600; min-width: 100px; }
+.score-cell { font-weight: 600; }
+</style>

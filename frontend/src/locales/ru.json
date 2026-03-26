@@ -1,0 +1,183 @@
+{
+  "common": {
+    "loading":      "Загрузка данных…",
+    "no_data":      "Нет данных по заданным критериям.",
+    "error_load":   "Ошибка загрузки данных: {msg}",
+    "close":        "Закрыть",
+    "calculate":    "Рассчитать",
+    "all":          "Все",
+    "nation":       "Нация",
+    "type":         "Тип",
+    "br":           "БР",
+    "battles":      "Бои",
+    "wr":           "WR%",
+    "kd":           "K/D",
+    "meta":         "META",
+    "farm":         "FARM",
+    "net_sl":       "Net SL/игру",
+    "vehicle":      "Техника",
+    "top_n":        "Топ-N машин",
+    "top_all":      "Все машины",
+    "dataset":      "ДАТАСЕТ",
+    "records":      "{n} записей"
+  },
+
+  "tabs": {
+    "meta":        "META Рейтинг",
+    "redbook":     "Красная Книга",
+    "brackets":    "Сетка БР",
+    "farm":        "Сетап",
+    "progression": "Прокачка"
+  },
+
+  "sidebar": {
+    "mode":           "РЕЖИМ",
+    "br_range":       "БР ДИАПАЗОН",
+    "min_battles":    "МИН. БОЙ",
+    "vehicle_class":  "КЛАСС ТЕХНИКИ",
+    "vehicle_type":   "ТИП ТЕХНИКИ",
+    "ground":         "Наземка",
+    "aviation":       "Авиация",
+    "large_fleet":    "Крупный флот",
+    "small_fleet":    "Малый флот",
+    "warn_none":      "⚠️ Не выбран ни один класс",
+    "warn_mix":       "⚠️ Смешение: флот + наземка/авиация",
+    "dataset_date":   "🕐 {date}"
+  },
+
+  "topbar": {
+    "title":          "WT META Center",
+    "search_hint":    "Поиск техники…",
+    "search_header":  "🔍 РЕЗУЛЬТАТЫ",
+    "search_empty":   "Ничего не найдено"
+  },
+
+  "meta_tab": {
+    "info":           "{n} машин · БР {min}–{max} · {mode} · кликните строку для карточки",
+    "nation_label":   "Нация"
+  },
+
+  "redbook_tab": {
+    "title":          "💀 Красная Книга",
+    "description":    "Техника с наименьшим числом сыгранных боёв. Они «вымирают» — люди их не берут или не умеют на них играть.",
+    "show_top":       "Показать топ-N",
+    "nation_label":   "Нация"
+  },
+
+  "brackets_tab": {
+    "br_step":        "Шаг БР",
+    "top_n":          "Топ-N машин",
+    "excl_spaa":      "Исключить ЗСУ",
+    "description":    "Взвешенный META SCORE по нациям и диапазонам БР",
+    "no_data":        "Нет данных для выбранных фильтров."
+  },
+
+  "farm_tab": {
+    "target_br":      "Целевой БР",
+    "nation":         "Нация",
+    "veh_type":       "Тип техники",
+    "anchor_label":   "⚓ ЯКОРЬ:",
+    "anchor_br":      "({br})",
+    "anchor_farm":    "Farm Score:",
+    "main_set":       "🛠️ ОСНОВНОЙ СОСТАВ",
+    "gems":           "💎 ЖЕМЧУЖИНЫ (Low BR / High Efficiency)",
+    "gems_empty":     "Нет жемчужин в диапазоне -2.0 BR с Farm Score выше якоря.",
+    "no_anchor":      "❌ Не найдена якорная техника на этом БР с выбранными фильтрами.",
+    "role":           "Роль",
+    "role_anchor":    "⚓ Якорь",
+    "role_top":       "💰 Топ-фармер",
+    "role_reserve":   "🔄 Резерв",
+    "col_vehicle":    "Техника",
+    "col_nation":     "Нация",
+    "col_battles":    "Бои",
+    "col_farm":       "Farm",
+    "col_net_sl":     "Net SL"
+  },
+
+  "progression_tab": {
+    "nation":         "Нация",
+    "color_by":       "Цвет по",
+    "color_meta":     "META Score",
+    "color_farm":     "FARM Score",
+    "color_wr":       "Win Rate",
+    "info":           "{n} машин в дереве · по строкам прокачки",
+    "no_data":        "Нет данных дерева прокачки для выбранной нации. Убедитесь, что build_data.py сохраняет поле vdb_shop_rank."
+  },
+
+  "vehicle_card": {
+    "stats":          "📊 СТАТИСТИКА",
+    "scores":         "🏆 СКОРЫ",
+    "armor":          "🛡️ БРОНЯ (мм)",
+    "mobility":       "⚙️ ПОДВИЖНОСТЬ",
+    "weapons":        "🔫 ВООРУЖЕНИЕ",
+    "economy":        "💰 ЭКОНОМИКА",
+    "nation":         "Нация",
+    "type":           "Тип",
+    "battles":        "Сыграно игр",
+    "wr":             "Win Rate",
+    "kd":             "K/D",
+    "meta_score":     "META SCORE",
+    "farm_score":     "FARM SCORE",
+    "net_sl":         "Net SL/игру",
+    "armor_front":    "Пер.",
+    "armor_side":     "Бок.",
+    "armor_rear":     "Корм.",
+    "armor_hull":     "Корпус",
+    "armor_turret":   "Башня",
+    "speed_rb":       "Скорость (RB)",
+    "reverse_rb":     "Задний ход",
+    "hp_rb":          "Мощность (RB)",
+    "speed_unit":     "км/ч",
+    "hp_unit":        "л.с.",
+    "caliber":        "Калибр",
+    "shell_speed":    "Скор. снаряда",
+    "caliber_unit":   "мм",
+    "speed_unit_ms":  "м/с",
+    "thermal":        "Термовизор",
+    "atgm":           "ATGM",
+    "heat":           "HEAT",
+    "aphe":           "APHE",
+    "repair_rb":      "Ремонт (RB)",
+    "sl_per_game":    "SL за игру",
+    "era":            "Эра",
+    "no_vdb":         "—"
+  },
+
+  "vehicle_types": {
+    "medium_tank":        "Medium Tank",
+    "light_tank":         "Light Tank",
+    "heavy_tank":         "Heavy Tank",
+    "tank_destroyer":     "Tank Destroyer",
+    "spaa":               "SPAA",
+    "fighter":            "Fighter",
+    "bomber":             "Bomber",
+    "assault":            "Assault",
+    "utility_helicopter": "Utility Heli",
+    "attack_helicopter":  "Attack Heli",
+    "destroyer":          "Destroyer",
+    "heavy_cruiser":      "Heavy Cruiser",
+    "light_cruiser":      "Light Cruiser",
+    "battleship":         "Battleship",
+    "battlecruiser":      "Battlecruiser",
+    "boat":               "Boat",
+    "heavy_boat":         "Heavy Boat",
+    "frigate":            "Frigate",
+    "barge":              "Barge"
+  },
+
+  "vehicle_classes": {
+    "Standard":    "Standard",
+    "Premium":     "Premium",
+    "Pack":        "Pack",
+    "Squadron":    "Squadron",
+    "Marketplace": "Marketplace",
+    "Gift":        "Gift",
+    "Event":       "Event"
+  },
+
+  "modes": {
+    "Realistic":  "RB",
+    "Arcade":     "AB",
+    "Simulator":  "SB"
+  }
+}

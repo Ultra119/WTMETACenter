@@ -1,0 +1,105 @@
+import { defineStore } from 'pinia'
+import { ref, computed } from 'vue'
+
+export const WT_BR_STEPS = [
+  1.0,1.3,1.7, 2.0,2.3,2.7, 3.0,3.3,3.7, 4.0,4.3,4.7,
+  5.0,5.3,5.7, 6.0,6.3,6.7, 7.0,7.3,7.7, 8.0,8.3,8.7,
+  9.0,9.3,9.7, 10.0,10.3,10.7, 11.0,11.3,11.7, 12.0,12.3,12.7, 13.0,
+]
+
+const BR_MIN = Math.min(...WT_BR_STEPS)
+const BR_MAX = Math.max(...WT_BR_STEPS)
+
+const TYPE_CATEGORIES = {
+  Ground:     ['medium_tank','light_tank','heavy_tank','tank_destroyer','spaa'],
+  Aviation:   ['fighter','bomber','assault','utility_helicopter','attack_helicopter'],
+  LargeFleet: ['destroyer','heavy_cruiser','light_cruiser','battleship','battlecruiser'],
+  SmallFleet: ['boat','heavy_boat','frigate','barge'],
+}
+
+function typeToCategory(t) {
+  for (const [cat, types] of Object.entries(TYPE_CATEGORIES))
+    if (types.includes(t)) return cat
+  return null
+}
+
+
+export const useDataStore = defineStore('data', () => {
+  const allVehicles  = ref([])
+  const metaInfo     = ref(null)
+  const loading      = ref(false)
+  const loadError    = ref(null)
+
+  const mode       = ref('Realistic')
+  const minBattles = ref(50)
+  const brRange    = ref([BR_MIN, BR_MAX])
+  const classes    = ref(['Standard','Premium','Pack','Squadron','Marketplace','Gift','Event'])
+
+  const showGround     = ref(true)
+  const showAviation   = ref(true)
+  const showLargeFleet = ref(false)
+  const showSmallFleet = ref(false)
+
+  async function loadData(basePath = '') {
+    loading.value  = true
+    loadError.value = null
+    try {
+      const [megaRes, metaRes] = await Promise.all([
+        fetch(`${basePath}/mega_db.json`),
+        fetch(`${basePath}/meta_info.json`),
+      ])
+      if (!megaRes.ok) throw new Error(`mega_db.json: ${megaRes.status}`)
+      if (!metaRes.ok) throw new Error(`meta_info.json: ${metaRes.status}`)
+
+      allVehicles.value = await megaRes.json()
+      metaInfo.value    = await metaRes.json()
+    } catch (e) {
+      loadError.value = e.message
+      console.error('[DataStore]', e)
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const activeTypes = computed(() => {
+    const wanted = new Set()
+    if (showGround.value)     wanted.add('Ground')
+    if (showAviation.value)   wanted.add('Aviation')
+    if (showLargeFleet.value) wanted.add('LargeFleet')
+    if (showSmallFleet.value) wanted.add('SmallFleet')
+
+    if (wanted.size === 0) return []
+
+    const all = metaInfo.value?.types ?? []
+    return all.filter(t => {
+      const cat = typeToCategory(t)
+      return cat ? wanted.has(cat) : true
+    })
+  })
+
+  const filteredVehicles = computed(() => {
+    if (!allVehicles.value.length) return []
+    return allVehicles.value.filter(v =>
+      v.Mode === mode.value &&
+      v.BR   >= brRange.value[0] &&
+      v.BR   <= brRange.value[1] &&
+      (v['Сыграно игр'] ?? 0) >= minBattles.value &&
+      classes.value.includes(v.VehicleClass ?? 'Standard') &&
+      activeTypes.value.includes(v.Type)
+    )
+  })
+
+  const nations = computed(() => {
+    const raw = metaInfo.value?.nations ?? []
+    return ['All', ...raw]
+  })
+
+  return {
+    allVehicles, metaInfo, loading, loadError,
+    mode, minBattles, brRange, classes,
+    showGround, showAviation, showLargeFleet, showSmallFleet,
+    filteredVehicles, activeTypes, nations,
+    loadData,
+    BR_MIN, BR_MAX, WT_BR_STEPS,
+  }
+})
