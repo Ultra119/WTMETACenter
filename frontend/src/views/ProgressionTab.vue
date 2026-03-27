@@ -34,23 +34,6 @@
           </v-btn-toggle>
         </div>
 
-        <!-- Slots -->
-        <div class="ctrl-group">
-          <div class="ctrl-label">{{ $t('progression_tab.crew_slots') }}</div>
-          <v-btn-toggle
-            :model-value="slots"
-            mandatory
-            density="compact"
-            variant="outlined"
-            rounded="lg"
-            @update:model-value="slots = Number($event)"
-          >
-            <v-btn :value="3" size="small">3</v-btn>
-            <v-btn :value="4" size="small">4</v-btn>
-            <v-btn :value="5" size="small">5</v-btn>
-          </v-btn-toggle>
-        </div>
-
         <!-- Info badges -->
         <div class="stats-badges">
           <span v-if="progressionData.length" class="badge badge-total">
@@ -101,19 +84,11 @@
             >{{ lineupPrefs[t] ?? 0 }}</span>
             <button
               class="lm-btn"
-              :disabled="totalPrefUsed >= slots"
               @click="incPref(t)"
             >+</button>
           </div>
         </div>
-        <span
-          class="lm-total"
-          :class="{
-            'lm-total--full':  totalPrefUsed === slots,
-            'lm-total--over':  totalPrefUsed >  slots,
-            'lm-total--under': totalPrefUsed <  slots,
-          }"
-        >{{ totalPrefUsed }}/{{ slots }}</span>
+        <span class="lm-total">{{ totalPrefUsed }}</span>
         <button class="lm-reset" :title="$t('progression_tab.reset_defaults')" @click="resetLineupPrefs">↺</button>
       </div>
     </div>
@@ -242,7 +217,7 @@ const prefDisplay = computed(() => ({
 
 const nation      = ref('')
 const branch      = ref('Ground')
-const slots       = ref(4)
+const DEFAULT_SLOTS = 4
 const activeTypes = shallowRef(new Set(BRANCH_TYPES.Ground))
 
 const lineupPrefs = ref({})
@@ -259,23 +234,15 @@ watch(nationOptions, (opts) => {
 // Branch change → reset type filter + lineup prefs
 watch(branch, (newBranch) => {
   activeTypes.value = new Set(BRANCH_TYPES[newBranch] ?? [])
-  lineupPrefs.value = defaultLineupPrefs(newBranch, slots.value, activeTypes.value)
-})
-
-watch(slots, (newSlots) => {
-  lineupPrefs.value = defaultLineupPrefs(branch.value, newSlots, activeTypes.value)
+  lineupPrefs.value = defaultLineupPrefs(newBranch, DEFAULT_SLOTS, activeTypes.value)
 })
 
 watch(activeTypes, (newActive) => {
   const next = { ...lineupPrefs.value }
-  let total = 0
   for (const t of Object.keys(next)) {
     if (!newActive.has(t)) next[t] = 0
-    total += next[t]
   }
-  lineupPrefs.value = total > slots.value
-    ? defaultLineupPrefs(branch.value, slots.value, newActive)
-    : next
+  lineupPrefs.value = next
 })
 
 const TANK_TYPES = new Set(['medium_tank', 'heavy_tank', 'light_tank'])
@@ -328,7 +295,6 @@ const totalPrefUsed = computed(() =>
 )
 
 function incPref(prefKey) {
-  if (totalPrefUsed.value >= slots.value) return
   lineupPrefs.value = { ...lineupPrefs.value, [prefKey]: (lineupPrefs.value[prefKey] ?? 0) + 1 }
 }
 
@@ -339,7 +305,7 @@ function decPref(prefKey) {
 }
 
 function resetLineupPrefs() {
-  lineupPrefs.value = defaultLineupPrefs(branch.value, slots.value, activeTypes.value)
+  lineupPrefs.value = defaultLineupPrefs(branch.value, DEFAULT_SLOTS, activeTypes.value)
 }
 
 const branchTypes = computed(() => BRANCH_TYPES[branch.value] ?? [])
@@ -657,6 +623,41 @@ const progressionData = computed(() => {
     }
   }
 
+  for (const v of stdVehicles) {
+    const pk   = toPrefKey(v._branch)
+    const want = prefs[pk] ?? 0
+    if (want === 0) {
+      v.Verdict     = VERDICT_SKIP
+      v.Skip_Reason = 'Not in lineup'
+      v.Alt_Vehicle = ''
+    }
+  }
+
+  for (const [prefKey, want] of Object.entries(prefs)) {
+    if (want <= 0) continue
+    const realTypes = new Set(
+      fromPrefKey(prefKey, branch.value).filter(t => active.has(t))
+    )
+    if (!realTypes.size) continue
+
+    const byEraP4 = {}
+    for (const v of stdVehicles) {
+      if (!realTypes.has(v._branch)) continue
+      ;(byEraP4[v._era_int] ??= []).push(v)
+    }
+
+    for (const grp of Object.values(byEraP4)) {
+      // Sort MUST vehicles by score ascending so we demote the weakest first
+      const mustVehs = grp
+        .filter(v => v.Verdict === VERDICT_MUST)
+        .sort((a, b) => a._localScore - b._localScore)
+      const excess = mustVehs.length - want
+      for (let i = 0; i < excess; i++) {
+        mustVehs[i].Verdict = VERDICT_PASS
+      }
+    }
+  }
+
   //Premium: PREM verdict + boost
   for (const v of premVehicles) {
     v.Verdict       = VERDICT_PREM
@@ -782,7 +783,7 @@ function groupedCells(cellVehicles) {
 function countByVerdict(verdict) {
   return progressionData.value.filter(v => v.Verdict === verdict).length
 }
-lineupPrefs.value = defaultLineupPrefs(branch.value, slots.value, activeTypes.value)
+lineupPrefs.value = defaultLineupPrefs(branch.value, DEFAULT_SLOTS, activeTypes.value)
 </script>
 
 <style scoped>
