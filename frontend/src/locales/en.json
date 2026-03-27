@@ -68,7 +68,7 @@
   "brackets_tab": {
     "br_step":        "BR step",
     "top_n":          "Top-N vehicles",
-    "excl_spaa":      "Exclude SPAA",
+    "excl_types":     "Exclude types",
     "description":    "Weighted META SCORE by nation and BR bracket",
     "no_data":        "No data for the selected filters."
   },
