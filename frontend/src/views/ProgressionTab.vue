@@ -19,7 +19,7 @@
 
         <!-- Branch -->
         <div class="ctrl-group">
-          <div class="ctrl-label">BRANCH</div>
+          <div class="ctrl-label">{{ $t('progression_tab.branch') }}</div>
           <v-btn-toggle
             v-model="branch"
             mandatory
@@ -28,15 +28,15 @@
             rounded="lg"
             class="branch-toggle"
           >
-            <v-btn value="Ground"   size="small">⚙️ Ground</v-btn>
-            <v-btn value="Aviation" size="small">✈️ Aviation</v-btn>
-            <v-btn value="Fleet"    size="small">⚓ Fleet</v-btn>
+            <v-btn value="Ground"   size="small">⚙️ {{ $t('sidebar.ground') }}</v-btn>
+            <v-btn value="Aviation" size="small">✈️ {{ $t('sidebar.aviation') }}</v-btn>
+            <v-btn value="Fleet"    size="small">⚓ {{ $t('sidebar.fleet') }}</v-btn>
           </v-btn-toggle>
         </div>
 
         <!-- Slots -->
         <div class="ctrl-group">
-          <div class="ctrl-label">CREW SLOTS</div>
+          <div class="ctrl-label">{{ $t('progression_tab.crew_slots') }}</div>
           <v-btn-toggle
             :model-value="slots"
             mandatory
@@ -74,8 +74,47 @@
           class="mr-1 mb-1 type-chip"
           @click="toggleType(t)"
         >
-          {{ TYPE_LABELS[t] || t }}
+          {{ $t(`vehicle_types.${t}`, TYPE_LABELS[t] || t) }}
         </v-chip>
+      </div>
+
+      <!-- Lineup Mix -->
+      <div class="lineup-mix-row mt-2">
+        <span class="ctrl-label lineup-mix-label">{{ $t('progression_tab.lineup_mix') }}</span>
+        <div class="lineup-mix-types">
+          <div
+            v-for="t in activeBranchTypes"
+            :key="t"
+            class="lineup-type-item"
+          >
+            <span class="lm-icon" :title="prefDisplay[t]?.label ?? t">{{ prefDisplay[t]?.icon ?? '?' }}</span>
+            <button
+              class="lm-btn"
+              :disabled="(lineupPrefs[t] ?? 0) === 0"
+              @click="decPref(t)"
+            >−</button>
+            <span
+              class="lm-count"
+              :class="{
+                'lm-count--active': (lineupPrefs[t] ?? 0) > 0,
+              }"
+            >{{ lineupPrefs[t] ?? 0 }}</span>
+            <button
+              class="lm-btn"
+              :disabled="totalPrefUsed >= slots"
+              @click="incPref(t)"
+            >+</button>
+          </div>
+        </div>
+        <span
+          class="lm-total"
+          :class="{
+            'lm-total--full':  totalPrefUsed === slots,
+            'lm-total--over':  totalPrefUsed >  slots,
+            'lm-total--under': totalPrefUsed <  slots,
+          }"
+        >{{ totalPrefUsed }}/{{ slots }}</span>
+        <button class="lm-reset" :title="$t('progression_tab.reset_defaults')" @click="resetLineupPrefs">↺</button>
       </div>
     </div>
 
@@ -83,7 +122,7 @@
     <div class="legend-row mb-3">
       <span v-for="(vc, key) in VERDICT_COLORS" :key="key" class="legend-item">
         <span class="legend-icon">{{ vc.icon }}</span>
-        <span class="legend-text">{{ vc.label }}</span>
+        <span class="legend-text">{{ $t(`verdicts.${key.toLowerCase()}`, vc.label) }}</span>
       </span>
     </div>
 
@@ -173,10 +212,11 @@
 
 <script setup>
 import { ref, computed, inject, watch, shallowRef } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useDataStore } from '../stores/useDataStore.js'
 import ProgressionCard from '../components/ProgressionCard.vue'
 import {
-  ROMAN, BRANCH_TYPES, TYPE_LABELS, VERDICT_COLORS, STD_CLASS,
+  ROMAN, BRANCH_TYPES, TYPE_LABELS, TYPE_ICON, VERDICT_COLORS, STD_CLASS,
   RANK_PENALTY, RANK_PENALTY_PREMIUM,
   MM_WINDOW, BR_FILL_WINDOW, JUNK_FLOOR, YELLOW_FLOOR, YELLOW_PCTILE,
   VERDICT_MUST, VERDICT_PASS, VERDICT_SKIP, VERDICT_PREM, VERDICT_FILL,
@@ -186,6 +226,17 @@ import {
 
 const store       = useDataStore()
 const openVehicle = inject('openVehicle', null)
+const { t }       = useI18n()
+
+const prefDisplay = computed(() => ({
+  tank: { icon: '🛡️', label: t('vehicle_types.tank') },
+  ...Object.fromEntries(
+    Object.entries(TYPE_ICON).map(([k, icon]) => [
+      k,
+      { icon, label: t(`vehicle_types.${k}`, TYPE_LABELS[k] ?? k) },
+    ])
+  ),
+}))
 
 // Controls
 
@@ -193,6 +244,8 @@ const nation      = ref('')
 const branch      = ref('Ground')
 const slots       = ref(4)
 const activeTypes = shallowRef(new Set(BRANCH_TYPES.Ground))
+
+const lineupPrefs = ref({})
 
 const nationOptions = computed(() =>
   (store.nations ?? []).filter(n => n !== 'All')
@@ -203,10 +256,91 @@ watch(nationOptions, (opts) => {
   if (!nation.value && opts.length) nation.value = opts[0]
 }, { immediate: true })
 
-// Branch change → reset type filter to show all types of that branch
+// Branch change → reset type filter + lineup prefs
 watch(branch, (newBranch) => {
   activeTypes.value = new Set(BRANCH_TYPES[newBranch] ?? [])
+  lineupPrefs.value = defaultLineupPrefs(newBranch, slots.value, activeTypes.value)
 })
+
+watch(slots, (newSlots) => {
+  lineupPrefs.value = defaultLineupPrefs(branch.value, newSlots, activeTypes.value)
+})
+
+watch(activeTypes, (newActive) => {
+  const next = { ...lineupPrefs.value }
+  let total = 0
+  for (const t of Object.keys(next)) {
+    if (!newActive.has(t)) next[t] = 0
+    total += next[t]
+  }
+  lineupPrefs.value = total > slots.value
+    ? defaultLineupPrefs(branch.value, slots.value, newActive)
+    : next
+})
+
+const TANK_TYPES = new Set(['medium_tank', 'heavy_tank', 'light_tank'])
+
+const GROUND_PREF_KEYS  = ['tank', 'spaa', 'tank_destroyer']
+const LINEUP_PRIORITY = {
+  Ground:   ['tank', 'spaa', 'tank_destroyer'],
+  Aviation: ['fighter', 'assault', 'bomber', 'attack_helicopter', 'utility_helicopter'],
+  Fleet:    ['destroyer', 'light_cruiser', 'boat', 'heavy_cruiser',
+             'battleship', 'battlecruiser', 'heavy_boat', 'frigate', 'barge'],
+}
+
+function toPrefKey(type) {
+  return TANK_TYPES.has(type) ? 'tank' : type
+}
+
+function fromPrefKey(prefKey, branchName) {
+  if (prefKey === 'tank') return [...TANK_TYPES]
+  return [prefKey]
+}
+
+function defaultLineupPrefs(branchName, totalSlots, active = null) {
+  const all = BRANCH_TYPES[branchName] ?? []
+
+  const activeKeys = active
+    ? [...new Set(all.filter(t => active.has(t)).map(toPrefKey))]
+    : [...new Set(all.map(toPrefKey))]
+
+  const allKeys = [...new Set(all.map(toPrefKey))]
+  const prefs   = Object.fromEntries(allKeys.map(k => [k, 0]))
+
+  if (!activeKeys.length || totalSlots <= 0) return prefs
+
+  const prio  = (LINEUP_PRIORITY[branchName] ?? activeKeys).filter(k => activeKeys.includes(k))
+  const order = [...prio, ...activeKeys.filter(k => !prio.includes(k))]
+
+  for (let i = 0; i < totalSlots; i++) {
+    prefs[order[i % order.length]]++
+  }
+  return prefs
+}
+
+const activeBranchTypes = computed(() => {
+  const real = (BRANCH_TYPES[branch.value] ?? []).filter(t => activeTypes.value.has(t))
+  return [...new Set(real.map(toPrefKey))]
+})
+
+const totalPrefUsed = computed(() =>
+  Object.values(lineupPrefs.value).reduce((s, n) => s + n, 0)
+)
+
+function incPref(prefKey) {
+  if (totalPrefUsed.value >= slots.value) return
+  lineupPrefs.value = { ...lineupPrefs.value, [prefKey]: (lineupPrefs.value[prefKey] ?? 0) + 1 }
+}
+
+function decPref(prefKey) {
+  const cur = lineupPrefs.value[prefKey] ?? 0
+  if (cur <= 0) return
+  lineupPrefs.value = { ...lineupPrefs.value, [prefKey]: cur - 1 }
+}
+
+function resetLineupPrefs() {
+  lineupPrefs.value = defaultLineupPrefs(branch.value, slots.value, activeTypes.value)
+}
 
 const branchTypes = computed(() => BRANCH_TYPES[branch.value] ?? [])
 
@@ -310,7 +444,7 @@ const progressionData = computed(() => {
   const selectedMode   = store.mode
   const brTypes        = BRANCH_TYPES[branch.value] ?? []
   const active         = activeTypes.value          // shallowRef — dep registered
-  const minLineup      = Number(slots.value)        // ← explicit Number cast + dep
+  const prefs          = lineupPrefs.value          // reactive dep — triggers on pref change
 
   // 1. Filter & deduplicate
   const raw = allVehicles.filter(v =>
@@ -480,41 +614,46 @@ const progressionData = computed(() => {
   )
 
   // Pass 3: FILL
-  const bySuperCatEra = {}
-  for (const v of stdVehicles) {
-    const key = `${superCat(v._branch)}_${v._era_int}`
-    ;(bySuperCatEra[key] ??= { era: v._era_int, vehicles: [] }).vehicles.push(v)
-  }
+  const FILL_MIN_SCORE = 1.0   // any vehicle with valid data is eligible for FILL
 
-  for (const { vehicles: grp } of Object.values(bySuperCatEra)) {
-    const mustCount = grp.filter(v => v.Verdict === VERDICT_MUST).length
-    if (mustCount >= minLineup) continue
+  for (const [prefKey, want] of Object.entries(prefs)) {
+    if (!want || want <= 0) continue
 
-    const { br: bestAnchorBr } = bestAnchorForEra(
-      grp, junkThresh, yellowThresh, minLineup
-    )
-    if (bestAnchorBr === 0) continue
+    const realTypes = new Set(fromPrefKey(prefKey, branch.value)
+      .filter(t => active.has(t)))
+    if (!realTypes.size) continue
 
-    const need    = minLineup - mustCount
-    const mustBrs = grp.filter(v => v.Verdict === VERDICT_MUST).map(v => v.BR)
+    const byEra = {}
+    for (const v of stdVehicles) {
+      if (!realTypes.has(v._branch)) continue
+      ;(byEra[v._era_int] ??= []).push(v)
+    }
 
-    const candidates = grp
-      .filter(v =>
-        v._localScore >= junkThresh &&
-        v.BR >= bestAnchorBr - BR_FILL_WINDOW &&
-        v.BR <= bestAnchorBr &&
-        v.Verdict !== VERDICT_MUST
-      )
-      .filter(cand => !mustBrs.some(mbr => Math.abs(cand.BR - mbr) <= BR_FILL_WINDOW))
-      .sort((a, b) => b._localScore - a._localScore)
+    for (const grp of Object.values(byEra)) {
+      const mustCount = grp.filter(v => v.Verdict === VERDICT_MUST).length
+      if (mustCount >= want) continue           // already have enough top-tier
+      const need = want - mustCount
 
-    let filled = 0
-    for (const cand of candidates) {
-      if (filled >= need) break
-      cand.Verdict     = VERDICT_FILL
-      cand.Skip_Reason = ''
-      cand.Alt_Vehicle = ''
-      filled++
+      const nonSkip = grp
+        .filter(v =>
+          v.Verdict !== VERDICT_MUST &&
+          v.Verdict !== VERDICT_SKIP &&
+          v._localScore >= FILL_MIN_SCORE
+        )
+        .sort((a, b) => b._localScore - a._localScore)
+
+      const skipFallback = grp
+        .filter(v => v.Verdict === VERDICT_SKIP && v._localScore >= FILL_MIN_SCORE)
+        .sort((a, b) => b._localScore - a._localScore)
+
+      let filled = 0
+      for (const cand of [...nonSkip, ...skipFallback]) {
+        if (filled >= need) break
+        cand.Verdict     = VERDICT_FILL
+        cand.Skip_Reason = ''
+        cand.Alt_Vehicle = ''
+        filled++
+      }
     }
   }
 
@@ -643,6 +782,7 @@ function groupedCells(cellVehicles) {
 function countByVerdict(verdict) {
   return progressionData.value.filter(v => v.Verdict === verdict).length
 }
+lineupPrefs.value = defaultLineupPrefs(branch.value, slots.value, activeTypes.value)
 </script>
 
 <style scoped>
@@ -699,7 +839,114 @@ function countByVerdict(verdict) {
 .type-chip    { cursor: pointer; font-size: 11px !important; transition: opacity 0.15s; }
 .type-chip:hover { opacity: 0.8; }
 
-/* ── Legend ────────────────────────────────────────────────────────────────── */
+/* Lineup Mix */
+.lineup-mix-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 6px 2px 2px;
+  border-top: 1px solid rgba(30, 58, 95, 0.6);
+}
+
+.lineup-mix-label {
+  flex-shrink: 0;
+  margin-right: 4px;
+}
+
+.lineup-mix-types {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex: 1;
+}
+
+.lineup-type-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid #1e3a5f;
+  border-radius: 6px;
+  padding: 3px 5px;
+}
+
+.lm-icon {
+  font-size: 12px;
+  line-height: 1;
+}
+
+.lm-btn {
+  width: 18px;
+  height: 18px;
+  line-height: 1;
+  font-size: 13px;
+  font-weight: 700;
+  border: 1px solid #1e3a5f;
+  border-radius: 4px;
+  background: rgba(30, 41, 59, 0.8);
+  color: #94a3b8;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+.lm-btn:hover:not(:disabled) {
+  background: rgba(167, 243, 208, 0.12);
+  border-color: #a7f3d0;
+  color: #a7f3d0;
+}
+.lm-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.lm-count {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  color: #475569;
+  min-width: 14px;
+  text-align: center;
+  transition: color 0.12s;
+}
+.lm-count--active {
+  color: #38bdf8;
+}
+
+.lm-total {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 5px;
+  background: rgba(30, 41, 59, 0.6);
+  flex-shrink: 0;
+}
+.lm-total--full  { color: #10b981; background: rgba(16,185,129,0.10); }
+.lm-total--over  { color: #f87171; background: rgba(248,113,113,0.12); }
+.lm-total--under { color: #fbbf24; background: rgba(251,191,36,0.08); }
+
+.lm-reset {
+  font-size: 14px;
+  line-height: 1;
+  background: none;
+  border: 1px solid #1e3a5f;
+  border-radius: 5px;
+  color: #475569;
+  cursor: pointer;
+  padding: 2px 6px;
+  transition: color 0.12s, border-color 0.12s;
+  flex-shrink: 0;
+}
+.lm-reset:hover {
+  color: #a7f3d0;
+  border-color: #a7f3d0;
+}
+
+/* Legend */
 .legend-row {
   display: flex;
   flex-wrap: wrap;
@@ -725,7 +972,7 @@ function countByVerdict(verdict) {
   padding-bottom: 12px;
 }
 
-/* ── CSS Grid ──────────────────────────────────────────────────────────────── */
+/* CSS Grid */
 .prog-grid {
   display: grid;
   gap: 4px;

@@ -38,6 +38,7 @@
     "vehicle_type":   "VEHICLE TYPE",
     "ground":         "Ground",
     "aviation":       "Aviation",
+    "fleet":          "Fleet",
     "large_fleet":    "Large Fleet",
     "small_fleet":    "Small Fleet",
     "warn_none":      "⚠️ No vehicle class selected",
@@ -95,7 +96,11 @@
   },
 
   "progression_tab": {
-    "nation":         "Nation",
+    "nation":          "Nation",
+    "branch":          "Branch",
+    "crew_slots":      "Crew Slots",
+    "lineup_mix":      "Lineup Mix",
+    "reset_defaults":  "Reset to defaults",
     "color_by":       "Color by",
     "color_meta":     "META Score",
     "color_farm":     "FARM Score",
@@ -144,6 +149,7 @@
   },
 
   "vehicle_types": {
+    "tank":               "Tank",
     "medium_tank":        "Medium Tank",
     "light_tank":         "Light Tank",
     "heavy_tank":         "Heavy Tank",
@@ -173,6 +179,14 @@
     "Marketplace": "Marketplace",
     "Gift":        "Gift",
     "Event":       "Event"
+  },
+
+  "verdicts": {
+    "must": "Must Play",
+    "fill": "Lineup Filler",
+    "pass": "Passable",
+    "skip": "Hard Skip",
+    "prem": "Premium Fix"
   },
 
   "modes": {
