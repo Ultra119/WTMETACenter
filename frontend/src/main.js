@@ -7,7 +7,7 @@ import 'vuetify/styles'
 
 import router from './router/index.js'
 import i18n   from './i18n/index.js'
-import App    from './App.vue'
+import App    from './app.vue'
 
 const vuetify = createVuetify({
   icons: { defaultSet: 'mdi', aliases, sets: { mdi } },
