@@ -84,6 +84,7 @@ import { ref, computed, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useDataStore, WT_BR_STEPS } from '../stores/useDataStore.js'
 import { vehicleDisplayName, fmtBR, farmColor, normRow } from '../composables/useVehicleFormatting.js'
+import { TYPE_CATEGORIES } from '../composables/constants.js'
 
 const { t }       = useI18n()
 const store       = useDataStore()
@@ -105,13 +106,6 @@ const typeOptions = computed(() => {
   return cats
 })
 
-const CAT_TYPES = {
-  Ground:     ['medium_tank','light_tank','heavy_tank','tank_destroyer','spaa'],
-  Aviation:   ['fighter','bomber','assault','utility_helicopter','attack_helicopter'],
-  LargeFleet: ['destroyer','heavy_cruiser','light_cruiser','battleship','battlecruiser'],
-  SmallFleet: ['boat','heavy_boat','frigate','barge'],
-}
-
 function getFarmSet(vehicles, tBr, nat, vType) {
   let df = [...vehicles]
   if (nat !== 'All') df = df.filter(v => v.Nation === nat)
@@ -124,7 +118,7 @@ function getFarmSet(vehicles, tBr, nat, vType) {
     [t('sidebar.small_fleet')]: 'SmallFleet',
   }
   const catKey = catKeyByLabel[vType]
-  if (catKey) df = df.filter(v => (CAT_TYPES[catKey] ?? []).includes(v.Type))
+  if (catKey) df = df.filter(v => (TYPE_CATEGORIES[catKey] ?? []).includes(v.Type))
 
   const anchor = df
     .filter(v => Math.abs(v.BR - tBr) <= 0.15)

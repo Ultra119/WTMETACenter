@@ -81,7 +81,7 @@ import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useDataStore, WT_BR_STEPS } from '../stores/useDataStore.js'
 import { metaColor } from '../composables/useVehicleFormatting.js'
-import { BRANCH_TYPES, TYPE_LABELS, TYPE_ICON } from '../composables/constants.js'
+import { BRANCH_TYPES, TYPE_LABELS, TYPE_ICON, LARGE_FLEET_TYPES, SMALL_FLEET_TYPES } from '../composables/constants.js'
 
 const { t }  = useI18n()
 const store  = useDataStore()
@@ -97,9 +97,6 @@ const stepOptions = computed(() =>
   }))
 )
 
-const LARGE_FLEET = new Set(['destroyer','heavy_cruiser','light_cruiser','battleship','battlecruiser','frigate'])
-const SMALL_FLEET = new Set(['boat','heavy_boat','barge'])
-
 const availableTypeOptions = computed(() => {
   const active = []
   if (store.showGround) {
@@ -109,10 +106,10 @@ const availableTypeOptions = computed(() => {
     active.push(...BRANCH_TYPES.Aviation)
   }
   if (store.showLargeFleet) {
-    active.push(...[...LARGE_FLEET])
+    active.push(...[...LARGE_FLEET_TYPES])
   }
   if (store.showSmallFleet) {
-    active.push(...[...SMALL_FLEET])
+    active.push(...[...SMALL_FLEET_TYPES])
   }
   return active.map(type => ({
     value:      type,

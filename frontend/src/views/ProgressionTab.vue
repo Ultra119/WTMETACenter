@@ -195,6 +195,10 @@ import {
   RANK_PENALTY, RANK_PENALTY_PREMIUM,
   MM_WINDOW, BR_FILL_WINDOW, JUNK_FLOOR, YELLOW_FLOOR, YELLOW_PCTILE,
   VERDICT_MUST, VERDICT_PASS, VERDICT_SKIP, VERDICT_PREM, VERDICT_FILL,
+  TANK_TYPES, DEFAULT_LINEUP_SLOTS, LINEUP_PRIORITY,
+  BR_ERA_THRESHOLDS,
+  CROSS_THRESH, CROSS_SKIP_THRESH, CROSS_BR_WINDOW, CROSS_BR_LOOKBACK,
+  NO_CROSS_TYPES, FILL_MIN_SCORE,
 } from '../composables/constants.js'
 
 // Store & Inject
@@ -217,7 +221,6 @@ const prefDisplay = computed(() => ({
 
 const nation      = ref('')
 const branch      = ref('Ground')
-const DEFAULT_SLOTS = 4
 const activeTypes = shallowRef(new Set(BRANCH_TYPES.Ground))
 
 const lineupPrefs = ref({})
@@ -234,7 +237,7 @@ watch(nationOptions, (opts) => {
 // Branch change → reset type filter + lineup prefs
 watch(branch, (newBranch) => {
   activeTypes.value = new Set(BRANCH_TYPES[newBranch] ?? [])
-  lineupPrefs.value = defaultLineupPrefs(newBranch, DEFAULT_SLOTS, activeTypes.value)
+  lineupPrefs.value = defaultLineupPrefs(newBranch, DEFAULT_LINEUP_SLOTS, activeTypes.value)
 })
 
 watch(activeTypes, (newActive) => {
@@ -244,16 +247,6 @@ watch(activeTypes, (newActive) => {
   }
   lineupPrefs.value = next
 })
-
-const TANK_TYPES = new Set(['medium_tank', 'heavy_tank', 'light_tank'])
-
-const GROUND_PREF_KEYS  = ['tank', 'spaa', 'tank_destroyer']
-const LINEUP_PRIORITY = {
-  Ground:   ['tank', 'spaa', 'tank_destroyer'],
-  Aviation: ['fighter', 'assault', 'bomber', 'attack_helicopter', 'utility_helicopter'],
-  Fleet:    ['destroyer', 'light_cruiser', 'boat', 'heavy_cruiser',
-             'battleship', 'battlecruiser', 'heavy_boat', 'frigate', 'barge'],
-}
 
 function toPrefKey(type) {
   return TANK_TYPES.has(type) ? 'tank' : type
@@ -305,7 +298,7 @@ function decPref(prefKey) {
 }
 
 function resetLineupPrefs() {
-  lineupPrefs.value = defaultLineupPrefs(branch.value, DEFAULT_SLOTS, activeTypes.value)
+  lineupPrefs.value = defaultLineupPrefs(branch.value, DEFAULT_LINEUP_SLOTS, activeTypes.value)
 }
 
 const branchTypes = computed(() => BRANCH_TYPES[branch.value] ?? [])
@@ -320,9 +313,8 @@ function toggleType(t) {
 // Algorithm Helpers
 
 function brToEra(br) {
-  const thresholds = [2.3, 3.7, 5.3, 6.7, 8.3, 9.7, 11.3]
-  for (let i = 0; i < thresholds.length; i++) {
-    if (br <= thresholds[i]) return i + 1
+  for (let i = 0; i < BR_ERA_THRESHOLDS.length; i++) {
+    if (br <= BR_ERA_THRESHOLDS[i]) return i + 1
   }
   return 8
 }
@@ -392,11 +384,9 @@ function bestAnchorForEra(eraVehicles, junkThresh, yellowThresh, minLineup) {
 }
 
 function superCat(branchName) {
-  const GROUND   = new Set(['medium_tank', 'light_tank', 'heavy_tank', 'tank_destroyer'])
-  const AVIATION = new Set(['fighter', 'bomber', 'assault', 'attack_helicopter', 'utility_helicopter'])
-  if (branchName === 'spaa')    return 'AntiAir'
-  if (GROUND.has(branchName))   return 'Ground'
-  if (AVIATION.has(branchName)) return 'Aviation'
+  if (branchName === 'spaa')                         return 'AntiAir'
+  if (BRANCH_TYPES.Ground.includes(branchName))     return 'Ground'
+  if (BRANCH_TYPES.Aviation.includes(branchName))   return 'Aviation'
   return 'Fleet'
 }
 
@@ -528,15 +518,9 @@ const progressionData = computed(() => {
   }
 
   // Pass 2: Cross-branch hints
-  const CROSS_THRESH      = 1.30
-  const CROSS_SKIP_THRESH = 1.40
-  const CROSS_BR_WINDOW   = 0.7
-  const CROSS_BR_LOOKBACK = 1.0
-  const NO_CROSS          = new Set(['spaa'])
-
   for (const v of stdVehicles) {
     if (v.Verdict !== VERDICT_MUST && v.Verdict !== VERDICT_PASS) continue
-    if (v._localScore < 1e-3 || NO_CROSS.has(v._branch))         continue
+    if (v._localScore < 1e-3 || NO_CROSS_TYPES.has(v._branch))   continue
 
     const ourCat = superCat(v._branch)
     let bestMeta = 0, bestName = '', bestBr = 0
@@ -580,8 +564,6 @@ const progressionData = computed(() => {
   )
 
   // Pass 3: FILL
-  const FILL_MIN_SCORE = 1.0   // any vehicle with valid data is eligible for FILL
-
   for (const [prefKey, want] of Object.entries(prefs)) {
     if (!want || want <= 0) continue
 
@@ -783,7 +765,7 @@ function groupedCells(cellVehicles) {
 function countByVerdict(verdict) {
   return progressionData.value.filter(v => v.Verdict === verdict).length
 }
-lineupPrefs.value = defaultLineupPrefs(branch.value, DEFAULT_SLOTS, activeTypes.value)
+lineupPrefs.value = defaultLineupPrefs(branch.value, DEFAULT_LINEUP_SLOTS, activeTypes.value)
 </script>
 
 <style scoped>

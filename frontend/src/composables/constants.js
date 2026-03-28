@@ -80,3 +80,35 @@ export const RANK_PENALTY_PREMIUM = {
   '-4': 1.00, '-3': 1.00, '-2': 1.00, '-1': 1.00,
    0: 1.00,    1: 1.00,    2: 0.35,    3: 0.15,    4: 0.06,
 }
+
+export const TYPE_CATEGORIES = {
+  Ground:     BRANCH_TYPES.Ground,
+  Aviation:   BRANCH_TYPES.Aviation,
+  LargeFleet: ['destroyer', 'heavy_cruiser', 'light_cruiser', 'battleship', 'battlecruiser'],
+  SmallFleet: ['boat', 'heavy_boat', 'frigate', 'barge'],
+}
+
+export const LARGE_FLEET_TYPES = new Set(TYPE_CATEGORIES.LargeFleet)
+export const SMALL_FLEET_TYPES = new Set(TYPE_CATEGORIES.SmallFleet)
+
+export const TANK_TYPES = new Set(['medium_tank', 'heavy_tank', 'light_tank'])
+
+export const DEFAULT_LINEUP_SLOTS = 4
+
+export const LINEUP_PRIORITY = {
+  Ground:   ['tank', 'spaa', 'tank_destroyer'],
+  Aviation: ['fighter', 'assault', 'bomber', 'attack_helicopter', 'utility_helicopter'],
+  Fleet:    ['destroyer', 'light_cruiser', 'boat', 'heavy_cruiser',
+             'battleship', 'battlecruiser', 'heavy_boat', 'frigate', 'barge'],
+}
+
+export const BR_ERA_THRESHOLDS = [2.3, 3.7, 5.3, 6.7, 8.3, 9.7, 11.3]
+
+export const CROSS_THRESH       = 1.30  // hint если другая ветка на 30% сильнее
+export const CROSS_SKIP_THRESH  = 1.40  // SKIP если на 40% сильнее + ниже BR
+export const CROSS_BR_WINDOW    = 0.7   // смотреть вперёд (выше BR)
+export const CROSS_BR_LOOKBACK  = 1.0   // смотреть назад  (ниже BR)
+export const NO_CROSS_TYPES     = new Set(['spaa'])
+export const FILL_MIN_SCORE     = 1.0   // минимальный META_SCORE для FILL-кандидата
+
+export const REDBOOK_LOW_BATTLES = 100
