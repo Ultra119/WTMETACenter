@@ -48,6 +48,8 @@
 
   "topbar": {
     "title":          "WT META Center",
+    "report":         "Сообщить о проблеме",
+    "report_title":   "Сообщить об ошибке или неточности данных на GitHub",
     "search_hint":    "Поиск техники…",
     "search_header":  "🔍 РЕЗУЛЬТАТЫ",
     "search_empty":   "Ничего не найдено"

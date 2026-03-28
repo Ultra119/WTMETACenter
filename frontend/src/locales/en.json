@@ -48,6 +48,8 @@
 
   "topbar": {
     "title":          "WT META Center",
+    "report":         "Report issue",
+    "report_title":   "Report a bug or data issue on GitHub",
     "search_hint":    "Search vehicles…",
     "search_header":  "🔍 RESULTS",
     "search_empty":   "Nothing found"
