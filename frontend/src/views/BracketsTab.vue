@@ -198,7 +198,6 @@ function scoreColor(score) {
 </script>
 
 <style scoped>
-/* ── Shared controls-bar (mirrors ProgressionTab) ─────────────────── */
 .controls-bar {
   background: rgba(15, 23, 42, 0.6);
   border: 1px solid #1e3a5f;
@@ -214,7 +213,6 @@ function scoreColor(score) {
 
 .tab-info { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #64748b; }
 
-/* Single wrapper — row of custom chips */
 .excl-chips-row {
   display: flex;
   flex-direction: row;

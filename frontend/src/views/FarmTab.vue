@@ -53,29 +53,11 @@
       </v-alert>
 
       <div class="section-title">{{ t('farm_tab.main_set') }}</div>
-      <v-data-table
-        :headers="farmHeaders"
-        :items="mainSetRows"
-        :items-per-page="10"
-        density="compact"
-        class="wt-table mb-4"
-        @click:row="(_, { item }) => openVehicle(item)"
-      >
-        <template #item.Name_Display="{ item }"><span class="cell-name">{{ item.Name_Display }}</span></template>
-        <template #item.FARM_SCORE="{ item }">
-          <span :style="{ color: farmColor(item.FARM_SCORE) }">{{ item.FARM_SCORE?.toFixed(1) }}</span>
-        </template>
-        <template #item.net_sl="{ item }">
-          <span style="color:#34d399;">{{ item.net_sl?.toLocaleString() }}</span>
-        </template>
-      </v-data-table>
-
-      <div class="section-title" style="color:#a78bfa;">{{ t('farm_tab.gems') }}</div>
-      <template v-if="result.gems.length">
+      <div class="table-wrap mb-4">
         <v-data-table
-          :headers="gemHeaders"
-          :items="gemRows"
-          :items-per-page="5"
+          :headers="farmHeaders"
+          :items="mainSetRows"
+          :items-per-page="10"
           density="compact"
           class="wt-table"
           @click:row="(_, { item }) => openVehicle(item)"
@@ -84,7 +66,29 @@
           <template #item.FARM_SCORE="{ item }">
             <span :style="{ color: farmColor(item.FARM_SCORE) }">{{ item.FARM_SCORE?.toFixed(1) }}</span>
           </template>
+          <template #item.net_sl="{ item }">
+            <span style="color:#34d399;">{{ item.net_sl?.toLocaleString() }}</span>
+          </template>
         </v-data-table>
+      </div>
+
+      <div class="section-title" style="color:#a78bfa;">{{ t('farm_tab.gems') }}</div>
+      <template v-if="result.gems.length">
+        <div class="table-wrap">
+          <v-data-table
+            :headers="gemHeaders"
+            :items="gemRows"
+            :items-per-page="5"
+            density="compact"
+            class="wt-table"
+            @click:row="(_, { item }) => openVehicle(item)"
+          >
+            <template #item.Name_Display="{ item }"><span class="cell-name">{{ item.Name_Display }}</span></template>
+            <template #item.FARM_SCORE="{ item }">
+              <span :style="{ color: farmColor(item.FARM_SCORE) }">{{ item.FARM_SCORE?.toFixed(1) }}</span>
+            </template>
+          </v-data-table>
+        </div>
       </template>
       <p v-else class="text-muted-sm">{{ t('farm_tab.gems_empty') }}</p>
     </template>
@@ -204,7 +208,6 @@ const gemHeaders = computed(() => [
 </script>
 
 <style scoped>
-/* ── Shared controls-bar (mirrors ProgressionTab) ─────────────────── */
 .controls-bar {
   background: rgba(15, 23, 42, 0.6);
   border: 1px solid #1e3a5f;
@@ -218,6 +221,11 @@ const gemHeaders = computed(() => [
   gap: 12px;
 }
 
+.table-wrap {
+  border: 1px solid #1e3a5f;
+  border-radius: 8px;
+  overflow: hidden;
+}
 .section-title { font-family: 'Rajdhani', sans-serif; font-size: 13px; font-weight: 700; color: #a7f3d0; letter-spacing: .08em; margin-bottom: 8px; margin-top: 4px; }
 .cell-name { font-weight: 600; color: #e2e8f0; }
 .text-muted-sm { font-size: 11px; color: #475569; font-style: italic; }

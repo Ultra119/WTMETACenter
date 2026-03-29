@@ -1,7 +1,5 @@
 <template>
   <div class="prog-root">
-
-    <!-- ── Controls ──────────────────────────────────────────────────────── -->
     <div class="controls-bar mb-3">
       <div class="controls-row">
 
@@ -93,7 +91,6 @@
       </div>
     </div>
 
-    <!-- ── Legend ─────────────────────────────────────────────────────────── -->
     <div class="legend-row mb-3">
       <span v-for="(vc, key) in VERDICT_COLORS" :key="key" class="legend-item">
         <span class="legend-icon">{{ vc.icon }}</span>
@@ -101,7 +98,6 @@
       </span>
     </div>
 
-    <!-- ── No-data state ──────────────────────────────────────────────────── -->
     <v-alert
       v-if="!gridData"
       type="info"
@@ -129,7 +125,6 @@
 
         <div class="grid-hdr grid-hdr--prem">👑 PREMIUM</div>
 
-        <!-- Data rows — one per era -->
         <template v-for="era in gridData.eras" :key="`era-${era}`">
 
           <!-- Rank label -->
@@ -147,7 +142,6 @@
               v-for="item in groupedCells(gridData.getCellVehicles(era, col - 1))"
               :key="item.key"
             >
-              <!-- Grouped bracket: only for vehicles sharing vdb_shop_group -->
               <div v-if="item.isGroup" class="group-bracket">
                 <div class="group-label">📁 {{ item.groupLabel }}</div>
                 <ProgressionCard
@@ -234,7 +228,6 @@ watch(nationOptions, (opts) => {
   if (!nation.value && opts.length) nation.value = opts[0]
 }, { immediate: true })
 
-// Branch change → reset type filter + lineup prefs
 watch(branch, (newBranch) => {
   activeTypes.value = new Set(BRANCH_TYPES[newBranch] ?? [])
   lineupPrefs.value = defaultLineupPrefs(newBranch, DEFAULT_LINEUP_SLOTS, activeTypes.value)
@@ -353,7 +346,6 @@ function quantile(arr, q) {
     : s[low] * (high - pos) + s[high] * (pos - low)
 }
 
-/** Returns [junkThresh, yellowThresh] */
 function computeDynamicThresholds(allMeta) {
   const valid = allMeta.filter(m => m > 1.0)
   if (!valid.length) return [JUNK_FLOOR, YELLOW_FLOOR]
@@ -579,7 +571,7 @@ const progressionData = computed(() => {
 
     for (const grp of Object.values(byEra)) {
       const mustCount = grp.filter(v => v.Verdict === VERDICT_MUST).length
-      if (mustCount >= want) continue           // already have enough top-tier
+      if (mustCount >= want) continue
       const need = want - mustCount
 
       const nonSkip = grp
@@ -629,7 +621,6 @@ const progressionData = computed(() => {
     }
 
     for (const grp of Object.values(byEraP4)) {
-      // Sort MUST vehicles by score ascending so we demote the weakest first
       const mustVehs = grp
         .filter(v => v.Verdict === VERDICT_MUST)
         .sort((a, b) => a._localScore - b._localScore)
@@ -769,14 +760,12 @@ lineupPrefs.value = defaultLineupPrefs(branch.value, DEFAULT_LINEUP_SLOTS, activ
 </script>
 
 <style scoped>
-/* Root */
 .prog-root {
   display: flex;
   flex-direction: column;
   height: 100%;
 }
 
-/* Controls bar */
 .controls-bar {
   background: rgba(15, 23, 42, 0.6);
   border: 1px solid #1e3a5f;
@@ -822,7 +811,6 @@ lineupPrefs.value = defaultLineupPrefs(branch.value, DEFAULT_LINEUP_SLOTS, activ
 .type-chip    { cursor: pointer; font-size: 11px !important; transition: opacity 0.15s; }
 .type-chip:hover { opacity: 0.8; }
 
-/* Lineup Mix */
 .lineup-mix-row {
   display: flex;
   align-items: center;
@@ -929,7 +917,6 @@ lineupPrefs.value = defaultLineupPrefs(branch.value, DEFAULT_LINEUP_SLOTS, activ
   border-color: #a7f3d0;
 }
 
-/* Legend */
 .legend-row {
   display: flex;
   flex-wrap: wrap;
@@ -946,16 +933,14 @@ lineupPrefs.value = defaultLineupPrefs(branch.value, DEFAULT_LINEUP_SLOTS, activ
 .legend-icon { font-size: 12px; }
 .legend-text { white-space: nowrap; }
 
-/* Scroll container */
 .prog-grid-wrap {
   flex: 1;
   overflow-y: auto;
-  overflow-x: hidden;          /* no horizontal scrollbar */
+  overflow-x: hidden;
   max-height: calc(100vh - 260px);
   padding-bottom: 12px;
 }
 
-/* CSS Grid */
 .prog-grid {
   display: grid;
   gap: 4px;
@@ -963,7 +948,6 @@ lineupPrefs.value = defaultLineupPrefs(branch.value, DEFAULT_LINEUP_SLOTS, activ
   width: 100%;
 }
 
-/* Header row cells */
 .grid-hdr {
   background: #1e293b;
   border-radius: 4px;
@@ -981,7 +965,6 @@ lineupPrefs.value = defaultLineupPrefs(branch.value, DEFAULT_LINEUP_SLOTS, activ
 .grid-hdr--rank { color: #475569; }
 .grid-hdr--prem { color: #a78bfa; }
 
-/* Rank label */
 .rank-cell {
   background: #162032;
   border-radius: 4px;
@@ -1000,14 +983,12 @@ lineupPrefs.value = defaultLineupPrefs(branch.value, DEFAULT_LINEUP_SLOTS, activ
   line-height: 1;
 }
 
-/* Standard cell */
 .prog-cell {
   min-height: 64px;
   padding: 2px;
-  min-width: 0;   /* prevents the cell from overflowing its grid column */
+  min-width: 0;
 }
 
-/* Group bracket */
 .group-bracket {
   border-left:   2px solid #334155;
   border-top:    1px solid #1e293b;
@@ -1029,10 +1010,6 @@ lineupPrefs.value = defaultLineupPrefs(branch.value, DEFAULT_LINEUP_SLOTS, activ
   text-overflow: ellipsis;
 }
 
-/*
-  Cards inside a bracket merge visually: strip connecting border-radius edges.
-  :deep() is required because ProgressionCard uses scoped styles.
-*/
 .group-bracket :deep(.prog-card:not(:last-child)) {
   border-bottom-right-radius: 0;
   margin-bottom: 1px;

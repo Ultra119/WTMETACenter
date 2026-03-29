@@ -20,33 +20,35 @@
       </div>
     </div>
 
-    <v-data-table
-      :headers="headers"
-      :items="tableRows"
-      :items-per-page="100"
-      density="compact"
-      fixed-header
-      height="calc(100vh - 230px)"
-      :sort-by="[{ key: 'META_SCORE', order: 'desc' }]"
-      class="wt-table"
-      @click:row="(_, { item }) => openVehicle(item)"
-    >
-      <template #item.Name_Display="{ item }">
-        <span class="cell-name">{{ item.Name_Display }}</span>
-      </template>
-      <template #item.META_SCORE="{ item }">
-        <span class="cell-score" :style="{ color: metaColor(item.META_SCORE) }">{{ item.META_SCORE?.toFixed(1) }}</span>
-      </template>
-      <template #item.FARM_SCORE="{ item }">
-        <span class="cell-score" :style="{ color: farmColor(item.FARM_SCORE) }">{{ item.FARM_SCORE?.toFixed(1) }}</span>
-      </template>
-      <template #item.WR="{ item }">
-        <span :style="{ color: wrColor(item.WR) }">{{ item.WR?.toFixed(1) }}</span>
-      </template>
-      <template #item.net_sl="{ item }">
-        <span style="color:#34d399;">{{ item.net_sl?.toLocaleString() }}</span>
-      </template>
-    </v-data-table>
+    <div class="table-wrap">
+      <v-data-table
+        :headers="headers"
+        :items="tableRows"
+        :items-per-page="100"
+        density="compact"
+        fixed-header
+        height="calc(100vh - 230px)"
+        :sort-by="[{ key: 'META_SCORE', order: 'desc' }]"
+        class="wt-table"
+        @click:row="(_, { item }) => openVehicle(item)"
+      >
+        <template #item.Name_Display="{ item }">
+          <span class="cell-name">{{ item.Name_Display }}</span>
+        </template>
+        <template #item.META_SCORE="{ item }">
+          <span class="cell-score" :style="{ color: metaColor(item.META_SCORE) }">{{ item.META_SCORE?.toFixed(1) }}</span>
+        </template>
+        <template #item.FARM_SCORE="{ item }">
+          <span class="cell-score" :style="{ color: farmColor(item.FARM_SCORE) }">{{ item.FARM_SCORE?.toFixed(1) }}</span>
+        </template>
+        <template #item.WR="{ item }">
+          <span :style="{ color: wrColor(item.WR) }">{{ item.WR?.toFixed(1) }}</span>
+        </template>
+        <template #item.net_sl="{ item }">
+          <span style="color:#34d399;">{{ item.net_sl?.toLocaleString() }}</span>
+        </template>
+      </v-data-table>
+    </div>
   </div>
 </template>
 
@@ -102,7 +104,6 @@ const headers = computed(() => [
 </script>
 
 <style scoped>
-/* ── Shared controls-bar (mirrors ProgressionTab) ─────────────────── */
 .controls-bar {
   background: rgba(15, 23, 42, 0.6);
   border: 1px solid #1e3a5f;
@@ -121,6 +122,11 @@ const headers = computed(() => [
   font-size: 11px;
   color: #94a3b8;
   margin-left: auto;
+}
+.table-wrap {
+  border: 1px solid #1e3a5f;
+  border-radius: 8px;
+  overflow: hidden;
 }
 .cell-name  { font-weight: 600; color: #e2e8f0; }
 .cell-score { font-weight: 700; font-family: 'JetBrains Mono', monospace; }
