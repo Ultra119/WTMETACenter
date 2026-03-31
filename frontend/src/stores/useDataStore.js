@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 
 export const WT_BR_STEPS = [
   1.0,1.3,1.7, 2.0,2.3,2.7, 3.0,3.3,3.7, 4.0,4.3,4.7,
@@ -23,6 +23,13 @@ function typeToCategory(t) {
   return null
 }
 
+function debounce(fn, delay) {
+  let timer = null
+  return (...args) => {
+    if (timer !== null) clearTimeout(timer)
+    timer = setTimeout(() => { timer = null; fn(...args) }, delay)
+  }
+}
 
 export const useDataStore = defineStore('data', () => {
   const allVehicles  = ref([])
@@ -39,6 +46,27 @@ export const useDataStore = defineStore('data', () => {
   const showAviation   = ref(true)
   const showLargeFleet = ref(false)
   const showSmallFleet = ref(false)
+
+  const _mode           = ref('Realistic')
+  const _minBattles     = ref(50)
+  const _brRange        = ref([BR_MIN, BR_MAX])
+  const _classes        = ref(['Standard','Premium','Pack','Squadron','Marketplace','Gift','Event'])
+  const _showGround     = ref(true)
+  const _showAviation   = ref(true)
+  const _showLargeFleet = ref(false)
+  const _showSmallFleet = ref(false)
+
+  watch(mode,           v => { _mode.value          = v    })
+  watch(classes,        v => { _classes.value        = [...v] }, { deep: true })
+  watch(showGround,     v => { _showGround.value     = v    })
+  watch(showAviation,   v => { _showAviation.value   = v    })
+  watch(showLargeFleet, v => { _showLargeFleet.value = v    })
+  watch(showSmallFleet, v => { _showSmallFleet.value = v    })
+
+  const commitRange   = debounce(v => { _brRange.value    = v    }, 220)
+  const commitBattles = debounce(v => { _minBattles.value = v    }, 220)
+  watch(brRange,    v => commitRange([...v]))
+  watch(minBattles, v => commitBattles(v))
 
   async function loadData(basePath = '') {
     loading.value  = true
@@ -63,11 +91,10 @@ export const useDataStore = defineStore('data', () => {
 
   const activeTypes = computed(() => {
     const wanted = new Set()
-    if (showGround.value)     wanted.add('Ground')
-    if (showAviation.value)   wanted.add('Aviation')
-    if (showLargeFleet.value) wanted.add('LargeFleet')
-    if (showSmallFleet.value) wanted.add('SmallFleet')
-
+    if (_showGround.value)     wanted.add('Ground')
+    if (_showAviation.value)   wanted.add('Aviation')
+    if (_showLargeFleet.value) wanted.add('LargeFleet')
+    if (_showSmallFleet.value) wanted.add('SmallFleet')
     if (wanted.size === 0) return []
 
     const all = metaInfo.value?.types ?? []
@@ -80,11 +107,11 @@ export const useDataStore = defineStore('data', () => {
   const filteredVehicles = computed(() => {
     if (!allVehicles.value.length) return []
     return allVehicles.value.filter(v =>
-      v.Mode === mode.value &&
-      v.BR   >= brRange.value[0] &&
-      v.BR   <= brRange.value[1] &&
-      (v['Сыграно игр'] ?? 0) >= minBattles.value &&
-      classes.value.includes(v.VehicleClass ?? 'Standard') &&
+      v.Mode === _mode.value &&
+      v.BR   >= _brRange.value[0] &&
+      v.BR   <= _brRange.value[1] &&
+      (v['Сыграно игр'] ?? 0) >= _minBattles.value &&
+      _classes.value.includes(v.VehicleClass ?? 'Standard') &&
       activeTypes.value.includes(v.Type)
     )
   })
