@@ -88,6 +88,15 @@
         <span class="legend-icon">{{ vc.icon }}</span>
         <span class="legend-text">{{ $t(`verdicts.${key.toLowerCase()}`, vc.label) }}</span>
       </span>
+      <InfoTip align="right" class="ml-auto">
+        <p><b>{{ $t('progression_tab.tip_title') }}</b></p>
+        <div class="tip-row"><span class="tip-icon">🟢</span><span><b class="tip-label">{{ $t('verdicts.must') }}</b> — {{ $t('progression_tab.tip_must') }}</span></div>
+        <div class="tip-row"><span class="tip-icon">🔵</span><span><b class="tip-label">{{ $t('verdicts.fill') }}</b> — {{ $t('progression_tab.tip_fill') }}</span></div>
+        <div class="tip-row"><span class="tip-icon">🟡</span><span><b class="tip-label">{{ $t('verdicts.pass') }}</b> — {{ $t('progression_tab.tip_pass') }}</span></div>
+        <div class="tip-row"><span class="tip-icon">🔴</span><span><b class="tip-label">{{ $t('verdicts.skip') }}</b> — {{ $t('progression_tab.tip_skip') }}</span></div>
+        <div class="tip-row"><span class="tip-icon">👑</span><span><b class="tip-label">{{ $t('verdicts.prem') }}</b> — {{ $t('progression_tab.tip_prem') }}</span></div>
+        <p style="margin-top:8px; color:#475569">{{ $t('progression_tab.tip_lineup') }}</p>
+      </InfoTip>
     </div>
 
     <v-alert
@@ -176,6 +185,7 @@ import { ref, computed, inject, watch, shallowRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useDataStore } from '../stores/useDataStore.js'
 import ProgressionCard from '../components/ProgressionCard.vue'
+import InfoTip from '../components/InfoTip.vue'
 import {
   ROMAN, BRANCH_TYPES, TYPE_LABELS, TYPE_ICON, VERDICT_COLORS, STD_CLASS,
   RANK_PENALTY, RANK_PENALTY_PREMIUM,
@@ -966,6 +976,7 @@ lineupPrefs.value = defaultLineupPrefs(branch.value, DEFAULT_LINEUP_SLOTS, activ
 .legend-row {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 16px;
   padding: 4px 2px;
 }
@@ -978,6 +989,7 @@ lineupPrefs.value = defaultLineupPrefs(branch.value, DEFAULT_LINEUP_SLOTS, activ
 }
 .legend-icon { font-size: 12px; }
 .legend-text { white-space: nowrap; }
+.ml-auto { margin-left: auto; }
 
 .prog-grid-wrap {
   flex: 1;

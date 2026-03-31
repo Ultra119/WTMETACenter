@@ -50,7 +50,15 @@
             </div>
           </template>
         </v-select>
-        <div class="tab-info">{{ t('brackets_tab.description') }}</div>
+        <InfoTip align="right" class="ml-auto">
+          <p><b>{{ t('brackets_tab.description') }}</b></p>
+          <p>{{ t('brackets_tab.tip_desc') }}</p>
+          <p style="margin-top:8px">
+            <span style="color:#34d399">■</span> {{ t('brackets_tab.tip_strong') }} &nbsp;
+            <span style="color:#fbbf24">■</span> {{ t('brackets_tab.tip_average') }} &nbsp;
+            <span style="color:#f87171">■</span> {{ t('brackets_tab.tip_weak') }}
+          </p>
+        </InfoTip>
       </div>
     </div>
 
@@ -85,6 +93,7 @@ import { useI18n } from 'vue-i18n'
 import { useDataStore, WT_BR_STEPS } from '../stores/useDataStore.js'
 import { metaColor, fmtNation } from '../composables/useVehicleFormatting.js'
 import { BRANCH_TYPES, TYPE_LABELS, TYPE_ICON, LARGE_FLEET_TYPES, SMALL_FLEET_TYPES } from '../composables/constants.js'
+import InfoTip from '../components/InfoTip.vue'
 
 const { t }  = useI18n()
 const store  = useDataStore()
@@ -204,14 +213,13 @@ function scoreColor(score) {
   border-radius: 10px;
   padding: 10px 14px;
 }
+.ml-auto { margin-left: auto; }
 .controls-row {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 12px;
 }
-
-.tab-info { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #64748b; }
 
 .excl-chips-row {
   display: flex;

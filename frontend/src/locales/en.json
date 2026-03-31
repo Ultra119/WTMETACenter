@@ -57,14 +57,17 @@
 
   "meta_tab": {
     "info":           "{n} vehicles · BR {min}–{max} · {mode} · click row for details",
-    "nation_label":   "Nation"
+    "nation_label":   "Nation",
+    "tip_click":      "Click any row to open the vehicle card.",
+    "tip_colors":     "META colour scale:"
   },
 
   "redbook_tab": {
     "title":          "💀 Red Book",
     "description":    "Vehicles with the fewest battles played — they are going extinct.",
     "show_top":       "Show top-N",
-    "nation_label":   "Nation"
+    "nation_label":   "Nation",
+    "tip_low":        "< 100 battles"
   },
 
   "brackets_tab": {
@@ -72,7 +75,11 @@
     "top_n":          "Top-N vehicles",
     "excl_types":     "Exclude types",
     "description":    "Weighted META SCORE by nation and BR bracket",
-    "no_data":        "No data for the selected filters."
+    "no_data":        "No data for the selected filters.",
+    "tip_desc":       "Weighted average META SCORE per nation and BR bracket. Higher = stronger nation at that BR range.",
+    "tip_strong":     "Strong",
+    "tip_average":    "Average",
+    "tip_weak":       "Weak"
   },
 
   "farm_tab": {
@@ -94,7 +101,11 @@
     "col_nation":     "Nation",
     "col_battles":    "Battles",
     "col_farm":       "Farm",
-    "col_net_sl":     "Net SL"
+    "col_net_sl":     "Net SL",
+    "tip_desc":       "Finds the best farming lineup for a chosen BR. Select a nation and vehicle type, then click Calculate.",
+    "tip_anchor":     "Highest Farm Score vehicle at the target BR.",
+    "tip_gems":       "Lower-BR vehicles that still beat the anchor's Farm Score.",
+    "gems_label":     "Gems"
   },
 
   "progression_tab": {
@@ -108,7 +119,14 @@
     "color_farm":     "FARM Score",
     "color_wr":       "Win Rate",
     "info":           "{n} vehicles in tree · sorted by research rank",
-    "no_data":        "No tech tree data for this nation. Make sure build_data.py exports vdb_shop_rank."
+    "no_data":        "No tech tree data for this nation. Make sure build_data.py exports vdb_shop_rank.",
+    "tip_title":      "Verdicts explained",
+    "tip_must":       "Top META score in its era",
+    "tip_fill":       "Needed to fill your lineup slots",
+    "tip_pass":       "Average, not essential",
+    "tip_skip":       "Better option exists at this tier",
+    "tip_prem":       "Premium vehicle — check boost label",
+    "tip_lineup":     "Lineup Mix controls how many slots per type are expected when assigning verdicts."
   },
 
   "vehicle_card": {

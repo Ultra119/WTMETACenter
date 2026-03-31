@@ -38,6 +38,12 @@
         <v-btn color="primary" prepend-icon="mdi-calculator" @click="calculate">
           {{ t('common.calculate') }}
         </v-btn>
+        <InfoTip align="right" class="ml-auto">
+          <p><b>{{ t('tabs.farm') }}</b></p>
+          <p>{{ t('farm_tab.tip_desc') }}</p>
+          <div class="tip-row" style="margin-top:8px"><span class="tip-icon">⚓</span><span><b class="tip-label">{{ t('farm_tab.role_anchor') }}</b> — {{ t('farm_tab.tip_anchor') }}</span></div>
+          <div class="tip-row"><span class="tip-icon">💎</span><span><b class="tip-label">{{ t('farm_tab.gems_label') }}</b> — {{ t('farm_tab.tip_gems') }}</span></div>
+        </InfoTip>
       </div>
     </div>
 
@@ -105,6 +111,7 @@ import { useI18n } from 'vue-i18n'
 import { useDataStore, WT_BR_STEPS } from '../stores/useDataStore.js'
 import { vehicleDisplayName, fmtBR, fmtNation, farmColor, normRow } from '../composables/useVehicleFormatting.js'
 import { TYPE_CATEGORIES } from '../composables/constants.js'
+import InfoTip from '../components/InfoTip.vue'
 
 const { t }       = useI18n()
 const store       = useDataStore()
@@ -214,6 +221,7 @@ const gemHeaders = computed(() => [
   border-radius: 10px;
   padding: 10px 14px;
 }
+.ml-auto { margin-left: auto; }
 .controls-row {
   display: flex;
   align-items: center;

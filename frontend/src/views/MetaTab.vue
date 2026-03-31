@@ -14,9 +14,16 @@
           hide-details
           style="max-width:220px"
         />
-        <div class="tab-info">
-          {{ t('meta_tab.info', { n: filtered.length, min: store.brRange[0].toFixed(1), max: store.brRange[1].toFixed(1), mode: store.mode }) }}
-        </div>
+        <InfoTip align="right" class="ml-auto">
+          <p><b>{{ filtered.length }}</b> {{ t('common.vehicle').toLowerCase() }} · BR {{ store.brRange[0].toFixed(1) }}–{{ store.brRange[1].toFixed(1) }} · {{ store.mode }}</p>
+          <p>{{ t('meta_tab.tip_click') }}</p>
+          <p style="margin-top:8px">
+            {{ t('meta_tab.tip_colors') }}&nbsp;
+            <span style="color:#34d399">■</span> ≥ 70 &nbsp;
+            <span style="color:#fbbf24">■</span> 45–70 &nbsp;
+            <span style="color:#f87171">■</span> &lt; 45
+          </p>
+        </InfoTip>
       </div>
     </div>
 
@@ -60,6 +67,7 @@ import {
   vehicleDisplayName, fmtType, fmtNation,
   metaColor, farmColor, wrColor, normRow,
 } from '../composables/useVehicleFormatting.js'
+import InfoTip from '../components/InfoTip.vue'
 
 const { t }       = useI18n()
 const store       = useDataStore()
@@ -110,6 +118,7 @@ const headers = computed(() => [
   border-radius: 10px;
   padding: 10px 14px;
 }
+.ml-auto { margin-left: auto; }
 .controls-row {
   display: flex;
   align-items: center;
@@ -117,12 +126,6 @@ const headers = computed(() => [
   gap: 12px;
 }
 
-.tab-info {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
-  color: #94a3b8;
-  margin-left: auto;
-}
 .table-wrap {
   border: 1px solid #1e3a5f;
   border-radius: 8px;

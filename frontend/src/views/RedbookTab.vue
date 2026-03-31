@@ -1,9 +1,5 @@
 <template>
   <div>
-    <v-alert type="info" variant="tonal" density="compact" class="mb-3" style="font-size:12px;">
-      <b>{{ t('redbook_tab.title') }}</b> — {{ t('redbook_tab.description') }}
-    </v-alert>
-
     <div class="controls-bar mb-3">
       <div class="controls-row">
         <v-select
@@ -27,6 +23,11 @@
           hide-details
           style="max-width:160px"
         />
+        <InfoTip align="right" class="ml-auto">
+          <p><b>{{ t('redbook_tab.title') }}</b></p>
+          <p>{{ t('redbook_tab.description') }}</p>
+          <p style="margin-top:8px"><span style="color:#f87171">■</span> {{ t('redbook_tab.tip_low') }}</p>
+        </InfoTip>
       </div>
     </div>
 
@@ -63,6 +64,7 @@ import { ref, computed, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useDataStore } from '../stores/useDataStore.js'
 import { vehicleDisplayName, fmtType, fmtNation, wrColor, normRow } from '../composables/useVehicleFormatting.js'
+import InfoTip from '../components/InfoTip.vue'
 
 const { t }       = useI18n()
 const store       = useDataStore()
@@ -111,6 +113,7 @@ const headers = computed(() => [
   border-radius: 10px;
   padding: 10px 14px;
 }
+.ml-auto { margin-left: auto; }
 .controls-row {
   display: flex;
   align-items: center;
