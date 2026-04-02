@@ -11,10 +11,11 @@ const BR_MIN = Math.min(...WT_BR_STEPS)
 const BR_MAX = Math.max(...WT_BR_STEPS)
 
 const TYPE_CATEGORIES = {
-  Ground:     ['medium_tank','light_tank','heavy_tank','tank_destroyer','spaa'],
-  Aviation:   ['fighter','bomber','assault','utility_helicopter','attack_helicopter'],
-  LargeFleet: ['destroyer','heavy_cruiser','light_cruiser','battleship','battlecruiser'],
-  SmallFleet: ['boat','heavy_boat','frigate','barge'],
+  Ground:      ['medium_tank','light_tank','heavy_tank','tank_destroyer','spaa'],
+  Aviation:    ['fighter','bomber','assault'],
+  Helicopters: ['attack_helicopter','utility_helicopter'],
+  LargeFleet:  ['destroyer','heavy_cruiser','light_cruiser','battleship','battlecruiser'],
+  SmallFleet:  ['boat','heavy_boat','frigate','barge'],
 }
 
 function typeToCategory(t) {
@@ -61,26 +62,29 @@ export const useDataStore = defineStore('data', () => {
   const brRange    = ref([BR_MIN, BR_MAX])
   const classes    = ref(['Standard','Premium','Pack','Squadron','Marketplace','Gift','Event'])
 
-  const showGround     = ref(true)
-  const showAviation   = ref(true)
-  const showLargeFleet = ref(false)
-  const showSmallFleet = ref(false)
+  const showGround      = ref(true)
+  const showAviation    = ref(true)
+  const showHelicopters = ref(false)
+  const showLargeFleet  = ref(false)
+  const showSmallFleet  = ref(false)
 
-  const _mode           = ref('Realistic')
-  const _minBattles     = ref(50)
-  const _brRange        = ref([BR_MIN, BR_MAX])
-  const _classes        = ref(['Standard','Premium','Pack','Squadron','Marketplace','Gift','Event'])
-  const _showGround     = ref(true)
-  const _showAviation   = ref(true)
-  const _showLargeFleet = ref(false)
-  const _showSmallFleet = ref(false)
+  const _mode            = ref('Realistic')
+  const _minBattles      = ref(50)
+  const _brRange         = ref([BR_MIN, BR_MAX])
+  const _classes         = ref(['Standard','Premium','Pack','Squadron','Marketplace','Gift','Event'])
+  const _showGround      = ref(true)
+  const _showAviation    = ref(true)
+  const _showHelicopters = ref(false)
+  const _showLargeFleet  = ref(false)
+  const _showSmallFleet  = ref(false)
 
-  watch(mode,           v => { _mode.value          = v       })
-  watch(classes,        v => { _classes.value        = [...v]  }, { deep: true })
-  watch(showGround,     v => { _showGround.value     = v       })
-  watch(showAviation,   v => { _showAviation.value   = v       })
-  watch(showLargeFleet, v => { _showLargeFleet.value = v       })
-  watch(showSmallFleet, v => { _showSmallFleet.value = v       })
+  watch(mode,            v => { _mode.value           = v       })
+  watch(classes,         v => { _classes.value         = [...v]  }, { deep: true })
+  watch(showGround,      v => { _showGround.value      = v       })
+  watch(showAviation,    v => { _showAviation.value    = v       })
+  watch(showHelicopters, v => { _showHelicopters.value = v       })
+  watch(showLargeFleet,  v => { _showLargeFleet.value  = v       })
+  watch(showSmallFleet,  v => { _showSmallFleet.value  = v       })
 
   const commitRange   = debounce(v => { _brRange.value    = v }, 220)
   const commitBattles = debounce(v => { _minBattles.value = v }, 220)
@@ -132,10 +136,11 @@ export const useDataStore = defineStore('data', () => {
 
   const activeTypes = computed(() => {
     const wanted = new Set()
-    if (_showGround.value)     wanted.add('Ground')
-    if (_showAviation.value)   wanted.add('Aviation')
-    if (_showLargeFleet.value) wanted.add('LargeFleet')
-    if (_showSmallFleet.value) wanted.add('SmallFleet')
+    if (_showGround.value)      wanted.add('Ground')
+    if (_showAviation.value)    wanted.add('Aviation')
+    if (_showHelicopters.value) wanted.add('Helicopters')
+    if (_showLargeFleet.value)  wanted.add('LargeFleet')
+    if (_showSmallFleet.value)  wanted.add('SmallFleet')
     if (wanted.size === 0) return []
 
     const all = metaInfo.value?.types ?? []
@@ -166,7 +171,7 @@ export const useDataStore = defineStore('data', () => {
     allVehicles, metaInfo, loading, loadError,
     currentPeriod, periods,
     mode, minBattles, brRange, classes,
-    showGround, showAviation, showLargeFleet, showSmallFleet,
+    showGround, showAviation, showHelicopters, showLargeFleet, showSmallFleet,
     filteredVehicles, activeTypes, nations,
     loadData,
     BR_MIN, BR_MAX, WT_BR_STEPS,

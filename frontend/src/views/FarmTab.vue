@@ -135,6 +135,7 @@ const typeOptions = computed(() => {
   const cats = [t('common.all')]
   if (store.showGround)     cats.push(t('sidebar.ground'))
   if (store.showAviation)   cats.push(t('sidebar.aviation'))
+  if (store.showHelicopters) cats.push(t('sidebar.helicopters'))
   if (store.showLargeFleet) cats.push(t('sidebar.large_fleet'))
   if (store.showSmallFleet) cats.push(t('sidebar.small_fleet'))
   return cats
@@ -147,6 +148,7 @@ function getFarmSet(vehicles, tBr, nat, vType) {
   const catKeyByLabel = {
     [t('sidebar.ground')]:      'Ground',
     [t('sidebar.aviation')]:    'Aviation',
+    [t('sidebar.helicopters')]: 'Helicopters',
     [t('sidebar.large_fleet')]: 'LargeFleet',
     [t('sidebar.small_fleet')]: 'SmallFleet',
   }

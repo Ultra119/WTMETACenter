@@ -117,6 +117,9 @@ const availableTypeOptions = computed(() => {
   if (store.showAviation) {
     active.push(...BRANCH_TYPES.Aviation)
   }
+  if (store.showHelicopters) {
+    active.push(...BRANCH_TYPES.Helicopters)
+  }
   if (store.showLargeFleet) {
     active.push(...[...LARGE_FLEET_TYPES])
   }

@@ -206,6 +206,7 @@ const { t }       = useI18n()
 const BRANCH_OPTIONS = [
   { value: 'Ground',   icon: '⚙️', labelKey: 'sidebar.ground'   },
   { value: 'Aviation', icon: '✈️', labelKey: 'sidebar.aviation' },
+  { value: 'Helicopters', icon: '🚁', labelKey: 'sidebar.helicopters' },
   { value: 'Fleet',    icon: '⚓', labelKey: 'sidebar.fleet'    },
 ]
 
@@ -387,6 +388,7 @@ function superCat(branchName) {
   if (branchName === 'spaa')                         return 'AntiAir'
   if (BRANCH_TYPES.Ground.includes(branchName))     return 'Ground'
   if (BRANCH_TYPES.Aviation.includes(branchName))   return 'Aviation'
+  if (BRANCH_TYPES.Helicopters.includes(branchName)) return 'Aviation'
   return 'Fleet'
 }
 

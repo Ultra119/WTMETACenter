@@ -113,7 +113,8 @@
         <div class="sidebar-label">{{ t('sidebar.vehicle_type') }}</div>
         <div class="type-grid">
           <v-checkbox v-model="store.showGround"     :label="t('sidebar.ground')"       density="compact" hide-details color="accent" class="type-cb" />
-          <v-checkbox v-model="store.showAviation"   :label="t('sidebar.aviation')"     density="compact" hide-details color="accent" class="type-cb" />
+          <v-checkbox v-model="store.showAviation"    :label="t('sidebar.aviation')"     density="compact" hide-details color="accent" class="type-cb" />
+          <v-checkbox v-model="store.showHelicopters" :label="t('sidebar.helicopters')"  density="compact" hide-details color="accent" class="type-cb" />
           <v-checkbox v-model="store.showLargeFleet" :label="t('sidebar.large_fleet')"  density="compact" hide-details color="accent" class="type-cb" />
           <v-checkbox v-model="store.showSmallFleet" :label="t('sidebar.small_fleet')"  density="compact" hide-details color="accent" class="type-cb" />
         </div>
@@ -186,7 +187,7 @@ function snapBR(val) {
 
 const mixWarning = computed(() => {
   const fleet  = store.showLargeFleet || store.showSmallFleet
-  const ground = store.showGround     || store.showAviation
+  const ground = store.showGround || store.showAviation || store.showHelicopters
   const none   = !store.showGround && !store.showAviation && !store.showLargeFleet && !store.showSmallFleet
   if (none)            return t('sidebar.warn_none')
   if (fleet && ground) return t('sidebar.warn_mix')

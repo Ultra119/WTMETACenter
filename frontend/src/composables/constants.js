@@ -13,10 +13,11 @@ export const VERDICT_COLORS = {
 }
 
 export const BRANCH_TYPES = {
-  Ground:   ['medium_tank', 'light_tank', 'heavy_tank', 'tank_destroyer', 'spaa'],
-  Aviation: ['fighter', 'bomber', 'assault', 'attack_helicopter', 'utility_helicopter'],
-  Fleet:    ['destroyer', 'heavy_cruiser', 'light_cruiser', 'battleship', 'battlecruiser',
-             'boat', 'heavy_boat', 'frigate', 'barge'],
+  Ground:      ['medium_tank', 'light_tank', 'heavy_tank', 'tank_destroyer', 'spaa'],
+  Aviation:    ['fighter', 'bomber', 'assault'],
+  Helicopters: ['attack_helicopter', 'utility_helicopter'],
+  Fleet:       ['destroyer', 'heavy_cruiser', 'light_cruiser', 'battleship', 'battlecruiser',
+                'boat', 'heavy_boat', 'frigate', 'barge'],
 }
 
 export const TYPE_LABELS = {
@@ -82,10 +83,11 @@ export const RANK_PENALTY_PREMIUM = {
 }
 
 export const TYPE_CATEGORIES = {
-  Ground:     BRANCH_TYPES.Ground,
-  Aviation:   BRANCH_TYPES.Aviation,
-  LargeFleet: ['destroyer', 'heavy_cruiser', 'light_cruiser', 'battleship', 'battlecruiser'],
-  SmallFleet: ['boat', 'heavy_boat', 'frigate', 'barge'],
+  Ground:      BRANCH_TYPES.Ground,
+  Aviation:    BRANCH_TYPES.Aviation,
+  Helicopters: BRANCH_TYPES.Helicopters,
+  LargeFleet:  ['destroyer', 'heavy_cruiser', 'light_cruiser', 'battleship', 'battlecruiser'],
+  SmallFleet:  ['boat', 'heavy_boat', 'frigate', 'barge'],
 }
 
 export const LARGE_FLEET_TYPES = new Set(TYPE_CATEGORIES.LargeFleet)
@@ -96,10 +98,11 @@ export const TANK_TYPES = new Set(['medium_tank', 'heavy_tank', 'light_tank'])
 export const DEFAULT_LINEUP_SLOTS = 4
 
 export const LINEUP_PRIORITY = {
-  Ground:   ['tank', 'spaa', 'tank_destroyer'],
-  Aviation: ['fighter', 'assault', 'bomber', 'attack_helicopter', 'utility_helicopter'],
-  Fleet:    ['destroyer', 'light_cruiser', 'boat', 'heavy_cruiser',
-             'battleship', 'battlecruiser', 'heavy_boat', 'frigate', 'barge'],
+  Ground:      ['tank', 'spaa', 'tank_destroyer'],
+  Aviation:    ['fighter', 'assault', 'bomber'],
+  Helicopters: ['attack_helicopter', 'utility_helicopter'],
+  Fleet:       ['destroyer', 'light_cruiser', 'boat', 'heavy_cruiser',
+                'battleship', 'battlecruiser', 'heavy_boat', 'frigate', 'barge'],
 }
 
 export const BR_ERA_THRESHOLDS = [2.3, 3.7, 5.3, 6.7, 8.3, 9.7, 11.3]
