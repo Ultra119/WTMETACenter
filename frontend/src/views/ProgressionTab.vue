@@ -7,6 +7,8 @@
         <v-select
           v-model="nation"
           :items="nationOptions"
+          item-title="title"
+          item-value="value"
           :label="$t('progression_tab.nation')"
           prepend-inner-icon="mdi-flag"
           density="compact"
@@ -184,6 +186,7 @@
 import { ref, computed, inject, watch, shallowRef } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useDataStore } from '../stores/useDataStore.js'
+import { fmtNation } from '../composables/useVehicleFormatting.js'
 import ProgressionCard from '../components/ProgressionCard.vue'
 import InfoTip from '../components/InfoTip.vue'
 import {
@@ -230,7 +233,9 @@ const activeTypes = shallowRef(new Set(BRANCH_TYPES.Ground))
 const lineupPrefs = ref({})
 
 const nationOptions = computed(() =>
-  (store.nations ?? []).filter(n => n !== 'All')
+  (store.nations ?? [])
+    .filter(n => n !== 'All')
+    .map(n => ({ title: fmtNation(n), value: n }))
 )
 
 // Initialise nation once the store has loaded

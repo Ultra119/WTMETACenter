@@ -45,10 +45,28 @@ export function fmtType(t) {
   return TYPE_LABELS_EN[t] ?? t ?? '—'
 }
 
+const NATION_DISPLAY = {
+  usa:         'USA',
+  germany:     'Germany',
+  ussr:        'USSR',
+  britain:     'Britain',
+  japan:       'Japan',
+  italy:       'Italy',
+  france:      'France',
+  sweden:      'Sweden',
+  israel:      'Israel',
+  china:       'China',
+  finland:     'Finland',
+  netherlands: 'Netherlands',
+  hungary:     'Hungary',
+}
+
 export function fmtNation(n) {
   if (!n) return '—'
-  const flag = NATION_FLAG[n.toLowerCase()] ?? '🏴'
-  return `${flag} ${n}`
+  const key  = n.toLowerCase()
+  const flag = NATION_FLAG[key] ?? '🏴'
+  const name = NATION_DISPLAY[key] ?? (n.charAt(0).toUpperCase() + n.slice(1))
+  return `${flag} ${name}`
 }
 
 export function fmtBR(v) {

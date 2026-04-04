@@ -59,6 +59,7 @@ _WT_NATIONS = {
     "France","Sweden","Israel","China","Finland","Netherlands","Hungary",
 }
 
+_WT_NATIONS_LOWER = {n.lower() for n in _WT_NATIONS}
 
 def _safe_val(v):
     import math
@@ -219,7 +220,7 @@ def main() -> None:
     )
     nations_list = sorted(
         n for n in all_nations_raw
-        if n.strip().title() in _WT_NATIONS or n in _WT_NATIONS
+        if n.strip().lower() in _WT_NATIONS_LOWER
     )
     all_types = (
         sorted(core.full_df["Type"].dropna().unique().tolist())
