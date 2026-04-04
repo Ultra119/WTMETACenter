@@ -74,30 +74,6 @@ def score(df: pd.DataFrame, settings: dict) -> pd.DataFrame:
                     _c_battles_lookup[(br, tg, mode)] = float(peers["Сыграно игр"].median())
                     _c_spawns_lookup[(br, tg, mode)]  = float(peers["Возрождения"].median())
 
-    _c_conf_lookup: dict[tuple, float] = {}
-    for mode in unique_modes:
-        mask_mode = (df["Mode"] == mode) if mode is not None else pd.Series(True, index=df.index)
-        for tg in type_groups:
-            mask_tg      = mask_mode & (df["_type_group"] == tg)
-            group_battles = df.loc[mask_tg, "Сыграно игр"]
-            _c_conf_lookup[(tg, mode)] = float(group_battles.quantile(0.75)) if not group_battles.empty else 1000.0
-    _nation_conf_factor: dict[tuple, float] = {}
-    if "Nation" in df.columns and "Mode" in df.columns:
-        nation_totals = df.groupby(["Nation", "Mode"])["Сыграно игр"].sum()
-        for mode in df["Mode"].unique():
-            try:
-                mode_slice = nation_totals.xs(mode, level="Mode")
-            except KeyError:
-                continue
-            median_val = float(mode_slice.median())
-            for nation, total in mode_slice.items():
-                raw = median_val / max(float(total), 1.0)
-                _nation_conf_factor[(nation, mode)] = max(1.0, min(3.0, raw))
-
-    _shared_keys: set[tuple] = set()
-    if "Nation" in df.columns and "Name" in df.columns and "Mode" in df.columns:
-        counts       = df.groupby(["Name", "Mode"])["Nation"].nunique()
-        _shared_keys = set(counts[counts > 1].index)
 
     for mode in unique_modes:
         mask_mode = (df["Mode"] == mode) if mode is not None else pd.Series(True, index=df.index)
@@ -174,8 +150,9 @@ def score(df: pd.DataFrame, settings: dict) -> pd.DataFrame:
 
                 for m_col in metric_keys:
                     p_vals = peers[m_col]
-                    mu     = p_vals.mean()
-                    sigma  = p_vals.std()
+                    mu     = p_vals.median()
+                    mad    = (p_vals - mu).abs().median()
+                    sigma  = mad * 1.4826
                     if pd.isna(sigma) or sigma < 1e-9:
                         sigma = 1.0
                     df.loc[mask_self, f"z{m_col}"] = (
@@ -222,39 +199,7 @@ def score(df: pd.DataFrame, settings: dict) -> pd.DataFrame:
             weights.get("surv", 0) * s_surv[idx]
         )
 
-        battles     = float(row["Сыграно игр"])
-        c_conf      = _c_conf_lookup.get((row["_type_group"], row.get("Mode")), 1000.0)
-        nat_key     = (row.get("Nation", ""), row.get("Mode", ""))
-        nat_factor  = _nation_conf_factor.get(nat_key, 1.0)
-        confidence  = battles / (battles + c_conf * nat_factor)
-        final_score = 50.0 + (base_score - 50.0) * confidence
-
-        df.at[idx, "META_SCORE"] = final_score
-
-    df["META_SCORE"] = df["META_SCORE"].clip(0.0, 100.0)
-
-    if _shared_keys and "Nation" in df.columns and "Mode" in df.columns:
-        for (name, mode) in _shared_keys:
-            mask  = (df["Name"] == name) & (df["Mode"] == mode)
-            group = df.loc[mask]
-            if len(group) < 2:
-                continue
-
-            battles_s      = group["Сыграно игр"].clip(lower=1).astype(float)
-            total_battles  = battles_s.sum()
-            median_battles = float(battles_s.median())
-
-            cross_mean = float(
-                (group["META_SCORE"] * battles_s).sum() / total_battles
-            )
-
-            for idx in group.index:
-                n = float(df.at[idx, "Сыграно игр"])
-                if n < median_battles:
-                    alpha = n / (n + median_battles)
-                    df.at[idx, "META_SCORE"] = (
-                        alpha * df.at[idx, "META_SCORE"] + (1.0 - alpha) * cross_mean
-                    )
+        df.at[idx, "META_SCORE"] = base_score
 
     df["META_SCORE"] = df["META_SCORE"].clip(0.0, 100.0)
 
@@ -265,9 +210,10 @@ def score(df: pd.DataFrame, settings: dict) -> pd.DataFrame:
     else:
         net_sl = df["SL за игру"]
 
-    df["_sl_eff"]       = net_sl.clip(lower=0) * (df["_wr"] / 50.0).clip(lower=0.5)
+    raw_wr_factor = (df["WR"] / 50.0).clip(lower=0.5)
+    df["_sl_eff"]        = net_sl.clip(lower=0) * raw_wr_factor
     df["Net SL за игру"] = net_sl.round(0).astype(int)
-    df["_z_sl"]         = 0.0
+    df["_z_sl"]          = 0.0
 
     for mode in unique_modes:
         mask_mode = (df["Mode"] == mode) if mode is not None else pd.Series(True, index=df.index)
@@ -283,8 +229,9 @@ def score(df: pd.DataFrame, settings: dict) -> pd.DataFrame:
                 peers_sl  = df.loc[mask_peer, "_sl_eff"]
                 if peers_sl.empty:
                     continue
-                mu_sl    = peers_sl.mean()
-                sigma_sl = peers_sl.std()
+                mu_sl    = peers_sl.median()
+                mad_sl   = (peers_sl - mu_sl).abs().median()
+                sigma_sl = mad_sl * 1.4826
                 if pd.isna(sigma_sl) or sigma_sl < 1e-9:
                     sigma_sl = 1.0
                 df.loc[mask_self, "_z_sl"] = (
