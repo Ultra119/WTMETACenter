@@ -19,8 +19,8 @@ VEHICLE_TYPE_CATEGORY: dict = {
     "bomber":             "Aviation",
     "assault":            "Aviation",
 
-    "utility_helicopter": "Aviation",
-    "attack_helicopter":  "Aviation",
+    "utility_helicopter": "Helicopter",
+    "attack_helicopter":  "Helicopter",
 
     "medium_tank":        "Ground",
     "light_tank":         "Ground",
@@ -71,25 +71,10 @@ ROLE_WEIGHTS: dict = {
 }
 
 DEFAULT_SETTINGS: dict = {
-    # Устарело
-    "meta_weights": {
-        "wr":  0.35,
-        "ks":  0.30,
-        "kd":  0.15,
-        "eff": 0.20,
-    },
-    "mm_window":             1.0,
-    "sigmoid_scale":         1.5,
-    "z_clip":                3.0,
-    "wilson_z":              1.96,
-    "top_nations_vehicles":  5,
-    # Устаревшие поля
-    "br_score_window":       1,
-    "confidence_k_factor":   0.5,
-    "confidence_min":        0.40,
-    "bayesian_prior_weight": 0.3,
-    "low_battles_threshold": 50,
-    "low_battles_penalty":   0.7,
+    "mm_window":     1.0,
+    "sigmoid_scale": 1.5,
+    "z_clip":        3.0,
+    "wilson_z":      1.96,
 }
 
 def snap_to_wt_br(br: float) -> float:

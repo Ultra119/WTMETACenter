@@ -3,32 +3,9 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from analytics.constants import ROLE_WEIGHTS
+from analytics.constants import ROLE_WEIGHTS, VEHICLE_TYPE_CATEGORY
 
 
-_TYPE_GROUP: dict[str, str] = {
-    "medium_tank":      "Ground",
-    "light_tank":       "Ground",
-    "heavy_tank":       "Ground",
-    "tank_destroyer":   "Ground",
-    "spaa":             "Ground",
-
-    "fighter":          "Aviation",
-    "bomber":           "Aviation",
-    "assault":          "Aviation",
-    "utility_helicopter":  "Aviation",
-    "attack_helicopter":   "Aviation",
-
-    "destroyer":        "Fleet",
-    "heavy_cruiser":    "Fleet",
-    "light_cruiser":    "Fleet",
-    "battleship":       "Fleet",
-    "battlecruiser":    "Fleet",
-    "boat":             "Fleet",
-    "heavy_boat":       "Fleet",
-    "frigate":          "Fleet",
-    "barge":            "Fleet",
-}
 
 
 def _wilson_lower(wr_pct: pd.Series, n_games: pd.Series, z: float) -> pd.Series:
@@ -64,7 +41,7 @@ def score(df: pd.DataFrame, settings: dict) -> pd.DataFrame:
     df["_surv_raw"] = (1.0 - (df["Смерти"] / spawns)).clip(0.0, 1.0)
     df["_wr_raw"]   = _wilson_lower(df["WR"], df["Сыграно игр"], wilson_z)
 
-    df["_type_group"] = df["Type"].map(_TYPE_GROUP).fillna("_other")
+    df["_type_group"] = df["Type"].map(VEHICLE_TYPE_CATEGORY).fillna("_other")
 
     metric_keys  = ["_wr", "_kd", "_ks_g", "_ks_a", "_ks_n", "_surv"]
     unique_brs   = df["BR"].unique()

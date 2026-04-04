@@ -23,10 +23,6 @@ def load_settings(script_dir: str) -> dict:
 
         merged = dict(DEFAULT_SETTINGS)
         merged.update(loaded)
-        merged["meta_weights"] = {
-            **DEFAULT_SETTINGS["meta_weights"],
-            **loaded.get("meta_weights", {}),
-        }
         log_debug(f"settings.json загружен: {merged}")
         return merged
 
