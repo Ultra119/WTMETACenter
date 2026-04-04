@@ -99,6 +99,18 @@ def score(df: pd.DataFrame, settings: dict) -> pd.DataFrame:
             _c_conf_lookup[tg] = 500.0
         else:
             _c_conf_lookup[tg] = float(group_battles.quantile(0.75))
+    _nation_conf_factor: dict[str, float] = {}
+    if "Nation" in df.columns:
+        nation_totals  = df.groupby("Nation")["Сыграно игр"].sum()
+        median_nation  = float(nation_totals.median())
+        for nation, total in nation_totals.items():
+            raw = median_nation / max(float(total), 1.0)
+            _nation_conf_factor[nation] = max(1.0, min(3.0, raw))
+
+    _shared_names: set[str] = set()
+    if "Nation" in df.columns and "Name" in df.columns:
+        name_nation_counts = df.groupby("Name")["Nation"].nunique()
+        _shared_names      = set(name_nation_counts[name_nation_counts > 1].index)
 
     for br in unique_brs:
         for tg in type_groups:
@@ -219,10 +231,36 @@ def score(df: pd.DataFrame, settings: dict) -> pd.DataFrame:
 
         battles     = float(row["Сыграно игр"])
         c_conf      = _c_conf_lookup.get(row["_type_group"], 500.0)
-        confidence  = battles / (battles + c_conf)
+        nat_factor  = _nation_conf_factor.get(row.get("Nation", ""), 1.0)
+        confidence  = battles / (battles + c_conf * nat_factor)
         final_score = 50.0 + (base_score - 50.0) * confidence
 
         df.at[idx, "META_SCORE"] = final_score
+
+    df["META_SCORE"] = df["META_SCORE"].clip(0.0, 100.0)
+
+    if _shared_names and "Nation" in df.columns:
+        for name in _shared_names:
+            mask  = df["Name"] == name
+            group = df.loc[mask]
+            if len(group) < 2:
+                continue
+
+            battles_s      = group["Сыграно игр"].clip(lower=1).astype(float)
+            total_battles  = battles_s.sum()
+            median_battles = float(battles_s.median())
+
+            cross_mean = float(
+                (group["META_SCORE"] * battles_s).sum() / total_battles
+            )
+
+            for idx in group.index:
+                n = float(df.at[idx, "Сыграно игр"])
+                if n < median_battles:
+                    alpha = n / (n + median_battles)
+                    df.at[idx, "META_SCORE"] = (
+                        alpha * df.at[idx, "META_SCORE"] + (1.0 - alpha) * cross_mean
+                    )
 
     df["META_SCORE"] = df["META_SCORE"].clip(0.0, 100.0)
 
