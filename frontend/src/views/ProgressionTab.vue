@@ -240,7 +240,7 @@ const nationOptions = computed(() =>
 
 // Initialise nation once the store has loaded
 watch(nationOptions, (opts) => {
-  if (!nation.value && opts.length) nation.value = opts[0]
+  if (!nation.value && opts.length) nation.value = opts[0].value
 }, { immediate: true })
 
 watch(branch, (newBranch) => {
