@@ -78,6 +78,11 @@
           <div class="total-col" />
         </div>
 
+        <div class="rows-wrap">
+          <div class="grid-overlay">
+            <div v-for="tick in SCALE_TICKS" :key="'g' + tick" class="tick-gridline"
+                 :style="{ left: (tick / MAX_SCALE * 100) + '%' }" />
+          </div>
         <div
           v-for="row in chartRows(branch.key)"
           :key="row.nation"
@@ -120,6 +125,7 @@
           </div>
         </div>
 
+        </div>
         <div v-if="!chartRows(branch.key).length" class="no-data">
           {{ t('common.no_data') }}
         </div>
@@ -434,9 +440,8 @@ function totalColor(total) {
 }
 .bar-row {
   padding: 5px 0;
-  border-bottom: 1px solid rgba(30,58,95,0.4);
 }
-.bar-row:last-of-type { border-bottom: none; }
+.bar-row + .bar-row { border-top: 1px solid rgba(30,58,95,0.4); }
 
 .chart-card:has(.bar-row:hover) .bar-row:not(:hover) {
   opacity: 0.35;
@@ -487,14 +492,26 @@ function totalColor(total) {
   color: #475569;
   white-space: nowrap;
 }
-.tick-gridline {
+.rows-wrap {
+  position: relative;
+  overflow: hidden;
+}
+.grid-overlay {
   position: absolute;
-  top: 100%;
-  width: 1px;
-  height: 9999px;
-  background: rgba(30, 58, 95, 0.6);
+  top: 0;
+  bottom: 0;
+  left: 130px;
+  right: 64px;
   pointer-events: none;
   z-index: 0;
+}
+.tick-gridline {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: rgba(30, 58, 95, 0.6);
+  pointer-events: none;
 }
 
 /* Bars */
