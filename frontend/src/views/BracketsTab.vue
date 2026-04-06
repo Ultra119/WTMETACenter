@@ -36,6 +36,15 @@
           multiple
           style="min-width:180px; max-width:300px"
         >
+          <template #item="{ item, props }">
+            <v-list-item v-bind="props" :title="undefined">
+              <template #prepend>
+                <v-icon size="16" class="mr-2">{{ item.raw.icon }}</v-icon>
+              </template>
+              <span style="font-size:13px">{{ item.raw.label }}</span>
+            </v-list-item>
+          </template>
+
           <template #selection="{ index }">
             <div v-if="index === 0" class="excl-chips-row">
               <span
@@ -43,7 +52,11 @@
                 :key="type"
                 class="excl-chip"
                 @click.stop="removeExcludeType(type)"
-              >{{ getShortLabel(type) }} <span class="excl-chip-x">×</span></span>
+              >
+                <v-icon size="11">{{ getTypeIcon(type) }}</v-icon>
+                {{ getShortLabel(type) }}
+                <span class="excl-chip-x">×</span>
+              </span>
               <span v-if="excludeTypes.length > 3" class="excl-overflow">
                 +{{ excludeTypes.length - 3 }}
               </span>
@@ -130,9 +143,9 @@ const availableTypeOptions = computed(() => {
   }
   return active.map(type => ({
     value:      type,
-    label:      `${TYPE_ICON[type] ?? ''} ${t(`vehicle_types.${type}`, TYPE_LABELS[type] ?? type)}`,
-    shortLabel: `${TYPE_ICON[type] ?? ''} ${(TYPE_LABELS[type] ?? type).replace(/^[^\s]+\s/, '')}`,
-    icon:       TYPE_ICON[type] ?? '?',
+    icon:       TYPE_ICON[type] ?? 'mdi-help',
+    label:      t(`vehicle_types.${type}`, TYPE_LABELS[type] ?? type),
+    shortLabel: TYPE_LABELS[type] ?? type,
   }))
 })
 
@@ -144,6 +157,11 @@ watch(availableTypeOptions, (opts) => {
 function getShortLabel(type) {
   const opt = availableTypeOptions.value.find(o => o.value === type)
   return opt ? opt.shortLabel : type
+}
+
+function getTypeIcon(type) {
+  const opt = availableTypeOptions.value.find(o => o.value === type)
+  return opt ? opt.icon : 'mdi-help'
 }
 
 function removeExcludeType(type) {
@@ -239,7 +257,7 @@ function scoreColor(score) {
 .excl-chip {
   display: inline-flex;
   align-items: center;
-  gap: 2px;
+  gap: 3px;
   font-family: 'JetBrains Mono', monospace;
   font-size: 10px;
   font-weight: 600;

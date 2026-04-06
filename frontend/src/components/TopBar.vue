@@ -69,7 +69,7 @@
                 @mousemove="activeIdx = i"
               >
                 <div class="item-left">
-                  <span class="item-type-icon">{{ typeIcon(v.Type) }}</span>
+                  <v-icon class="item-type-icon" size="13">{{ typeIcon(v.Type) }}</v-icon>
                   <span class="item-name">{{ vehicleDisplayName(v) }}</span>
                 </div>
                 <div class="item-right">
@@ -166,7 +166,7 @@ const hits = computed(() => {
   return result
 })
 
-function typeIcon(type)   { return TYPE_ICON[type] ?? '🚗' }
+function typeIcon(type)   { return TYPE_ICON[type] ?? 'mdi-car' }
 function nationFlag(nation) { return NATION_FLAG[nation?.toLowerCase()] ?? '🏴' }
 
 function onInput() {

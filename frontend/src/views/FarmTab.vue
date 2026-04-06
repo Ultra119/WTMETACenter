@@ -50,11 +50,11 @@
           <p><b>{{ t('tabs.farm') }}</b></p>
           <p>{{ t('farm_tab.tip_desc') }}</p>
           <div class="tip-row" style="margin-top:8px">
-            <span class="tip-icon">⚓</span>
+            <v-icon size="16" class="tip-icon">mdi-anchor</v-icon>
             <span><b class="tip-label">{{ t('farm_tab.role_anchor') }}</b> — {{ t('farm_tab.tip_anchor') }}</span>
           </div>
           <div class="tip-row">
-            <span class="tip-icon">💎</span>
+            <v-icon size="16" class="tip-icon" color="#a78bfa">mdi-diamond-stone</v-icon>
             <span><b class="tip-label">{{ t('farm_tab.gems_label') }}</b> — {{ t('farm_tab.tip_gems') }}</span>
           </div>
         </InfoTip>
@@ -65,7 +65,7 @@
 
       <div class="anchor-banner mb-4">
         <div class="anchor-left">
-          <span class="anchor-icon">⚓</span>
+          <v-icon class="anchor-icon" size="22" color="#a7f3d0">mdi-anchor</v-icon>
           <div class="anchor-info">
             <span class="anchor-label">{{ t('farm_tab.anchor_label') }}</span>
             <span class="anchor-name">{{ vehicleDisplayName(result.anchor) }}</span>
@@ -82,7 +82,7 @@
       </div>
 
       <div class="section-header mb-2">
-        <span class="section-title">{{ t('farm_tab.main_set') }}</span>
+        <span class="section-title"><v-icon size="14" style="margin-right:4px;opacity:.8">mdi-tools</v-icon>{{ t('farm_tab.main_set') }}</span>
         <span class="section-sub">BR {{ displayBR(targetBr - 1.0) }} – {{ displayBR(targetBr) }}</span>
       </div>
       <div class="table-wrap mb-5">
@@ -104,7 +104,14 @@
             >{{ item.Роль }}</v-chip>
           </template>
           <template #item.Name_Display="{ item }">
-            <span class="cell-name">{{ item.Name_Display }}</span>
+            <span class="cell-name">
+              <v-icon
+                v-if="item.classIcon"
+                size="13"
+                class="cell-class-icon"
+                :style="{ color: item.classColor }"
+              >{{ item.classIcon }}</v-icon>{{ item.Name_Display }}
+            </span>
           </template>
           <template #item.BR="{ item }">
             <span class="cell-br">{{ displayBR(item.BR) }}</span>
@@ -124,7 +131,7 @@
       </div>
 
       <div class="section-header mb-2">
-        <span class="section-title gems-title">{{ t('farm_tab.gems') }}</span>
+        <span class="section-title gems-title"><v-icon size="14" style="margin-right:4px;color:#a78bfa">mdi-diamond-stone</v-icon>{{ t('farm_tab.gems') }}</span>
         <span class="section-sub">BR {{ displayBR(targetBr - 2.0) }} – {{ displayBR(targetBr - 1.0) }}</span>
       </div>
       <template v-if="result.gems.length">
@@ -139,7 +146,14 @@
             @click:row="(_, { item }) => openVehicle(item)"
           >
             <template #item.Name_Display="{ item }">
-              <span class="cell-name">{{ item.Name_Display }}</span>
+              <span class="cell-name">
+                <v-icon
+                  v-if="item.classIcon"
+                  size="13"
+                  class="cell-class-icon"
+                  :style="{ color: item.classColor }"
+                >{{ item.classIcon }}</v-icon>{{ item.Name_Display }}
+              </span>
             </template>
             <template #item.BR="{ item }">
               <span class="cell-br">{{ displayBR(item.BR) }}</span>
@@ -172,7 +186,10 @@ import { ref, computed, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useTabFilters } from '../composables/useTabFilters.js'
 import { useDataStore, WT_BR_STEPS } from '../stores/useDataStore.js'
-import { vehicleDisplayName, farmColor, normRow } from '../composables/useVehicleFormatting.js'
+import {
+  vehicleDisplayName, vehicleClassMdiIcon, vehicleClassMdiColor,
+  farmColor, normRow,
+} from '../composables/useVehicleFormatting.js'
 import { TYPE_CATEGORIES } from '../composables/constants.js'
 import InfoTip from '../components/InfoTip.vue'
 
@@ -265,6 +282,8 @@ function toRows(list) {
   return list.map(v => ({
     ...normRow(v),
     Name_Display: vehicleDisplayName(v),
+    classIcon:    vehicleClassMdiIcon(v),
+    classColor:   vehicleClassMdiColor(v),
     delta: v._delta ?? 0,
   }))
 }
@@ -272,9 +291,9 @@ const mainSetRows = computed(() => toRows(result.value?.mainSet ?? []))
 const gemRows     = computed(() => toRows(result.value?.gems    ?? []))
 
 function roleColor(role) {
-  if (role === t('farm_tab.role_anchor')) return '#a78bfa'  // purple — anchor
-  if (role === t('farm_tab.role_top'))    return '#34d399'  // green  — top farmer
-  return '#64748b'                                          // grey   — reserve
+  if (role === t('farm_tab.role_anchor')) return '#a78bfa'
+  if (role === t('farm_tab.role_top'))    return '#34d399'
+  return '#64748b'
 }
 
 const farmHeaders = computed(() => [
@@ -360,7 +379,7 @@ const gemHeaders = computed(() => [
   align-items: center;
   gap: 12px;
 }
-.anchor-icon { font-size: 22px; }
+.anchor-icon { flex-shrink: 0; }
 .anchor-info {
   display: flex;
   flex-direction: column;
@@ -438,6 +457,7 @@ const gemHeaders = computed(() => [
   overflow: hidden;
 }
 .cell-name  { font-weight: 600; color: #e2e8f0; }
+.cell-class-icon { margin-right: 4px; vertical-align: middle; opacity: 0.85; }
 .cell-br    { font-family: 'Rajdhani', sans-serif; font-weight: 600; color: #94a3b8; }
 .cell-sl    { color: #34d399; font-weight: 600; }
 .cell-delta { color: #a78bfa; font-weight: 700; font-size: 12px; }
@@ -460,6 +480,11 @@ const gemHeaders = computed(() => [
   height: 100%;
   border-radius: 2px;
   transition: width 0.2s;
+}
+
+.tip-icon {
+  flex-shrink: 0;
+  margin-top: 1px;
 }
 
 .text-muted-sm {

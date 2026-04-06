@@ -44,7 +44,14 @@
         @click:row="(_, { item }) => openVehicle(item)"
       >
         <template #item.Name_Display="{ item }">
-          <span class="cell-name">{{ item.Name_Display }}</span>
+          <span class="cell-name">
+            <v-icon
+              v-if="item.classIcon"
+              size="13"
+              class="cell-class-icon"
+              :style="{ color: item.classColor }"
+            >{{ item.classIcon }}</v-icon>{{ item.Name_Display }}
+          </span>
         </template>
         <template #item.battles="{ item }">
           <span :style="{ color: item.battles < 100 ? '#f87171' : '#e2e8f0' }">
@@ -64,7 +71,10 @@ import { ref, computed, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useTabFilters } from '../composables/useTabFilters.js'
 import { useDataStore } from '../stores/useDataStore.js'
-import { vehicleDisplayName, fmtType, fmtNation, wrColor, normRow } from '../composables/useVehicleFormatting.js'
+import {
+  vehicleDisplayName, vehicleClassMdiIcon, vehicleClassMdiColor,
+  fmtType, fmtNation, wrColor, normRow,
+} from '../composables/useVehicleFormatting.js'
 import InfoTip from '../components/InfoTip.vue'
 
 const { t }       = useI18n()
@@ -92,6 +102,8 @@ const tableRows = computed(() => {
     .map(v => ({
       ...normRow(v),
       Name_Display:   vehicleDisplayName(v),
+      classIcon:      vehicleClassMdiIcon(v),
+      classColor:     vehicleClassMdiColor(v),
       Type_Display:   fmtType(v.Type),
       Nation_Display: fmtNation(v.Nation),
     }))
@@ -129,4 +141,5 @@ const headers = computed(() => [
   overflow: hidden;
 }
 .cell-name { font-weight: 600; color: #e2e8f0; }
+.cell-class-icon { margin-right: 4px; vertical-align: middle; opacity: 0.85; }
 </style>

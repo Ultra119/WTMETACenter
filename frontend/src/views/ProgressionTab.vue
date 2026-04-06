@@ -25,18 +25,18 @@
             class="seg-btn"
             :class="{ 'seg-btn--active': branch === opt.value }"
             @click="branch = opt.value"
-          >{{ opt.icon }} {{ $t(opt.labelKey) }}</button>
+          ><v-icon size="14" class="seg-btn-icon">{{ opt.icon }}</v-icon> {{ $t(opt.labelKey) }}</button>
         </div>
 
         <!-- Info badges -->
         <div class="stats-badges">
           <span v-if="progressionData.length" class="badge badge-total">
-            📋 {{ progressionData.length }}
+            <v-icon size="11">mdi-format-list-bulleted</v-icon> {{ progressionData.length }}
           </span>
-          <span class="badge badge-must">🟢 {{ countByVerdict('MUST') }}</span>
-          <span class="badge badge-fill">🔵 {{ countByVerdict('FILL') }}</span>
-          <span class="badge badge-skip">🔴 {{ countByVerdict('SKIP') }}</span>
-          <span class="badge badge-prem">👑 {{ countByVerdict('PREM') }}</span>
+          <span class="badge badge-must"><v-icon size="11" :style="{ color: VERDICT_COLORS.MUST.border }">{{ VERDICT_COLORS.MUST.icon }}</v-icon> {{ countByVerdict('MUST') }}</span>
+          <span class="badge badge-fill"><v-icon size="11" :style="{ color: VERDICT_COLORS.FILL.border }">{{ VERDICT_COLORS.FILL.icon }}</v-icon> {{ countByVerdict('FILL') }}</span>
+          <span class="badge badge-skip"><v-icon size="11" :style="{ color: VERDICT_COLORS.SKIP.border }">{{ VERDICT_COLORS.SKIP.icon }}</v-icon> {{ countByVerdict('SKIP') }}</span>
+          <span class="badge badge-prem"><v-icon size="11" :style="{ color: VERDICT_COLORS.PREM.border }">{{ VERDICT_COLORS.PREM.icon }}</v-icon> {{ countByVerdict('PREM') }}</span>
         </div>
       </div>
 
@@ -49,7 +49,8 @@
           :class="{ 'type-btn--active': activeTypes.has(t) }"
           @click="toggleType(t)"
         >
-          {{ TYPE_ICON[t] }} {{ $t(`vehicle_types.${t}`, TYPE_LABELS[t] || t) }}
+          <v-icon size="14" class="type-btn-icon">{{ TYPE_ICON[t] }}</v-icon>
+          {{ $t(`vehicle_types.${t}`, TYPE_LABELS[t] || t) }}
         </button>
       </div>
 
@@ -62,7 +63,10 @@
             :key="t"
             class="lineup-type-item"
           >
-            <span class="lm-icon" :title="prefDisplay[t]?.label ?? t">{{ prefDisplay[t]?.icon ?? '?' }}</span>
+            <span class="lm-icon" :title="prefDisplay[t]?.label ?? t">
+              <v-icon v-if="prefDisplay[t]?.icon" size="14">{{ prefDisplay[t].icon }}</v-icon>
+              <template v-else>?</template>
+            </span>
             <button
               class="lm-btn"
               :disabled="(lineupPrefs[t] ?? 0) === 0"
@@ -87,7 +91,7 @@
 
     <div class="legend-row mb-3">
       <span v-for="(vc, key) in VERDICT_COLORS" :key="key" class="legend-item">
-        <span class="legend-icon">{{ vc.icon }}</span>
+        <v-icon class="legend-icon" size="12" :style="{ color: vc.border }">{{ vc.icon }}</v-icon>
         <span class="legend-text">{{ $t(`verdicts.${key.toLowerCase()}`, vc.label) }}</span>
       </span>
       <InfoTip align="right" class="ml-auto">
@@ -209,15 +213,15 @@ const openVehicle = inject('openVehicle', null)
 const { t }       = useI18n()
 
 const BRANCH_OPTIONS = [
-  { value: 'Ground',      icon: '⚙️', labelKey: 'sidebar.ground'      },
-  { value: 'Aviation',    icon: '✈️', labelKey: 'sidebar.aviation'    },
-  { value: 'Helicopters', icon: '🚁', labelKey: 'sidebar.helicopters' },
-  { value: 'LargeFleet',  icon: '🛳️', labelKey: 'sidebar.large_fleet' },
-  { value: 'SmallFleet',  icon: '⛵', labelKey: 'sidebar.small_fleet' },
+  { value: 'Ground',      icon: 'mdi-tank',       labelKey: 'sidebar.ground'      },
+  { value: 'Aviation',    icon: 'mdi-airplane',   labelKey: 'sidebar.aviation'    },
+  { value: 'Helicopters', icon: 'mdi-helicopter', labelKey: 'sidebar.helicopters' },
+  { value: 'LargeFleet',  icon: 'mdi-ferry',      labelKey: 'sidebar.large_fleet' },
+  { value: 'SmallFleet',  icon: 'mdi-sail-boat',  labelKey: 'sidebar.small_fleet' },
 ]
 
 const prefDisplay = computed(() => ({
-  tank: { icon: '🛡️', label: t('vehicle_types.tank') },
+  tank: { icon: 'mdi-tank', label: t('vehicle_types.tank') },
   ...Object.fromEntries(
     Object.entries(TYPE_ICON).map(([k, icon]) => [
       k,

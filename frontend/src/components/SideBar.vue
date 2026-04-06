@@ -139,8 +139,8 @@
       <div v-if="store.metaInfo" class="sidebar-section">
         <div class="sidebar-label">{{ t('common.dataset') }}</div>
         <div class="sidebar-info">
-          <div>📦 {{ t('common.records', { n: store.metaInfo.total_records?.toLocaleString() }) }}</div>
-          <div>{{ t('sidebar.dataset_date', { date: generatedDate }) }}</div>
+          <div><v-icon size="11" style="opacity:.6;margin-right:3px">mdi-database</v-icon>{{ t('common.records', { n: store.metaInfo.total_records?.toLocaleString() }) }}</div>
+          <div><v-icon size="11" style="opacity:.6;margin-right:3px">mdi-clock-outline</v-icon>{{ t('sidebar.dataset_date', { date: generatedDate }) }}</div>
         </div>
       </div>
 

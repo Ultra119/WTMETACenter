@@ -5,12 +5,13 @@
     :style="cardStyle"
     @click="$emit('click')"
   >
-    <!-- Header: icon · name · BR · verdict emoji -->
+    <!-- Header: icon · name · BR · verdict icon -->
     <div class="pc-header">
-      <span class="pc-type-icon" :title="vehicle._branch">{{ typeIcon }}</span>
-      <span class="pc-name" :style="{ color: nameColor }">{{ displayName }}</span>
+      <v-icon class="pc-type-icon" size="13" :title="vehicle._branch">{{ typeIcon }}</v-icon>
+      <v-icon v-if="classIcon" class="pc-class-icon" size="11" :style="{ color: brColor }">{{ classIcon }}</v-icon>
+      <span class="pc-name" :style="{ color: nameColor }">{{ vehicleName }}</span>
       <span class="pc-br"   :style="{ color: brColor   }">{{ brStr }}</span>
-      <span class="pc-verdict">{{ vc.icon }}</span>
+      <v-icon class="pc-verdict" size="12" :style="{ color: vc.border }">{{ vc.icon }}</v-icon>
     </div>
 
     <!-- Stats row: WR · K/D · META -->
@@ -70,9 +71,8 @@ defineEmits(['click'])
 const vc = computed(() => VERDICT_COLORS[props.vehicle.Verdict] ?? VERDICT_COLORS.PASS)
 
 // Display strings
-const displayName = computed(
-  () => (CLASS_PREFIX[props.vehicle.VehicleClass] || '') + (props.vehicle.Name ?? '')
-)
+const vehicleName = computed(() => props.vehicle.Name ?? '')
+const classIcon   = computed(() => CLASS_PREFIX[props.vehicle.VehicleClass] || null)
 const brStr   = computed(() => parseFloat(props.vehicle.BR           || 0).toFixed(1))
 const wrStr   = computed(() => parseFloat(props.vehicle.WR           || 0).toFixed(1))
 const kdStr   = computed(() => parseFloat(props.vehicle.KD           || 0).toFixed(1))
@@ -136,6 +136,10 @@ const cardStyle = computed(() => ({
   font-size: 12px;
   flex-shrink: 0;
   opacity: 0.75;
+}
+.pc-class-icon {
+  flex-shrink: 0;
+  opacity: 0.9;
 }
 .pc-name {
   font-family: 'JetBrains Mono', monospace;

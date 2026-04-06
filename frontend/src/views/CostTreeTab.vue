@@ -10,7 +10,7 @@
             :class="['metric-btn', metric === m.key && 'active']"
             @click="metric = m.key"
           >
-            <span class="metric-icon">{{ m.icon }}</span>
+            <span class="mdi metric-icon" :class="m.icon" />
             {{ t(`cost_tab.metric_${m.key}`) }}
           </button>
         </div>
@@ -33,11 +33,11 @@
           <p><b>{{ t('cost_tab.tip_title') }}</b></p>
           <p>{{ t('cost_tab.tip_desc') }}</p>
           <div class="tip-row mt-2">
-            <span class="tip-icon">📊</span>
+            <span class="mdi mdi-chart-bar tip-icon" />
             <span>{{ t('cost_tab.tip_bars') }}</span>
           </div>
           <div class="tip-row">
-            <span class="tip-icon">🎨</span>
+            <span class="mdi mdi-palette tip-icon" />
             <span>{{ t('cost_tab.tip_eras') }}</span>
           </div>
         </InfoTip>
@@ -58,7 +58,7 @@
     <div v-for="branch in BRANCHES" :key="branch.key" class="branch-section mb-6">
 
       <div class="branch-header">
-        <span class="branch-icon">{{ branch.icon }}</span>
+        <span class="mdi branch-icon" :class="branch.icon" />
         <span class="branch-title">{{ t(`cost_tab.branch_${branch.key.toLowerCase()}`) }}</span>
         <span class="branch-sub">{{ t('cost_tab.n_vehicles', { n: branchVehicleCount(branch.key) }) }}</span>
       </div>
@@ -198,18 +198,18 @@ function nationFlag(n) {
 }
 
 const BRANCHES = [
-  { key: 'Ground',      icon: '🛡️', types: ['medium_tank','light_tank','heavy_tank','tank_destroyer','spaa'] },
-  { key: 'Aviation',    icon: '✈️', types: ['fighter','bomber','assault'] },
-  { key: 'Helicopters', icon: '🚁', types: ['attack_helicopter','utility_helicopter'] },
-  { key: 'Fleet',       icon: '⚓', types: ['destroyer','heavy_cruiser','light_cruiser','battleship','battlecruiser','boat','heavy_boat','frigate','barge'] },
+  { key: 'Ground',      icon: 'mdi-tank', types: ['medium_tank','light_tank','heavy_tank','tank_destroyer','spaa'] },
+  { key: 'Aviation',    icon: 'mdi-airplane', types: ['fighter','bomber','assault'] },
+  { key: 'Helicopters', icon: 'mdi-helicopter', types: ['attack_helicopter','utility_helicopter'] },
+  { key: 'Fleet',       icon: 'mdi-anchor', types: ['destroyer','heavy_cruiser','light_cruiser','battleship','battlecruiser','boat','heavy_boat','frigate','barge'] },
 ]
 const BRANCH_TYPE_SET = Object.fromEntries(
   BRANCHES.map(b => [b.key, new Set(b.types)])
 )
 
 const METRICS = [
-  { key: 'rp', icon: '🔬' },
-  { key: 'sl', icon: '💰' },
+  { key: 'rp', icon: 'mdi-flask' },
+  { key: 'sl', icon: 'mdi-cash' },
 ]
 
 const CLASS_OPTIONS = ['Standard', 'Squadron', 'Premium', 'Pack', 'Event']
@@ -382,7 +382,9 @@ function totalColor(total) {
   background: rgba(167,139,250,.12);
   color: #a78bfa;
 }
-.metric-icon { font-size: 14px; }
+.tip-icon  { font-size: 14px; color: #475569; flex-shrink: 0; }
+.metric-icon { font-size: 15px; }
+.branch-icon { font-size: 20px; color: #a7f3d0; }
 
 .class-chips {}
 .chips-row { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 2px; }
@@ -427,7 +429,6 @@ function totalColor(total) {
   gap: 10px;
   margin-bottom: 10px;
 }
-.branch-icon { font-size: 18px; }
 .branch-title {
   font-family: 'Rajdhani', sans-serif;
   font-size: 15px;

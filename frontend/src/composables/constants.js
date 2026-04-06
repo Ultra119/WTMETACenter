@@ -5,11 +5,11 @@ export const VERDICT_PREM = 'PREM'
 export const VERDICT_FILL = 'FILL'
 
 export const VERDICT_COLORS = {
-  MUST: { border: '#10b981', bg: 'rgba(16,185,129,0.08)',  icon: '🟢', label: 'Must Play'      },
-  FILL: { border: '#38bdf8', bg: 'rgba(56,189,248,0.07)',  icon: '🔵', label: 'Lineup Filler'  },
-  PASS: { border: '#fbbf24', bg: 'rgba(251,191,36,0.06)',  icon: '🟡', label: 'Passable'       },
-  SKIP: { border: '#f87171', bg: 'rgba(248,113,113,0.08)', icon: '🔴', label: 'Hard Skip'      },
-  PREM: { border: '#a78bfa', bg: 'rgba(167,139,250,0.09)', icon: '👑', label: 'Premium Fix'    },
+  MUST: { border: '#10b981', bg: 'rgba(16,185,129,0.08)',  icon: 'mdi-circle',  label: 'Must Play'      },
+  FILL: { border: '#38bdf8', bg: 'rgba(56,189,248,0.07)',  icon: 'mdi-circle',  label: 'Lineup Filler'  },
+  PASS: { border: '#fbbf24', bg: 'rgba(251,191,36,0.06)',  icon: 'mdi-circle',  label: 'Passable'       },
+  SKIP: { border: '#f87171', bg: 'rgba(248,113,113,0.08)', icon: 'mdi-circle',  label: 'Hard Skip'      },
+  PREM: { border: '#a78bfa', bg: 'rgba(167,139,250,0.09)', icon: 'mdi-crown',   label: 'Premium Fix'    },
 }
 
 export const BRANCH_TYPES = {
@@ -21,36 +21,40 @@ export const BRANCH_TYPES = {
 }
 
 export const TYPE_LABELS = {
-  medium_tank:        '🛡️ Medium',    light_tank:         '💨 Light',
-  heavy_tank:         '⚔️ Heavy',      tank_destroyer:     '🎯 Tank Dest.',
-  spaa:               '🌀 SPAA',
-  fighter:            '✈️ Fighter',    bomber:             '💣 Bomber',
-  assault:            '🔥 Assault',    attack_helicopter:  '🚁 Atk Heli',
-  utility_helicopter: '🔧 Util Heli',
-  destroyer:          '🚢 Destroyer',  heavy_cruiser:      '🛳️ H.Cruiser',
-  light_cruiser:      '🛳️ L.Cruiser',  battleship:         '⚓ Battleship',
-  battlecruiser:      '⚓ B.Cruiser',  boat:               '⛵ Boat',
-  heavy_boat:         '🚤 H.Boat',     frigate:            '🛥️ Frigate',
-  barge:              '🪝 Barge',
+  medium_tank:        'Medium',       light_tank:         'Light',
+  heavy_tank:         'Heavy',        tank_destroyer:     'Tank Dest.',
+  spaa:               'SPAA',
+  fighter:            'Fighter',      bomber:             'Bomber',
+  assault:            'Assault',      attack_helicopter:  'Atk Heli',
+  utility_helicopter: 'Util Heli',
+  destroyer:          'Destroyer',    heavy_cruiser:      'H.Cruiser',
+  light_cruiser:      'L.Cruiser',    battleship:         'Battleship',
+  battlecruiser:      'B.Cruiser',    boat:               'Boat',
+  heavy_boat:         'H.Boat',       frigate:            'Frigate',
+  barge:              'Barge',
 }
 
 export const TYPE_ICON = {
-  medium_tank:        '🛡️', heavy_tank:        '⚔️', light_tank:   '💨',
-  tank_destroyer:     '🎯', spaa:              '🌀',
-  fighter:            '✈️', bomber:            '💣', assault:      '🔥',
-  attack_helicopter:  '🚁', utility_helicopter:'🔧',
-  destroyer:          '🚢', battleship:        '⚓', light_cruiser:'🛳️',
-  heavy_cruiser:      '🛳️', battlecruiser:     '⚓', boat:         '⛵',
-  heavy_boat:         '🚤', frigate:           '🛥️', barge:        '🪝',
+  medium_tank:        'mdi-tank',           heavy_tank:        'mdi-shield',
+  light_tank:         'mdi-lightning-bolt', tank_destroyer:    'mdi-crosshairs-gps',
+  spaa:               'mdi-radar',
+  fighter:            'mdi-airplane',       bomber:            'mdi-bomb',
+  assault:            'mdi-airplane-takeoff',
+  attack_helicopter:  'mdi-helicopter',     utility_helicopter:'mdi-tools',
+  destroyer:          'mdi-ferry',          battleship:        'mdi-anchor',
+  light_cruiser:      'mdi-ferry',          heavy_cruiser:     'mdi-ferry',
+  battlecruiser:      'mdi-anchor',         boat:              'mdi-sail-boat',
+  heavy_boat:         'mdi-speedboat',      frigate:           'mdi-ship-wheel',
+  barge:              'mdi-ferry',
 }
 
 export const CLASS_PREFIX = {
-  Premium:     '★ ',
-  Pack:        '📦 ',
-  Squadron:    '✦ ',
-  Marketplace: '🏪 ',
-  Gift:        '🎁 ',
-  Event:       '🎪 ',
+  Premium:     'mdi-star',
+  Pack:        'mdi-package-variant',
+  Squadron:    'mdi-star-four-points',
+  Marketplace: 'mdi-store',
+  Gift:        'mdi-gift',
+  Event:       'mdi-ticket',
   Standard:    '',
 }
 

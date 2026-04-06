@@ -45,9 +45,9 @@
     "fleet":          "Fleet",
     "large_fleet":    "Large Fleet",
     "small_fleet":    "Small Fleet",
-    "warn_none":      "⚠️ No vehicle class selected",
-    "warn_mix":       "⚠️ Mixed: fleet + ground/aviation",
-    "dataset_date":   "🕐 {date}"
+    "warn_none":      "No vehicle class selected",
+    "warn_mix":       "Mixed: fleet + ground/aviation",
+    "dataset_date":   "{date}"
   },
 
   "topbar": {
@@ -55,7 +55,7 @@
     "report":         "Report issue",
     "report_title":   "Report a bug or data issue on GitHub",
     "search_hint":    "Search vehicles…",
-    "search_header":  "🔍 RESULTS",
+    "search_header":  "RESULTS",
     "search_empty":   "Nothing found"
   },
 
@@ -67,7 +67,7 @@
   },
 
   "redbook_tab": {
-    "title":          "💀 Red Book",
+    "title":          "Red Book",
     "description":    "Vehicles with the fewest battles played — they are going extinct.",
     "show_top":       "Show top-N",
     "nation_label":   "Nation",
@@ -90,17 +90,17 @@
     "target_br":      "Target BR",
     "nation":         "Nation",
     "veh_type":       "Vehicle type",
-    "anchor_label":   "⚓ ANCHOR:",
+    "anchor_label":   "ANCHOR:",
     "anchor_br":      "({br})",
     "anchor_farm":    "Farm Score:",
-    "main_set":       "🛠️ MAIN LINEUP",
-    "gems":           "💎 GEMS (Low BR / High Efficiency)",
+    "main_set":       "MAIN LINEUP",
+    "gems":           "GEMS (Low BR / High Efficiency)",
     "gems_empty":     "No gems in -2.0 BR range with Farm Score above anchor.",
-    "no_anchor":      "❌ No anchor vehicle found at this BR with the current filters.",
+    "no_anchor":      "No anchor vehicle found at this BR with the current filters.",
     "role":           "Role",
     "role_anchor":    "Anchor",
-    "role_top":       "💰 Top farmer",
-    "role_reserve":   "🔄 Reserve",
+    "role_top":       "Top farmer",
+    "role_reserve":   "Reserve",
     "col_vehicle":    "Vehicle",
     "col_nation":     "Nation",
     "col_battles":    "Battles",
@@ -155,12 +155,12 @@
   },
 
   "vehicle_card": {
-    "stats":          "📊 STATISTICS",
-    "scores":         "🏆 SCORES",
-    "armor":          "🛡️ ARMOR (mm)",
-    "mobility":       "⚙️ MOBILITY",
-    "weapons":        "🔫 WEAPONS",
-    "economy":        "💰 ECONOMY",
+    "stats":          "STATISTICS",
+    "scores":         "SCORES",
+    "armor":          "ARMOR (mm)",
+    "mobility":       "MOBILITY",
+    "weapons":        "WEAPONS",
+    "economy":        "ECONOMY",
     "nation":         "Nation",
     "type":           "Type",
     "battles":        "Battles",

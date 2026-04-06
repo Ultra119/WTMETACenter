@@ -8,13 +8,30 @@ export const NATION_FLAG = {
 }
 
 export const CLASS_PREFIX = {
-  Premium:    '⭐ ',
-  Pack:       '🎁 ',
-  Squadron:   '✈️ ',
-  Marketplace:'💎 ',
-  Gift:       '🎀 ',
-  Event:      '⚡ ',
+  Premium:    'mdi-star',
+  Pack:       'mdi-package-variant',
+  Squadron:   'mdi-star-four-points',
+  Marketplace:'mdi-store',
+  Gift:       'mdi-gift',
+  Event:      'mdi-ticket',
   Standard:   '',
+}
+
+const CLASS_ICON_COLOR = {
+  Premium:     '#fbbf24',
+  Pack:        '#60a5fa',
+  Squadron:    '#34d399',
+  Marketplace: '#a78bfa',
+  Gift:        '#f472b6',
+  Event:       '#fb923c',
+}
+
+export function vehicleClassMdiIcon(v) {
+  return CLASS_PREFIX[v?.VehicleClass ?? 'Standard'] ?? ''
+}
+
+export function vehicleClassMdiColor(v) {
+  return CLASS_ICON_COLOR[v?.VehicleClass] ?? null
 }
 
 export function useFmtType() {
@@ -95,8 +112,7 @@ export function wrColor(wr) {
 }
 
 export function vehicleDisplayName(v) {
-  const prefix = CLASS_PREFIX[v?.VehicleClass ?? 'Standard'] ?? ''
-  return prefix + (v?.Name ?? '')
+  return v?.Name ?? ''
 }
 
 export const SAFE_KEYS = {

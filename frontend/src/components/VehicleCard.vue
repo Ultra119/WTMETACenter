@@ -19,7 +19,7 @@
 
           <!-- Статистика -->
           <div class="card-section">
-            <div class="section-title">{{ t('vehicle_card.stats') }}</div>
+            <div class="section-title"><v-icon size="12" style="margin-right:4px;opacity:.7">mdi-chart-bar</v-icon>{{ t('vehicle_card.stats') }}</div>
             <div class="stat-row"><span class="stat-label">{{ t('vehicle_card.nation')  }}</span><span class="stat-value">{{ fmtNation(vehicle.Nation) }}</span></div>
             <div class="stat-row"><span class="stat-label">{{ t('vehicle_card.type')    }}</span><span class="stat-value">{{ fmtType(vehicle.Type) }}</span></div>
             <div class="stat-row"><span class="stat-label">{{ t('vehicle_card.battles') }}</span><span class="stat-value">{{ (vehicle['Сыграно игр'] ?? 0).toLocaleString() }}</span></div>
@@ -29,7 +29,7 @@
 
           <!-- Скоры -->
           <div class="card-section">
-            <div class="section-title">{{ t('vehicle_card.scores') }}</div>
+            <div class="section-title"><v-icon size="12" style="margin-right:4px;opacity:.7">mdi-trophy</v-icon>{{ t('vehicle_card.scores') }}</div>
             <div class="score-row">
               <span class="score-label">{{ t('vehicle_card.meta_score') }}</span>
               <div class="score-bar-wrap">
@@ -53,7 +53,7 @@
           <!-- Броня -->
           <template v-if="hasVdb">
             <div class="card-section">
-              <div class="section-title">{{ t('vehicle_card.armor') }}</div>
+              <div class="section-title"><v-icon size="12" style="margin-right:4px;opacity:.7">mdi-shield</v-icon>{{ t('vehicle_card.armor') }}</div>
               <table class="armor-table">
                 <thead>
                   <tr>
@@ -78,7 +78,7 @@
 
             <!-- Подвижность -->
             <div class="card-section">
-              <div class="section-title">{{ t('vehicle_card.mobility') }}</div>
+              <div class="section-title"><v-icon size="12" style="margin-right:4px;opacity:.7">mdi-cog</v-icon>{{ t('vehicle_card.mobility') }}</div>
               <div class="stat-row">
                 <span class="stat-label">{{ t('vehicle_card.speed_rb')   }}</span>
                 <span class="stat-value">{{ v('vdb_engine_max_speed_rb') }} {{ t('vehicle_card.speed_unit') }}</span>
@@ -95,7 +95,7 @@
 
             <!-- Вооружение -->
             <div class="card-section">
-              <div class="section-title">{{ t('vehicle_card.weapons') }}</div>
+              <div class="section-title"><v-icon size="12" style="margin-right:4px;opacity:.7">mdi-bullet</v-icon>{{ t('vehicle_card.weapons') }}</div>
               <div class="stat-row">
                 <span class="stat-label">{{ t('vehicle_card.caliber')      }}</span>
                 <span class="stat-value">{{ v('vdb_main_caliber_mm') > 0 ? v('vdb_main_caliber_mm') + ' ' + t('vehicle_card.caliber_unit') : t('vehicle_card.no_vdb') }}</span>
@@ -114,7 +114,7 @@
 
             <!-- Экономика -->
             <div class="card-section">
-              <div class="section-title">{{ t('vehicle_card.economy') }}</div>
+              <div class="section-title"><v-icon size="12" style="margin-right:4px;opacity:.7">mdi-cash</v-icon>{{ t('vehicle_card.economy') }}</div>
               <div class="stat-row">
                 <span class="stat-label">{{ t('vehicle_card.repair_rb') }}</span>
                 <span class="stat-value">{{ fmtSL(vehicle.vdb_repair_cost_realistic) }}</span>

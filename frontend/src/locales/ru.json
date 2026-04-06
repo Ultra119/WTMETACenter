@@ -45,9 +45,9 @@
     "fleet":          "Флот",
     "large_fleet":    "Крупный флот",
     "small_fleet":    "Малый флот",
-    "warn_none":      "⚠️ Не выбран ни один класс",
-    "warn_mix":       "⚠️ Смешение: флот + наземка/авиация",
-    "dataset_date":   "🕐 {date}"
+    "warn_none":      "Не выбран ни один класс",
+    "warn_mix":       "Смешение: флот + наземка/авиация",
+    "dataset_date":   "{date}"
   },
 
   "topbar": {
@@ -55,7 +55,7 @@
     "report":         "Сообщить о проблеме",
     "report_title":   "Сообщить об ошибке или неточности данных на GitHub",
     "search_hint":    "Поиск техники…",
-    "search_header":  "🔍 РЕЗУЛЬТАТЫ",
+    "search_header":  "РЕЗУЛЬТАТЫ",
     "search_empty":   "Ничего не найдено"
   },
 
@@ -67,7 +67,7 @@
   },
 
   "redbook_tab": {
-    "title":          "💀 Красная Книга",
+    "title":          "Красная Книга",
     "description":    "Техника с наименьшим числом сыгранных боёв. Они «вымирают» — люди их не берут или не умеют на них играть.",
     "show_top":       "Показать топ-N",
     "nation_label":   "Нация",
@@ -90,17 +90,17 @@
     "target_br":      "Целевой БР",
     "nation":         "Нация",
     "veh_type":       "Тип техники",
-    "anchor_label":   "⚓ ЯКОРЬ:",
+    "anchor_label":   "ЯКОРЬ:",
     "anchor_br":      "({br})",
     "anchor_farm":    "Farm Score:",
-    "main_set":       "🛠️ ОСНОВНОЙ СОСТАВ",
-    "gems":           "💎 ЖЕМЧУЖИНЫ (Low BR / High Efficiency)",
+    "main_set":       "ОСНОВНОЙ СОСТАВ",
+    "gems":           "ЖЕМЧУЖИНЫ (Low BR / High Efficiency)",
     "gems_empty":     "Нет жемчужин в диапазоне -2.0 BR с Farm Score выше якоря.",
-    "no_anchor":      "❌ Не найдена якорная техника на этом БР с выбранными фильтрами.",
+    "no_anchor":      "Не найдена якорная техника на этом БР с выбранными фильтрами.",
     "role":           "Роль",
     "role_anchor":    "Якорь",
-    "role_top":       "💰 Топ-фармер",
-    "role_reserve":   "🔄 Резерв",
+    "role_top":       "Топ-фармер",
+    "role_reserve":   "Резерв",
     "col_vehicle":    "Техника",
     "col_nation":     "Нация",
     "col_battles":    "Бои",
@@ -155,12 +155,12 @@
   },
 
   "vehicle_card": {
-    "stats":          "📊 СТАТИСТИКА",
-    "scores":         "🏆 СКОРЫ",
-    "armor":          "🛡️ БРОНЯ (мм)",
-    "mobility":       "⚙️ ПОДВИЖНОСТЬ",
-    "weapons":        "🔫 ВООРУЖЕНИЕ",
-    "economy":        "💰 ЭКОНОМИКА",
+    "stats":          "СТАТИСТИКА",
+    "scores":         "СКОРЫ",
+    "armor":          "БРОНЯ (мм)",
+    "mobility":       "ПОДВИЖНОСТЬ",
+    "weapons":        "ВООРУЖЕНИЕ",
+    "economy":        "ЭКОНОМИКА",
     "nation":         "Нация",
     "type":           "Тип",
     "battles":        "Сыграно игр",
