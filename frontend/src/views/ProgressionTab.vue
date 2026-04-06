@@ -635,18 +635,31 @@ const progressionData = computed(() => {
     v.Verdict       = VERDICT_PREM
     v.Prem_Pain_Fix = painEras.has(v._era_int)
 
-    const sameBranchStd = stdVehicles.filter(s => s._branch === v._branch)
+    const premFarm = parseFloat(v.FARM_SCORE) || v._localScore
+
+    let candidates = stdVehicles.filter(s =>
+      s._branch  === v._branch &&
+      s._era_int === v._era_int &&
+      Math.abs(s.BR - v.BR) <= MM_WINDOW
+    )
+    if (!candidates.length) {
+      candidates = stdVehicles.filter(s =>
+        s._branch === v._branch &&
+        Math.abs(s._era_int - v._era_int) <= 1 &&
+        Math.abs(s.BR - v.BR) <= MM_WINDOW
+      )
+    }
+
     let bestFree = 0
-    for (const s of sameBranchStd) {
-      const eff = s._localScore *
-        combinedPenalty(s._era_int, s.BR, v._era_int, v.BR)
+    for (const s of candidates) {
+      const farmS = parseFloat(s.FARM_SCORE) || s._localScore
+      const eff = farmS * brDecay(s.BR, v.BR)
       if (eff > bestFree) bestFree = eff
     }
-    const premGrind = v._localScore *
-      combinedPenalty(v._era_int, v.BR, v._era_int, v.BR, true)
+
     v.Prem_Boost = bestFree < 1e-3
-      ? Math.round((premGrind / Math.max(v._localScore, 1e-3)) * 100) / 100
-      : Math.round((premGrind / bestFree) * 100) / 100
+      ? 1.0
+      : Math.round((premFarm / bestFree) * 100) / 100
   }
 
   const skipNames = new Set(
