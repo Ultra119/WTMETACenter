@@ -1,26 +1,46 @@
 {
-  "generated_at": "2026-03-31T19:12:10.304933+00:00",
+  "generated_at": "2026-04-06T19:54:05.452539+00:00",
+  "periods": [
+    "All",
+    "02-2026",
+    "01-2026",
+    "12-2025"
+  ],
   "nations": [
-    "Britain",
-    "China",
-    "France",
-    "Germany",
-    "Israel",
-    "Italy",
-    "Japan",
-    "Sweden",
-    "USA",
-    "USSR"
+    "britain",
+    "china",
+    "france",
+    "germany",
+    "israel",
+    "italy",
+    "japan",
+    "sweden",
+    "usa",
+    "ussr"
   ],
   "types": [
+    "01-2026",
+    "02-2026",
+    "12-2025",
     "assault",
+    "attack_helicopter",
+    "barge",
+    "battlecruiser",
+    "battleship",
+    "boat",
     "bomber",
+    "destroyer",
     "fighter",
+    "frigate",
+    "heavy_boat",
+    "heavy_cruiser",
     "heavy_tank",
+    "light_cruiser",
     "light_tank",
     "medium_tank",
     "spaa",
-    "tank_destroyer"
+    "tank_destroyer",
+    "utility_helicopter"
   ],
   "br_steps": [
     1.0,
@@ -75,5 +95,11 @@
     "Gift",
     "Event"
   ],
-  "total_records": 4832
+  "total_records": 8656,
+  "period_records": {
+    "All": 8656,
+    "02-2026": 8648,
+    "01-2026": 8634,
+    "12-2025": 8619
+  }
 }
