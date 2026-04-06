@@ -6,6 +6,7 @@
     style="border-right: 1px solid #1e3a5f; top: 48px; height: calc(100% - 48px);"
   >
     <div class="pa-3">
+      <Transition name="hint-fade">
         <div v-if="hiddenCount > 0" class="filters-hint">
           <span class="mdi mdi-filter-off-outline hint-icon" />
           {{ t('sidebar.filters_hidden', { n: hiddenCount }) }}
