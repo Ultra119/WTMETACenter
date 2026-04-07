@@ -1,10 +1,6 @@
 {
-    "meta_weights": {
-        "wr": 0.4,
-        "ks": 0.4,
-        "kd": 0.2
-    },
-    "low_battles_threshold": 50,
-    "low_battles_penalty": 0.7,
-    "top_nations_vehicles": 5
+    "mm_window": 1.0,
+    "sigmoid_scale": 1.5,
+    "z_clip": 3.0,
+    "wilson_z": 1.96
 }
