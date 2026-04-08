@@ -37,11 +37,10 @@
           style="min-width:180px; max-width:300px"
         >
           <template #item="{ item, props }">
-            <v-list-item v-bind="props" :title="undefined">
+            <v-list-item v-bind="props">
               <template #prepend>
-                <v-icon size="16" class="mr-2">{{ item.raw.icon }}</v-icon>
+                <v-icon size="16" class="mr-2">{{ (item.raw ?? item).icon }}</v-icon>
               </template>
-              <span style="font-size:13px">{{ item.raw.label }}</span>
             </v-list-item>
           </template>
 
