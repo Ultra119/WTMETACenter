@@ -15,7 +15,15 @@
           </button>
         </div>
 
-        <InfoTip align="right" class="ml-auto">
+        <label class="folder-toggle ml-auto">
+          <input type="checkbox" v-model="skipFolderDupes" class="folder-toggle__input" />
+          <span class="folder-toggle__box">
+            <span class="mdi mdi-folder-multiple-outline folder-toggle__icon" />
+          </span>
+          <span class="folder-toggle__label">{{ t('cost_tab.skip_folder') }}</span>
+        </label>
+
+        <InfoTip align="right">
           <p><b>{{ t('cost_tab.tip_title') }}</b></p>
           <p>{{ t('cost_tab.tip_desc') }}</p>
           <div class="tip-row mt-2">
@@ -198,7 +206,8 @@ const METRICS = [
   { key: 'sl', icon: 'mdi-cash' },
 ]
 
-const metric = ref('rp')
+const metric          = ref('rp')
+const skipFolderDupes = ref(true)
 
 const MAX_SCALE = computed(() => metric.value === 'sl' ? 40_000_000 : 20_000_000)
 const SCALE_TICKS = computed(() => {
@@ -229,13 +238,36 @@ watchEffect(() => {
   const vehicles = uniqueVehicles.value
   const met      = metric.value
   const cls      = store.classes
+  const skipDup  = skipFolderDupes.value
 
   nextTick(() => {
+    let src = vehicles
+    if (skipDup) {
+      const groupMin = new Map()
+      for (const v of vehicles) {
+        const g = v.vdb_shop_group
+        if (!g) continue
+        const era = Number(v.vdb_era ?? 0)
+        if (era < 1 || era > 8) continue
+        let bKey = null
+        for (const b of BRANCHES) {
+          if (BRANCH_TYPE_SET[b.key].has(v.Type)) { bKey = b.key; break }
+        }
+        if (!bKey) continue
+        const val = met === 'rp' ? Number(v.vdb_req_exp ?? 0) : Number(v.vdb_value ?? 0)
+        const key = `${v.Nation}__${bKey}__${g}`
+        const cur = groupMin.get(key)
+        if (!cur || val < cur.val) groupMin.set(key, { v, val })
+      }
+      const keep = new Set([...groupMin.values()].map(({ v }) => v))
+      src = vehicles.filter(v => !v.vdb_shop_group || keep.has(v))
+    }
     const result = {}
     for (const b of BRANCHES) result[b.key] = {}
 
-    for (const v of vehicles) {
-      if (!cls.includes(v.VehicleClass)) continue
+    for (const v of src) {
+      if (!cls.includes(v.VehicleClass ?? 'Standard')) continue
+      if (met === 'rp' && v.VehicleClass !== 'Standard') continue
 
       const era = Number(v.vdb_era ?? 0)
       if (era < 1 || era > 8) continue
@@ -332,6 +364,51 @@ function totalColor(total) {
   margin-bottom: 4px;
 }
 .ml-auto { margin-left: auto; }
+
+.folder-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+  user-select: none;
+}
+.folder-toggle__input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.folder-toggle__box {
+  width: 28px;
+  height: 28px;
+  border: 1px solid #1e3a5f;
+  border-radius: 6px;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, border-color 0.15s;
+}
+.folder-toggle:has(input:checked) .folder-toggle__box {
+  background: rgba(167,139,250,0.12);
+  border-color: #a78bfa;
+}
+.folder-toggle__icon {
+  font-size: 15px;
+  color: #475569;
+  transition: color 0.15s;
+}
+.folder-toggle:has(input:checked) .folder-toggle__icon {
+  color: #a78bfa;
+}
+.folder-toggle__label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  transition: color 0.15s;
+}
+.folder-toggle:hover .folder-toggle__label { color: #94a3b8; }
+.folder-toggle:has(input:checked) .folder-toggle__label { color: #a78bfa; }
 
 .metric-group { display: flex; gap: 4px; }
 .metric-btn {
