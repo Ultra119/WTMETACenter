@@ -441,57 +441,11 @@ function totalColor(total) {
   overflow: hidden;
 }
 
-.bar-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.bar-row {
-  padding: 5px 0;
-}
-.bar-row + .bar-row { border-top: 1px solid rgba(30,58,95,0.4); }
-
-.chart-card:has(.bar-row:hover) .bar-row:not(:hover) {
-  opacity: 0.35;
-}
-
-.nation-col {
-  width: 120px;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.nation-flag { font-size: 16px; line-height: 1; }
-.nation-name {
-  font-size: 12px;
-  font-weight: 600;
-  color: #cbd5e1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.bar-col {
-  flex: 1;
-  position: relative;
-}
-
-.total-col {
-  width: 54px;
-  flex-shrink: 0;
-  text-align: right;
-}
-.total-label {
-  font-family: 'Rajdhani', sans-serif;
-  font-size: 14px;
-  font-weight: 700;
-}
-
 .scale-row {
-  display: flex;
-  align-items: center;
+  display: grid;
+  grid-template-columns: 120px 1fr 54px;
   gap: 10px;
+  align-items: center;
   margin: -12px -16px 0;
   padding: 8px 16px 6px;
   background: rgba(10, 18, 35, 0.45);
@@ -529,6 +483,49 @@ function totalColor(total) {
   width: 1px;
   background: rgba(30, 58, 95, 0.6);
   pointer-events: none;
+}
+
+.bar-row {
+  display: grid;
+  grid-template-columns: 120px 1fr 54px;
+  gap: 10px;
+  align-items: center;
+  padding: 5px 0;
+}
+.bar-row + .bar-row { border-top: 1px solid rgba(30,58,95,0.4); }
+
+.chart-card:has(.bar-row:hover) .bar-row:not(:hover) {
+  opacity: 0.35;
+}
+
+.nation-col {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.nation-flag { font-size: 16px; line-height: 1; flex-shrink: 0; }
+.nation-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: #cbd5e1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bar-col {
+  min-width: 0;
+  position: relative;
+}
+
+.total-col {
+  text-align: right;
+}
+.total-label {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
 }
 
 .bar-track {
