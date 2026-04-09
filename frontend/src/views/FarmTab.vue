@@ -182,7 +182,7 @@
 </template>
 
 <script setup>
-import { ref, computed, inject } from 'vue'
+import { ref, shallowRef, computed, watchEffect, nextTick, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useTabFilters } from '../composables/useTabFilters.js'
 import { useDataStore, WT_BR_STEPS } from '../stores/useDataStore.js'
@@ -273,11 +273,6 @@ function getFarmSet(vehicles, tBr, nat, vType) {
   return { anchor, mainSet, gems }
 }
 
-const result   = computed(() =>
-  getFarmSet(store.filteredVehicles, targetBr.value, nation.value, vehicleType.value)
-)
-const noAnchor = computed(() => !result.value)
-
 function toRows(list) {
   return list.map(v => ({
     ...normRow(v),
@@ -287,8 +282,24 @@ function toRows(list) {
     delta: v._delta ?? 0,
   }))
 }
-const mainSetRows = computed(() => toRows(result.value?.mainSet ?? []))
-const gemRows     = computed(() => toRows(result.value?.gems    ?? []))
+
+const result      = shallowRef(null)
+const noAnchor    = shallowRef(false)
+const mainSetRows = shallowRef([])
+const gemRows     = shallowRef([])
+watchEffect(() => {
+  const vehicles = store.filteredVehicles
+  const tBr      = targetBr.value
+  const nat      = nation.value
+  const vType    = vehicleType.value
+  nextTick(() => {
+    const r = getFarmSet(vehicles, tBr, nat, vType)
+    result.value      = r
+    noAnchor.value    = !r
+    mainSetRows.value = toRows(r?.mainSet ?? [])
+    gemRows.value     = toRows(r?.gems    ?? [])
+  })
+})
 
 function roleColor(role) {
   if (role === t('farm_tab.role_anchor')) return '#a78bfa'

@@ -100,7 +100,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, shallowRef, computed, watch, watchEffect, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useTabFilters } from '../composables/useTabFilters.js'
 import { useDataStore, WT_BR_STEPS } from '../stores/useDataStore.js'
@@ -196,30 +196,36 @@ function weightedMeta(pool) {
   return pool.reduce((s, v) => s + v.META_SCORE * (v['Сыграно игр'] ?? 0), 0) / total
 }
 
-const pivot = computed(() => {
-  const excluded = new Set(excludeTypes.value)
-  let vehicles = excluded.size
-    ? store.filteredVehicles.filter(v => !excluded.has(v.Type))
-    : store.filteredVehicles
-  if (!vehicles.length) return { rows: [], nations: [] }
+const pivot = shallowRef({ rows: [], nations: [] })
+watchEffect(() => {
+  const excluded      = new Set(excludeTypes.value)
+  const allFiltered   = store.filteredVehicles
+  const steps         = stepsPerBracket.value
+  const n             = topN.value || null
 
-  const brackets = buildWtBrackets(stepsPerBracket.value)
-  const nations  = [...new Set(vehicles.map(v => v.Nation))].sort()
-  const n        = topN.value || null
+  nextTick(() => {
+    const vehicles = excluded.size
+      ? allFiltered.filter(v => !excluded.has(v.Type))
+      : allFiltered
+    if (!vehicles.length) { pivot.value = { rows: [], nations: [] }; return }
 
-  const rows = brackets.map(b => {
-    const inBracket = vehicles.filter(v => v.BR >= b.min && v.BR < b.max)
-    const row = { bracket: b.label }
-    for (const nat of nations) {
-      const pool = n
-        ? [...inBracket.filter(v => v.Nation === nat)].sort((a, b) => b.META_SCORE - a.META_SCORE).slice(0, n)
-        : inBracket.filter(v => v.Nation === nat)
-      row[nat] = Math.round(weightedMeta(pool) * 10) / 10
-    }
-    return row
+    const brackets = buildWtBrackets(steps)
+    const nations  = [...new Set(vehicles.map(v => v.Nation))].sort()
+
+    const rows = brackets.map(b => {
+      const inBracket = vehicles.filter(v => v.BR >= b.min && v.BR < b.max)
+      const row = { bracket: b.label }
+      for (const nat of nations) {
+        const pool = n
+          ? [...inBracket.filter(v => v.Nation === nat)].sort((a, b) => b.META_SCORE - a.META_SCORE).slice(0, n)
+          : inBracket.filter(v => v.Nation === nat)
+        row[nat] = Math.round(weightedMeta(pool) * 10) / 10
+      }
+      return row
+    })
+
+    pivot.value = { rows: rows.filter(r => nations.some(nat => r[nat] > 0)), nations }
   })
-
-  return { rows: rows.filter(r => nations.some(nat => r[nat] > 0)), nations }
 })
 
 function scoreColor(score) {

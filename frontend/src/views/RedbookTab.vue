@@ -67,7 +67,7 @@
 </template>
 
 <script setup>
-import { ref, computed, inject } from 'vue'
+import { ref, shallowRef, computed, watchEffect, nextTick, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useTabFilters } from '../composables/useTabFilters.js'
 import { useDataStore } from '../stores/useDataStore.js'
@@ -92,21 +92,26 @@ const nationItems = computed(() =>
   }))
 )
 
-const tableRows = computed(() => {
-  let rows = store.filteredVehicles
-  if (nation.value !== 'All') rows = rows.filter(v => v.Nation === nation.value)
-  return rows
-    .filter(v => (v['Сыграно игр'] ?? 0) > 0)
-    .sort((a, b) => (a['Сыграно игр'] ?? 0) - (b['Сыграно игр'] ?? 0))
-    .slice(0, limit.value)
-    .map(v => ({
-      ...normRow(v),
-      Name_Display:   vehicleDisplayName(v),
-      classIcon:      vehicleClassMdiIcon(v),
-      classColor:     vehicleClassMdiColor(v),
-      Type_Display:   fmtType(v.Type),
-      Nation_Display: fmtNation(v.Nation),
-    }))
+const tableRows = shallowRef([])
+watchEffect(() => {
+  const vehicles = store.filteredVehicles
+  const nat      = nation.value
+  const lim      = limit.value
+  nextTick(() => {
+    let rows = nat !== 'All' ? vehicles.filter(v => v.Nation === nat) : vehicles
+    tableRows.value = rows
+      .filter(v => (v['Сыграно игр'] ?? 0) > 0)
+      .sort((a, b) => (a['Сыграно игр'] ?? 0) - (b['Сыграно игр'] ?? 0))
+      .slice(0, lim)
+      .map(v => ({
+        ...normRow(v),
+        Name_Display:   vehicleDisplayName(v),
+        classIcon:      vehicleClassMdiIcon(v),
+        classColor:     vehicleClassMdiColor(v),
+        Type_Display:   fmtType(v.Type),
+        Nation_Display: fmtNation(v.Nation),
+      }))
+  })
 })
 
 const headers = computed(() => [

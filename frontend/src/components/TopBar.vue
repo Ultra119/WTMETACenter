@@ -104,7 +104,7 @@
 </template>
 
 <script setup>
-import { ref, computed, inject, onMounted, onBeforeUnmount } from 'vue'
+import { ref, shallowRef, watchEffect, nextTick, inject, onMounted, onBeforeUnmount } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useDataStore } from '../stores/useDataStore.js'
 import { setLocale, SUPPORTED_LOCALES } from '../i18n/index.js'
@@ -144,21 +144,29 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', onDocClick))
 
 const MAX_HITS = 12
 
-const hits = computed(() => {
-  const q = query.value.trim()
-  if (q.length < 2) return []
-  const lower  = q.toLowerCase()
-  const seen   = new Set()
-  const result = []
-  for (const v of (store.allVehicles ?? [])) {
-    if (!v.Name?.toLowerCase().includes(lower)) continue
-    const key = `${v.Name}||${v.Nation}`
-    if (seen.has(key)) continue
-    seen.add(key)
-    result.push(v)
-    if (result.length >= MAX_HITS) break
-  }
-  return result
+const hits = shallowRef([])
+watchEffect(() => {
+  const q        = query.value.trim()
+  const vehicles = store.allVehicles
+
+  nextTick(() => {
+    if (q.length < 2) {
+      hits.value = []
+      return
+    }
+    const lower  = q.toLowerCase()
+    const seen   = new Set()
+    const result = []
+    for (const v of (vehicles ?? [])) {
+      if (!v.Name?.toLowerCase().includes(lower)) continue
+      const key = `${v.Name}||${v.Nation}`
+      if (seen.has(key)) continue
+      seen.add(key)
+      result.push(v)
+      if (result.length >= MAX_HITS) break
+    }
+    hits.value = result
+  })
 })
 
 function typeIcon(type)   { return TYPE_ICON[type] ?? 'mdi-car' }

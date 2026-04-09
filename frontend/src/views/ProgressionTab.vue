@@ -176,7 +176,7 @@
 </template>
 
 <script setup>
-import { ref, computed, inject, watch, shallowRef } from 'vue'
+import { ref, computed, inject, watch, shallowRef, watchEffect, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useTabFilters } from '../composables/useTabFilters.js'
 import { useDataStore } from '../stores/useDataStore.js'
@@ -392,15 +392,23 @@ function superCat(branchName) {
 }
 
 
-const progressionData = computed(() => {
+const progressionData = shallowRef([])
+watchEffect(() => {
   const allVehicles = store.allVehicles ?? []
-  if (!allVehicles.length || !nation.value) return []
+  const _nation     = nation.value
+  const _mode       = store.mode
+  const _branch     = branch.value
+  const _active     = activeTypes.value
+  const _prefs      = lineupPrefs.value
 
-  const selectedNation = nation.value
-  const selectedMode   = store.mode
-  const brTypes        = BRANCH_TYPES[branch.value] ?? []
-  const active         = activeTypes.value
-  const prefs          = lineupPrefs.value
+  nextTick(() => {
+  if (!allVehicles.length || !_nation) { progressionData.value = []; return }
+
+  const selectedNation = _nation
+  const selectedMode   = _mode
+  const brTypes        = BRANCH_TYPES[_branch] ?? []
+  const active         = _active
+  const prefs          = _prefs
 
   const raw = allVehicles.filter(v =>
     v.Nation === selectedNation &&
@@ -672,13 +680,16 @@ const progressionData = computed(() => {
     if (skipNames.has(v.Cross_Alt)) { v.Cross_Alt = ''; v.Cross_Hint = '' }
   }
 
-  return [...stdVehicles, ...premVehicles]
+  progressionData.value = [...stdVehicles, ...premVehicles]
+  })
 })
 
 
-const gridData = computed(() => {
+const gridData = shallowRef(null)
+watchEffect(() => {
   const vehicles = progressionData.value
-  if (!vehicles.length) return null
+  nextTick(() => {
+  if (!vehicles.length) { gridData.value = null; return }
 
   const std  = vehicles.filter(v => v.VehicleClass === STD_CLASS)
   const prem = vehicles.filter(v => v.VehicleClass !== STD_CLASS)
@@ -731,8 +742,9 @@ const gridData = computed(() => {
       )
   }
 
-  return { eras, numCols, typesInDf, getCellVehicles, getPremVehicles }
-})
+  gridData.value = { eras, numCols, typesInDf, getCellVehicles, getPremVehicles }
+  }) // nextTick
+}) // watchEffect
 
 
 function groupedCells(cellVehicles) {

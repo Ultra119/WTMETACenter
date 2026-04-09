@@ -67,7 +67,7 @@
 </template>
 
 <script setup>
-import { ref, computed, inject } from 'vue'
+import { ref, shallowRef, computed, watchEffect, nextTick, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useTabFilters } from '../composables/useTabFilters.js'
 import { useDataStore } from '../stores/useDataStore.js'
@@ -98,16 +98,20 @@ const filtered = computed(() => {
   return rows
 })
 
-const tableRows = computed(() =>
-  filtered.value.map(v => ({
-    ...normRow(v),
-    Name_Display:   vehicleDisplayName(v),
-    classIcon:      vehicleClassMdiIcon(v),
-    classColor:     vehicleClassMdiColor(v),
-    Type_Display:   fmtType(v.Type),
-    Nation_Display: fmtNation(v.Nation),
-  }))
-)
+const tableRows = shallowRef([])
+watchEffect(() => {
+  const rows = filtered.value
+  nextTick(() => {
+    tableRows.value = rows.map(v => ({
+      ...normRow(v),
+      Name_Display:   vehicleDisplayName(v),
+      classIcon:      vehicleClassMdiIcon(v),
+      classColor:     vehicleClassMdiColor(v),
+      Type_Display:   fmtType(v.Type),
+      Nation_Display: fmtNation(v.Nation),
+    }))
+  })
+})
 
 const headers = computed(() => [
   { title: t('common.vehicle'), key: 'Name_Display',   sortable: true, width: 190 },

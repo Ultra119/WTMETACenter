@@ -137,7 +137,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, shallowRef, computed, watchEffect, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useTabFilters } from '../composables/useTabFilters.js'
 import { useDataStore } from '../stores/useDataStore.js'
@@ -206,63 +206,64 @@ const SCALE_TICKS = computed(() => {
   return [0, m * 0.25, m * 0.5, m * 0.75, m]
 })
 
-const sourceVehicles = computed(() =>
-  store.allVehicles ?? store.filteredVehicles ?? []
-)
-
-const uniqueVehicles = computed(() => {
-  const seen = new Set()
-  const out  = []
-  for (const v of sourceVehicles.value) {
-    const key = v.vdb_identifier || `${v.Nation}__${v.Name}`
-    if (!key || seen.has(key)) continue
-    seen.add(key)
-    out.push(v)
-  }
-  return out
-})
-
-function metricValue(v) {
-  if (metric.value === 'rp') return Number(v.vdb_req_exp ?? 0)
-  if (metric.value === 'sl') return Number(v.vdb_value   ?? 0)
-  return 0
-}
-
 const metricUnit = computed(() => metric.value === 'rp' ? 'RP' : 'SL')
 
-const aggregated = computed(() => {
-  const result = {}
-  for (const b of BRANCHES) result[b.key] = {}
-
-  for (const v of uniqueVehicles.value) {
-    if (!store.classes.includes(v.VehicleClass)) continue
-
-    const era = Number(v.vdb_era ?? 0)
-    if (era < 1 || era > 8) continue
-
-    const val = metricValue(v)
-    if (!val) continue
-
-    const vType = v.Type
-    let bKey = null
-    for (const b of BRANCHES) {
-      if (BRANCH_TYPE_SET[b.key].has(vType)) { bKey = b.key; break }
+const uniqueVehicles = shallowRef([])
+watchEffect(() => {
+  const source = store.allVehicles ?? store.filteredVehicles ?? []
+  nextTick(() => {
+    const seen = new Set()
+    const out  = []
+    for (const v of source) {
+      const key = v.vdb_identifier || `${v.Nation}__${v.Name}`
+      if (!key || seen.has(key)) continue
+      seen.add(key)
+      out.push(v)
     }
-    if (!bKey) continue
+    uniqueVehicles.value = out
+  })
+})
 
-    const nat = v.Nation
-    if (!nat) continue
+const aggregated = shallowRef({})
+watchEffect(() => {
+  const vehicles = uniqueVehicles.value
+  const met      = metric.value
+  const cls      = store.classes
 
-    if (!result[bKey][nat]) {
-      result[bKey][nat] = { nation: nat, total: 0, byEra: {}, countByEra: {} }
+  nextTick(() => {
+    const result = {}
+    for (const b of BRANCHES) result[b.key] = {}
+
+    for (const v of vehicles) {
+      if (!cls.includes(v.VehicleClass)) continue
+
+      const era = Number(v.vdb_era ?? 0)
+      if (era < 1 || era > 8) continue
+
+      const val = met === 'rp' ? Number(v.vdb_req_exp ?? 0) : Number(v.vdb_value ?? 0)
+      if (!val) continue
+
+      const vType = v.Type
+      let bKey = null
+      for (const b of BRANCHES) {
+        if (BRANCH_TYPE_SET[b.key].has(vType)) { bKey = b.key; break }
+      }
+      if (!bKey) continue
+
+      const nat = v.Nation
+      if (!nat) continue
+
+      if (!result[bKey][nat]) {
+        result[bKey][nat] = { nation: nat, total: 0, byEra: {}, countByEra: {} }
+      }
+      const entry = result[bKey][nat]
+      entry.total            += val
+      entry.byEra[era]        = (entry.byEra[era]     ?? 0) + val
+      entry.countByEra[era]   = (entry.countByEra[era] ?? 0) + 1
     }
-    const entry = result[bKey][nat]
-    entry.total            += val
-    entry.byEra[era]        = (entry.byEra[era]     ?? 0) + val
-    entry.countByEra[era]   = (entry.countByEra[era] ?? 0) + 1
-  }
 
-  return result
+    aggregated.value = result
+  })
 })
 
 function chartRows(branchKey) {
