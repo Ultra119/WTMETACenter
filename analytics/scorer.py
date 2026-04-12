@@ -223,11 +223,16 @@ def score(df: pd.DataFrame, settings: dict) -> pd.DataFrame:
     if "vdb_repair_cost_realistic" in df.columns:
         repair  = df["vdb_repair_cost_realistic"].fillna(0).astype(float)
         has_vdb = df.get("vdb_match_score", pd.Series(0.0, index=df.index)) > 0
-        net_sl  = df["SL за игру"].where(~has_vdb, df["SL за игру"] - repair)
+        deaths_per_game = (
+            df["Смерти"] / df["Сыграно игр"].clip(lower=1)
+        )
+        repair_per_game = repair * deaths_per_game
+
+        net_sl = df["SL за игру"].where(~has_vdb, df["SL за игру"] - repair_per_game)
     else:
         net_sl = df["SL за игру"]
 
-    df["_sl_eff"]        = net_sl.clip(lower=0)
+    df["_sl_eff"]        = net_sl
     df["Net SL за игру"] = net_sl.round(0).astype(int)
     df["_z_sl"]          = 0.0
 
