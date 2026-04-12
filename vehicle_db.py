@@ -9,8 +9,6 @@ import pandas as pd
 from analytics.units_csv import UnitsCsvTranslator
 
 
-# ── JSON helpers ──────────────────────────────────────────────────────────────
-
 def _parse_json_field(raw, default):
     if isinstance(raw, (dict, list)):
         return raw
@@ -187,7 +185,6 @@ def _build_vdb_row(v: dict) -> dict:
 
     row["vdb_display_name"] = ""
 
-    # Shop tree position — заполняется позже через _load_shop()
     row["vdb_shop_column"] = -1
     row["vdb_shop_row"]    = -1
     row["vdb_shop_rank"]   = 0
@@ -201,12 +198,6 @@ def _build_vdb_row(v: dict) -> dict:
     return row
 
 
-_BRANCH_TO_TYPE: dict[str, str] = {
-    "helicopters": "attack_helicopter",
-    "aviation":    "fighter",
-    "army":        "medium_tank",
-    "fleet":       "destroyer",
-}
 
 
 class VehicleDB:
@@ -241,8 +232,8 @@ class VehicleDB:
                 enriched += 1
 
         print(
-            f"[VehicleDB] 📛 Display names из units.csv: "
-            f"{enriched}/{len(self._index)} совпадений"
+            f"[VehicleDB] 📛 Display names from units.csv: "
+            f"{enriched}/{len(self._index)} matches"
         )
 
     def _load_shop(self, path: str) -> None:
@@ -252,7 +243,7 @@ class VehicleDB:
             try:
                 from shop_parser import parse_shop_file
             except ImportError:
-                print("[VehicleDB] ⚠️  shop_parser не найден — пропуск")
+                print("[VehicleDB] ⚠️  shop_parser not found - skipping")
                 return
 
         shop = parse_shop_file(path)
@@ -276,28 +267,28 @@ class VehicleDB:
                 updated += 1
 
         print(
-            f"[VehicleDB] 🗺️  Shop-позиции: "
-            f"обновлено {updated}/{len(shop)} записей в индексе"
+            f"[VehicleDB] 🗺️  Shop-positions: "
+            f"updated {updated}/{len(shop)} entries in index"
         )
 
 
     def _load(self, path: str) -> None:
         if not os.path.exists(path):
-            print(f"[VehicleDB] ⚠️  vehicles.json не найден: {path}")
+            print(f"[VehicleDB] ⚠️  vehicles.json not found: {path}")
             return
 
         try:
             with open(path, "r", encoding="utf-8") as f:
                 data = json.load(f)
         except Exception as e:
-            print(f"[VehicleDB] ❌ Ошибка чтения vehicles.json: {e}")
+            print(f"[VehicleDB] ❌ Error reading vehicles.json: {e}")
             return
 
         if isinstance(data, dict):
             data = list(data.values())
 
         if not isinstance(data, list):
-            print("[VehicleDB] ❌ Неожиданный формат vehicles.json (не list/dict)")
+            print("[VehicleDB] ❌ Unexpected format from vehicles.json (not list/dict)")
             return
 
         for v in data:
@@ -308,7 +299,7 @@ class VehicleDB:
                 continue
             self._index[identifier] = _build_vdb_row(v)
 
-        print(f"[VehicleDB] ✅ Загружено {len(self._index)} записей из vehicles.json")
+        print(f"[VehicleDB] ✅ Downloaded {len(self._index)} entries from vehicles.json")
 
     def find_by_id(self, identifier: str) -> Optional[dict]:
         return self._index.get(identifier)
@@ -320,14 +311,15 @@ class VehicleDB:
 
         df = df.copy()
 
-        unique_ids = df["id"].dropna().astype(str).unique()
+        ids = df["id"].fillna("").astype(str)
+        unique_ids = ids.unique()
         cache: dict[str, Optional[dict]] = {
             uid: self.find_by_id(uid) for uid in unique_ids
         }
 
         sample = next((r for r in cache.values() if r is not None), None)
         if sample is None:
-            print("[VehicleDB] ⚠️  Ни одного совпадения — проверьте поле 'id' в датасете")
+            print("[VehicleDB] ⚠️  No single match — check field 'id' in dataset")
             df["vdb_match_score"] = 0.0
             return df
 
@@ -342,73 +334,77 @@ class VehicleDB:
 
         df["vdb_match_score"] = 0.0
 
-        for idx, row in df.iterrows():
-            uid = str(row.get("id", "") or "")
-            vdb_row = cache.get(uid)
-            if not vdb_row:
-                continue
+        matched_mask = ids.map(lambda uid: cache.get(uid) is not None)
+        matched_indices = df.index[matched_mask]
 
-            df.at[idx, "vdb_match_score"] = 1.0
+        if matched_indices.any():
+            vdb_records = {idx: cache[ids[idx]] for idx in matched_indices}
+            vdb_df = pd.DataFrame.from_dict(vdb_records, orient="index")
 
-            for vdb_k, vdb_v in vdb_row.items():
-                if vdb_k == "vdb_display_name":
-                    if vdb_v and "Name" in df.columns:
-                        df.at[idx, "Name"] = vdb_v
-                else:
-                    df.at[idx, vdb_k] = vdb_v
+            if "vdb_display_name" in vdb_df.columns and "Name" in df.columns:
+                good_names = vdb_df["vdb_display_name"] != ""
+                df.loc[vdb_df.index[good_names], "Name"] = (
+                    vdb_df.loc[good_names, "vdb_display_name"]
+                )
+                vdb_df = vdb_df.drop(columns=["vdb_display_name"])
+
+            df.update(vdb_df)
+            df.loc[matched_indices, "vdb_match_score"] = 1.0
 
         matched = int((df["vdb_match_score"] > 0).sum())
         total   = len(df)
         pct     = 100.0 * matched / total if total else 0.0
-        print(f"[VehicleDB] 🔗 Сопоставлено {matched}/{total} ({pct:.1f}%) по прямому id-матчу")
+        print(f"[VehicleDB] 🔗 Compared {matched}/{total} ({pct:.1f}%) by id-match")
 
         if matched < total:
-            missing_ids = [
-                str(row["id"])
-                for _, row in df[df["vdb_match_score"] == 0].iterrows()
-                if str(row.get("id", ""))
-            ]
-            if missing_ids:
-                sample_missing = missing_ids[:10]
-                print(f"[VehicleDB] ⚠️  Не найдено {total - matched} записей, первые 10: {sample_missing}")
+            unmatched_mask = df["vdb_match_score"] == 0
+            unmatched_ids  = ids[unmatched_mask]
 
-            if self._units.loaded:
-                enriched_names = 0
-                for idx, row in df[df["vdb_match_score"] == 0].iterrows():
-                    uid = str(row.get("id", "") or "")
-                    if not uid:
-                        continue
-                    name = self._units.find_name(uid)
-                    if name and "Name" in df.columns:
-                        df.at[idx, "Name"] = name
-                        enriched_names += 1
-                if enriched_names:
-                    print(f"[VehicleDB] 📛 Имена из units.csv для {enriched_names} незаматченных записей")
+            sample_missing = unmatched_ids[unmatched_ids != ""].head(10).tolist()
+            if sample_missing:
+                print(
+                    f"[VehicleDB] ⚠️  Not found {total - matched} entries, "
+                    f"первые 10: {sample_missing}"
+                )
+
+            if self._units.loaded and "Name" in df.columns:
+                name_series = unmatched_ids.map(
+                    lambda uid: self._units.find_name(uid) or ""
+                )
+                valid_names = name_series[name_series != ""]
+                if not valid_names.empty:
+                    df.loc[valid_names.index, "Name"] = valid_names
+                    print(
+                        f"[VehicleDB] 📛 Names from units.csv "
+                        f"for {len(valid_names)} unmatched entries"
+                    )
 
             if self._shop_index:
-                enriched_shop = 0
-                for idx, row in df[df["vdb_match_score"] == 0].iterrows():
-                    uid = str(row.get("id", "") or "")
+                shop_rows: dict[int, dict] = {}
+                for idx, uid in unmatched_ids.items():
                     sdata = self._shop_index.get(uid)
                     if not sdata:
                         continue
-                    df.at[idx, "vdb_shop_column"]   = sdata["shop_column"]
-                    df.at[idx, "vdb_shop_row"]       = sdata["shop_row"]
-                    df.at[idx, "vdb_shop_rank"]      = sdata["shop_rank"]
-                    df.at[idx, "vdb_shop_group"]     = sdata["shop_group"]
-                    df.at[idx, "vdb_shop_nation"]    = sdata["shop_nation"]
-                    df.at[idx, "vdb_shop_branch"]    = sdata["shop_branch"]
-                    df.at[idx, "vdb_shop_order"]     = sdata["shop_order"]
-                    df.at[idx, "vdb_shop_is_gift"]   = sdata.get("shop_is_gift",  False)
-                    df.at[idx, "vdb_shop_is_event"]  = sdata.get("shop_is_event", False)
-                    df.at[idx, "vdb_identifier"]     = uid
-                    branch   = sdata.get("shop_branch", "")
-                    fallback = _BRANCH_TO_TYPE.get(branch)
-                    if fallback and "Type" in df.columns:
-                        df.at[idx, "Type"] = fallback
-                    enriched_shop += 1
-                if enriched_shop:
-                    print(f"[VehicleDB] 🗺️  Shop-данные применены для {enriched_shop} незаматченных записей")
+                    shop_rows[idx] = {
+                        "vdb_shop_column":   sdata["shop_column"],
+                        "vdb_shop_row":      sdata["shop_row"],
+                        "vdb_shop_rank":     sdata["shop_rank"],
+                        "vdb_shop_group":    sdata["shop_group"],
+                        "vdb_shop_nation":   sdata["shop_nation"],
+                        "vdb_shop_branch":   sdata["shop_branch"],
+                        "vdb_shop_order":    sdata["shop_order"],
+                        "vdb_shop_is_gift":  sdata.get("shop_is_gift",  False),
+                        "vdb_shop_is_event": sdata.get("shop_is_event", False),
+                        "vdb_identifier":    uid,
+                    }
+
+                if shop_rows:
+                    shop_df = pd.DataFrame.from_dict(shop_rows, orient="index")
+                    df.update(shop_df)
+                    print(
+                        f"[VehicleDB] 🗺️  Shop-data applied "
+                        f"for {len(shop_rows)} unmatched entries"
+                    )
 
         return df
 
