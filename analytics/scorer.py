@@ -31,7 +31,6 @@ def score(df: pd.DataFrame, settings: dict) -> pd.DataFrame:
     mm_window = float(settings.get("mm_window",     1.0))
     sig_scale = float(settings.get("sigmoid_scale", 1.5))
     z_clip    = float(settings.get("z_clip",         3.0))
-    wilson_z  = float(settings.get("wilson_z",      1.96))
 
     spawns = df["Возрождения"].clip(lower=1)
     df["_ks_g_raw"] = df["Наземные убийства"]  / spawns
@@ -39,7 +38,7 @@ def score(df: pd.DataFrame, settings: dict) -> pd.DataFrame:
     df["_ks_n_raw"] = df["Морские убийства"]   / spawns
     df["_kd_raw"]   = df["KD"]
     df["_surv_raw"] = (1.0 - (df["Смерти"] / spawns)).clip(0.0, 1.0)
-    df["_wr_raw"]   = _wilson_lower(df["WR"], df["Сыграно игр"], wilson_z)
+    df["_wr_raw"]   = (df["WR"] / 100.0).clip(0.0, 1.0)
 
     df["_type_group"] = df["Type"].map(VEHICLE_TYPE_CATEGORY).fillna("_other")
 
@@ -210,8 +209,7 @@ def score(df: pd.DataFrame, settings: dict) -> pd.DataFrame:
     else:
         net_sl = df["SL за игру"]
 
-    raw_wr_factor = (df["WR"] / 50.0).clip(lower=0.5)
-    df["_sl_eff"]        = net_sl.clip(lower=0) * raw_wr_factor
+    df["_sl_eff"]        = net_sl.clip(lower=0)
     df["Net SL за игру"] = net_sl.round(0).astype(int)
     df["_z_sl"]          = 0.0
 
