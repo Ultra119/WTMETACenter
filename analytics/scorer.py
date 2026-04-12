@@ -78,12 +78,15 @@ def score(df: pd.DataFrame, settings: dict) -> pd.DataFrame:
                 if peers.empty:
                     continue
 
-                avg_wr   = _weighted_avg(peers["_wr_raw"],   peers["Сыграно игр"])
-                avg_kd   = _weighted_avg(peers["_kd_raw"],   peers["Смерти"].clip(lower=1))
-                avg_ks_g = _weighted_avg(peers["_ks_g_raw"], peers["Возрождения"])
-                avg_ks_a = _weighted_avg(peers["_ks_a_raw"], peers["Возрождения"])
-                avg_ks_n = _weighted_avg(peers["_ks_n_raw"], peers["Возрождения"])
-                avg_surv = _weighted_avg(peers["_surv_raw"], peers["Возрождения"])
+                peers_ext = df.loc[mask_peer & ~mask_self]
+                if peers_ext.empty:
+                    peers_ext = peers  # единственная техника в окне — fallback
+                avg_wr   = _weighted_avg(peers_ext["_wr_raw"],   peers_ext["Сыграно игр"])
+                avg_kd   = _weighted_avg(peers_ext["_kd_raw"],   peers_ext["Смерти"].clip(lower=1))
+                avg_ks_g = _weighted_avg(peers_ext["_ks_g_raw"], peers_ext["Возрождения"])
+                avg_ks_a = _weighted_avg(peers_ext["_ks_a_raw"], peers_ext["Возрождения"])
+                avg_ks_n = _weighted_avg(peers_ext["_ks_n_raw"], peers_ext["Возрождения"])
+                avg_surv = _weighted_avg(peers_ext["_surv_raw"], peers_ext["Возрождения"])
 
                 row_slice = df.loc[mask_self]
                 n_g = row_slice["Сыграно игр"]
@@ -158,9 +161,12 @@ def score(df: pd.DataFrame, settings: dict) -> pd.DataFrame:
                 peers     = df.loc[mask_peer]
                 g_sigs    = _global_sigma.get((tg, mode), {})
 
+                peers_ext = df.loc[mask_peer & ~mask_self]
+                if peers_ext.empty:
+                    peers_ext = peers
                 for m_col in metric_keys:
                     raw_col  = _RAW_COL[m_col]
-                    p_raw    = peers[raw_col]
+                    p_raw    = peers_ext[raw_col]
 
                     mu    = p_raw.median()
                     mad   = (p_raw - mu).abs().median()
@@ -260,11 +266,14 @@ def score(df: pd.DataFrame, settings: dict) -> pd.DataFrame:
                     mask_mode
                 )
                 mask_self = (df["BR"] == br) & (df["_type_group"] == tg) & mask_mode
-                peers_sl  = df.loc[mask_peer, "_sl_eff"]
-                if peers_sl.empty:
+
+                peers_ext_sl = df.loc[mask_peer & ~mask_self, "_sl_eff"]
+                if peers_ext_sl.empty:
+                    peers_ext_sl = df.loc[mask_peer, "_sl_eff"]
+                if peers_ext_sl.empty:
                     continue
-                mu_sl    = peers_sl.median()
-                mad_sl   = (peers_sl - mu_sl).abs().median()
+                mu_sl    = peers_ext_sl.median()
+                mad_sl   = (peers_ext_sl - mu_sl).abs().median()
                 sigma_sl = mad_sl * 1.4826
                 if pd.isna(sigma_sl) or sigma_sl < 1e-9:
                     sigma_sl = _global_sigma_sl.get((tg, mode), 0.0)
