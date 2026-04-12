@@ -56,7 +56,7 @@ def score(df: pd.DataFrame, settings: dict) -> pd.DataFrame:
 
     metric_keys  = ["_wr", "_kd", "_ks_g", "_ks_a", "_ks_n", "_surv"]
     unique_brs   = df["BR"].unique()
-    type_groups  = df["_type_group"].unique()
+    type_groups  = df["Type"].dropna().unique()
     unique_modes = df["Mode"].unique() if "Mode" in df.columns else [None]
 
     for k in metric_keys:
@@ -69,10 +69,10 @@ def score(df: pd.DataFrame, settings: dict) -> pd.DataFrame:
                 mask_peer = (
                     (df["BR"] >= br - mm_window) &
                     (df["BR"] <= br + mm_window) &
-                    (df["_type_group"] == tg) &
+                    (df["Type"] == tg) &
                     mask_mode
                 )
-                mask_self = (df["BR"] == br) & (df["_type_group"] == tg) & mask_mode
+                mask_self = (df["BR"] == br) & (df["Type"] == tg) & mask_mode
 
                 peers = df.loc[mask_peer]
                 if peers.empty:
@@ -133,7 +133,7 @@ def score(df: pd.DataFrame, settings: dict) -> pd.DataFrame:
     for mode in unique_modes:
         mask_mode = (df["Mode"] == mode) if mode is not None else pd.Series(True, index=df.index)
         for tg in type_groups:
-            mask_tg = (df["_type_group"] == tg) & mask_mode
+            mask_tg = (df["Type"] == tg) & mask_mode
             g = df.loc[mask_tg]
             sigs: dict[str, float] = {}
             for m_col, raw_col in _RAW_COL.items():
@@ -154,10 +154,10 @@ def score(df: pd.DataFrame, settings: dict) -> pd.DataFrame:
                 mask_peer = (
                     (df["BR"] >= br - mm_window) &
                     (df["BR"] <= br + mm_window) &
-                    (df["_type_group"] == tg) &
+                    (df["Type"] == tg) &
                     mask_mode
                 )
-                mask_self = (df["BR"] == br) & (df["_type_group"] == tg) & mask_mode
+                mask_self = (df["BR"] == br) & (df["Type"] == tg) & mask_mode
                 peers     = df.loc[mask_peer]
                 g_sigs    = _global_sigma.get((tg, mode), {})
 
@@ -246,7 +246,7 @@ def score(df: pd.DataFrame, settings: dict) -> pd.DataFrame:
     for mode in unique_modes:
         mask_mode = (df["Mode"] == mode) if mode is not None else pd.Series(True, index=df.index)
         for tg in type_groups:
-            mask_tg  = (df["_type_group"] == tg) & mask_mode
+            mask_tg  = (df["Type"] == tg) & mask_mode
             g_sl     = df.loc[mask_tg, "_sl_eff"]
             g_mu_sl  = g_sl.median()
             g_mad_sl = (g_sl - g_mu_sl).abs().median()
@@ -262,10 +262,10 @@ def score(df: pd.DataFrame, settings: dict) -> pd.DataFrame:
                 mask_peer = (
                     (df["BR"] >= br - mm_window) &
                     (df["BR"] <= br + mm_window) &
-                    (df["_type_group"] == tg) &
+                    (df["Type"] == tg) &
                     mask_mode
                 )
-                mask_self = (df["BR"] == br) & (df["_type_group"] == tg) & mask_mode
+                mask_self = (df["BR"] == br) & (df["Type"] == tg) & mask_mode
 
                 peers_ext_sl = df.loc[mask_peer & ~mask_self, "_sl_eff"]
                 if peers_ext_sl.empty:
