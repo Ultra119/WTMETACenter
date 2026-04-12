@@ -92,15 +92,6 @@ class AnalyticsCore:
         return grouped.reset_index(drop=True)
 
     def calculate_meta(self, filters: dict) -> pd.DataFrame:
-        """
-          type        — тип техники ("All" = без фильтра)
-          mode        — игровой режим ("Realistic" / "Arcade" / "Simulator")
-          search      — строка поиска по Name (пустая строка = без фильтра)
-          nation      — нация ("All" = без фильтра)
-          min_br      — минимальный BR
-          max_br      — максимальный BR
-          min_battles — минимальное число сыгранных боёв
-        """
         df = self.full_df.copy()
         if df.empty:
             return df
@@ -127,11 +118,13 @@ class AnalyticsCore:
             (df_grouped["Сыграно игр"] >= filters["min_battles"])
         ]
 
+        if df_grouped.empty:
+            return pd.DataFrame()
+
+        df_grouped = score(df_grouped, self.settings)
+
         if filters["nation"] != "All":
             df_grouped = df_grouped[df_grouped["Nation"] == filters["nation"]]
-
-        if not df_grouped.empty:
-            df_grouped = score(df_grouped, self.settings)
 
         self.display_df   = df_grouped.round(2)
         return self.display_df
