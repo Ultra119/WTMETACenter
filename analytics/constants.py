@@ -70,6 +70,32 @@ ROLE_WEIGHTS: dict = {
     "_default":           {"wr": 0.35, "ks_g": 0.20, "ks_a": 0.10, "kd": 0.20, "ks_n": 0.05, "surv": 0.10},
 }
 
+SCORING_PEER_GROUP: dict[str, str] = {
+    "medium_tank":        "GroundCombat",
+    "light_tank":         "GroundCombat",
+    "heavy_tank":         "GroundCombat",
+    "tank_destroyer":     "GroundCombat",
+    "spaa":               "spaa",
+
+    "fighter":            "fighter",
+    "bomber":             "bomber",
+    "assault":            "assault",
+
+    "attack_helicopter":  "Helicopter",
+    "utility_helicopter": "Helicopter",
+
+    "destroyer":          "LargeFleet",
+    "heavy_cruiser":      "LargeFleet",
+    "light_cruiser":      "LargeFleet",
+    "battleship":         "LargeFleet",
+    "battlecruiser":      "LargeFleet",
+
+    "boat":               "SmallFleet",
+    "heavy_boat":         "SmallFleet",
+    "frigate":            "SmallFleet",
+    "barge":              "SmallFleet",
+}
+
 DEFAULT_SETTINGS: dict = {
     "mm_window":     1.0,
     "sigmoid_scale": 1.5,
