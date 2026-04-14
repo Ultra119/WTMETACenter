@@ -37,7 +37,7 @@ jobs:
 
       - name: Vite build
         working-directory: frontend
-        run: VITE_BASE_PATH=/WTMETACenter/ npm run build
+        run: VITE_BASE_PATH=/WTMETACenter/ VITE_GA_ID=${{ secrets.GA_ID }} npm run build
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
