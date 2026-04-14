@@ -137,6 +137,7 @@
   "cost_tab": {
     "metric_rp":       "Research Points",
     "metric_sl":       "Purchase SL",
+    "skip_folder":     "Skip optional vehicles",
     "metric_train":    "Crew Training SL",
     "up_to_era":       "Up to era",
     "include":         "Include",
