@@ -1,9 +1,15 @@
 <template>
   <v-app theme="wt">
-    <v-overlay :model-value="store.loading || store.filtering" persistent class="align-center justify-center">
+    <v-overlay :model-value="store.loading" persistent class="align-center justify-center">
       <v-progress-circular indeterminate size="64" color="primary" />
       <div class="mt-4 text-caption text-medium-emphasis">{{ t('common.loading') }}</div>
     </v-overlay>
+
+    <Transition name="filter-bar-fade">
+      <div v-if="store.filtering" class="filter-progress-bar">
+        <div class="filter-progress-inner" />
+      </div>
+    </Transition>
 
     <v-snackbar v-if="store.loadError" :model-value="true" color="error" timeout="-1" location="top">
       {{ t('common.error_load', { msg: store.loadError }) }}
@@ -97,4 +103,30 @@ onMounted(() => {
 ::-webkit-scrollbar-track { background: #0f172a; }
 ::-webkit-scrollbar-thumb { background: #1e3a5f; border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: #a7f3d0; }
+
+.filter-progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  z-index: 9999;
+  pointer-events: none;
+  overflow: hidden;
+}
+.filter-progress-inner {
+  height: 100%;
+  background: #38bdf8;
+  animation: filter-slide 0.8s ease-in-out infinite;
+  transform-origin: left center;
+}
+@keyframes filter-slide {
+  0%   { transform: translateX(-100%) scaleX(0.4); }
+  50%  { transform: translateX(30%)   scaleX(0.7); }
+  100% { transform: translateX(110%)  scaleX(0.4); }
+}
+.filter-bar-fade-enter-active,
+.filter-bar-fade-leave-active { transition: opacity 0.15s; }
+.filter-bar-fade-enter-from,
+.filter-bar-fade-leave-to     { opacity: 0; }
 </style>
