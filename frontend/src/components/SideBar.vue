@@ -408,7 +408,7 @@ const generatedDate = computed(() => {
   letter-spacing: 0.05em;
   text-transform: uppercase;
   cursor: pointer;
-  transition: border-color 0.06s;
+  transition: none;
   white-space: nowrap;
   overflow: hidden;
 }
@@ -451,7 +451,7 @@ const generatedDate = computed(() => {
   letter-spacing: 0.07em;
   text-transform: uppercase;
   cursor: pointer;
-  transition: border-color 0.06s;
+  transition: none;
   text-align: left;
 }
 .type-chip:hover:not(.type-chip--active) {
