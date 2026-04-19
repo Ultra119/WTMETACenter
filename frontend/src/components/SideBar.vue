@@ -69,10 +69,11 @@
             :min="store.BR_MIN"
             :max="store.BR_MAX"
             :step="0.1"
-            color="primary"
+            color="#38bdf8"
             track-color="#1e293b"
+            track-fill-color="#38bdf8"
             density="compact"
-            class="mt-1"
+            class="mt-1 br-slider"
             @update:model-value="v => store.brRange = v.map(snapBR)"
           />
         </div>
