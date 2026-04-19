@@ -38,7 +38,7 @@
       </div>
 
       <div class="lineup-mix-row mt-2">
-        <span class="ctrl-label lineup-mix-label">{{ $t('progression_tab.lineup_mix') }}</span>
+        <span class="ctrl-label" style="flex-shrink:0;margin-right:4px">{{ $t('progression_tab.lineup_mix') }}</span>
         <div class="lineup-mix-types">
           <div
             v-for="t in activeBranchTypes"
@@ -779,8 +779,7 @@ lineupPrefs.value = defaultLineupPrefs(branch.value, DEFAULT_LINEUP_SLOTS, activ
   padding: 6px 2px 2px;
   border-top: 1px solid rgba(30, 58, 95, 0.6);
 }
-.lineup-mix-label { flex-shrink: 0; margin-right: 4px; font-size: 12px; color: #94a3b8; }
-.lineup-mix-types { display: flex; flex-wrap: wrap; gap: 6px; flex: 1; }
+.lineup-mix-types { display: flex; flex-wrap: wrap; gap: 6px; }
 .lineup-type-item {
   display: inline-flex;
   align-items: center;
