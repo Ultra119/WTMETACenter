@@ -3,7 +3,7 @@
 Analytics tool for War Thunder — META ratings, farm efficiency,
 tech tree progression analysis and more.
 
-**[→ Open app](https://ultra119.github.io/wt_meta_center/)**
+**[→ Open app](https://ultra119.github.io/WTMETACenter/)**
 
 ---
 
