@@ -37,19 +37,6 @@
         </div>
       </div>
 
-      <div class="type-toggles mt-2">
-        <button
-          v-for="t in branchTypes"
-          :key="t"
-          class="type-btn"
-          :class="{ 'type-btn--active': activeTypes.has(t) }"
-          @click="toggleType(t)"
-        >
-          <v-icon size="14" class="type-btn-icon">{{ TYPE_ICON[t] }}</v-icon>
-          {{ $t(`vehicle_types.${t}`, TYPE_LABELS[t] || t) }}
-        </button>
-      </div>
-
       <div class="lineup-mix-row mt-2">
         <span class="ctrl-label lineup-mix-label">{{ $t('progression_tab.lineup_mix') }}</span>
         <div class="lineup-mix-types">
@@ -240,13 +227,6 @@ watch(branch, (newBranch) => {
   lineupPrefs.value = defaultLineupPrefs(newBranch, DEFAULT_LINEUP_SLOTS, activeTypes.value)
 })
 
-watch(activeTypes, (newActive) => {
-  const next = { ...lineupPrefs.value }
-  for (const t of Object.keys(next)) {
-    if (!newActive.has(t)) next[t] = 0
-  }
-  lineupPrefs.value = next
-})
 
 function toPrefKey(type) {
   return TANK_TYPES.has(type) ? 'tank' : type
@@ -301,14 +281,6 @@ function resetLineupPrefs() {
   lineupPrefs.value = defaultLineupPrefs(branch.value, DEFAULT_LINEUP_SLOTS, activeTypes.value)
 }
 
-const branchTypes = computed(() => BRANCH_TYPES[branch.value] ?? [])
-
-function toggleType(t) {
-  const next = new Set(activeTypes.value)
-  if (next.has(t)) { if (next.size > 1) next.delete(t) }
-  else              next.add(t)
-  activeTypes.value = next
-}
 
 
 function brToEra(br) {
@@ -398,7 +370,6 @@ watchEffect(() => {
   const _nation     = nation.value
   const _mode       = store.mode
   const _branch     = branch.value
-  const _active     = activeTypes.value
   const _prefs      = lineupPrefs.value
 
   nextTick(() => {
@@ -407,15 +378,13 @@ watchEffect(() => {
   const selectedNation = _nation
   const selectedMode   = _mode
   const brTypes        = BRANCH_TYPES[_branch] ?? []
-  const active         = _active
   const prefs          = _prefs
 
   const raw = allVehicles.filter(v =>
     v.Nation === selectedNation &&
     v.Mode   === selectedMode  &&
     (v.vdb_shop_rank ?? 0) > 0 &&
-    brTypes.includes(v.Type)   &&
-    active.has(v.Type)
+    brTypes.includes(v.Type)
   )
 
   const seen = new Map()
@@ -568,7 +537,7 @@ watchEffect(() => {
     if (!want || want <= 0) continue
 
     const realTypes = new Set(fromPrefKey(prefKey, branch.value)
-      .filter(t => active.has(t)))
+      .filter(t => brTypes.includes(t)))
     if (!realTypes.size) continue
 
     const byEra = {}
@@ -618,7 +587,7 @@ watchEffect(() => {
   for (const [prefKey, want] of Object.entries(prefs)) {
     if (want <= 0) continue
     const realTypes = new Set(
-      fromPrefKey(prefKey, branch.value).filter(t => active.has(t))
+      fromPrefKey(prefKey, branch.value).filter(t => brTypes.includes(t))
     )
     if (!realTypes.size) continue
 
@@ -801,33 +770,6 @@ lineupPrefs.value = defaultLineupPrefs(branch.value, DEFAULT_LINEUP_SLOTS, activ
 .badge-fill  { background: rgba(56,189,248,0.12);  color: #38bdf8; }
 .badge-skip  { background: rgba(248,113,113,0.12); color: #f87171; }
 .badge-prem  { background: rgba(167,139,250,0.12); color: #a78bfa; }
-
-.type-toggles { display: flex; flex-wrap: wrap; gap: 4px; }
-.type-btn {
-  padding: 4px 10px;
-  border: 1px solid #1e3a5f;
-  border-radius: 5px;
-  background: transparent;
-  color: #475569;
-  font-family: 'Rajdhani', sans-serif;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
-}
-.type-btn:hover:not(.type-btn--active) {
-  background: rgba(255, 255, 255, 0.04);
-  color: #94a3b8;
-  border-color: #334155;
-}
-.type-btn--active {
-  background: rgba(56, 189, 248, 0.12);
-  border-color: rgba(56, 189, 248, 0.5);
-  color: #38bdf8;
-}
 
 .lineup-mix-row {
   display: flex;
