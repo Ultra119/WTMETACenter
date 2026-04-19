@@ -410,8 +410,8 @@ function totalColor(total) {
   transition: background 0.15s, border-color 0.15s;
 }
 .folder-toggle:has(input:checked) .folder-toggle__box {
-  background: rgba(167,139,250,0.12);
-  border-color: #a78bfa;
+  background: rgba(56,189,248,0.12);
+  border-color: rgba(56,189,248,0.5);
 }
 .folder-toggle__icon {
   font-size: 15px;
@@ -419,7 +419,7 @@ function totalColor(total) {
   transition: color 0.15s;
 }
 .folder-toggle:has(input:checked) .folder-toggle__icon {
-  color: #a78bfa;
+  color: #38bdf8;
 }
 .folder-toggle__label {
   font-size: 12px;
@@ -428,7 +428,7 @@ function totalColor(total) {
   transition: color 0.15s;
 }
 .folder-toggle:hover .folder-toggle__label { color: #94a3b8; }
-.folder-toggle:has(input:checked) .folder-toggle__label { color: #a78bfa; }
+.folder-toggle:has(input:checked) .folder-toggle__label { color: #38bdf8; }
 
 .metric-group { display: flex; gap: 4px; }
 .metric-btn {
@@ -447,9 +447,9 @@ function totalColor(total) {
 }
 .metric-btn:hover { border-color: #334155; color: #94a3b8; }
 .metric-btn.active {
-  border-color: #a78bfa;
-  background: rgba(167,139,250,.12);
-  color: #a78bfa;
+  border-color: rgba(56,189,248,0.5);
+  background: rgba(56,189,248,0.12);
+  color: #38bdf8;
 }
 .tip-icon  { font-size: 14px; color: #475569; flex-shrink: 0; }
 .metric-icon { font-size: 15px; }
