@@ -209,7 +209,27 @@ const METRICS = [
 const metric          = ref('rp')
 const skipFolderDupes = ref(true)
 
-const MAX_SCALE = computed(() => metric.value === 'sl' ? 40_000_000 : 20_000_000)
+function niceMax(val) {
+  if (!val || val <= 0) return 1_000_000
+  const log = Math.floor(Math.log10(val))
+  const magnitude = Math.pow(10, log)
+  for (const mult of [1, 2, 5, 10]) {
+    const candidate = magnitude * mult
+    if (candidate >= val) return candidate
+  }
+  return magnitude * 10
+}
+
+const MAX_SCALE = computed(() => {
+  let max = 0
+  for (const branchData of Object.values(aggregated.value)) {
+    for (const entry of Object.values(branchData)) {
+      if (entry.total > max) max = entry.total
+    }
+  }
+  if (!max) return metric.value === 'sl' ? 40_000_000 : 20_000_000
+  return niceMax(max)
+})
 const SCALE_TICKS = computed(() => {
   const m = MAX_SCALE.value
   return [0, m * 0.25, m * 0.5, m * 0.75, m]
