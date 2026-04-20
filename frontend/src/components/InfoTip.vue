@@ -8,6 +8,7 @@
     <div
       class="infotip-box"
       :class="[`infotip-box--${align}`, { 'infotip-box--visible': visible }]"
+      :style="{ width: props.width }"
       @mouseenter="onEnter"
       @mouseleave="onLeave"
     >
@@ -19,8 +20,9 @@
 <script setup>
 import { ref } from 'vue'
 
-defineProps({
+const props = defineProps({
   align: { type: String, default: 'right' }, // 'right' | 'left' | 'center'
+  width: { type: String, default: '280px'  },
 })
 
 const visible  = ref(false)
@@ -75,7 +77,6 @@ function onLeave() {
   position: absolute;
   top: calc(100% + 8px);
   z-index: 200;
-  width: 280px;
   padding: 10px 13px;
   background: #0d1b2e;
   border: 1px solid #1e3a5f;
