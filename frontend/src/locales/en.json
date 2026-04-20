@@ -131,7 +131,9 @@
     "tip_pass":       "Average, not essential",
     "tip_skip":       "Better option exists at this tier",
     "tip_prem":       "Premium vehicle — check boost label",
-    "tip_lineup":     "Lineup Mix controls how many slots per type are expected when assigning verdicts."
+    "tip_lineup":     "Lineup Mix controls how many slots per type are expected when assigning verdicts.",
+    "show_hidden":    "Hidden vehicles",
+    "show_hidden_tip": "Show vehicles visible only during limited research windows"
   },
 
   "cost_tab": {

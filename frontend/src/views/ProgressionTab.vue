@@ -35,6 +35,16 @@
           <span class="badge badge-skip"><v-icon size="11" :style="{ color: VERDICT_COLORS.SKIP.border }">{{ VERDICT_COLORS.SKIP.icon }}</v-icon> {{ countByVerdict('SKIP') }}</span>
           <span class="badge badge-prem"><v-icon size="11" :style="{ color: VERDICT_COLORS.PREM.border }">{{ VERDICT_COLORS.PREM.icon }}</v-icon> {{ countByVerdict('PREM') }}</span>
         </div>
+
+        <div class="ctrl-divider" />
+
+        <label class="folder-toggle" :title="$t('progression_tab.show_hidden_tip')">
+          <input class="folder-toggle__input" type="checkbox" v-model="showHidden" />
+          <span class="folder-toggle__box">
+            <v-icon class="folder-toggle__icon" size="14">mdi-eye-off-outline</v-icon>
+          </span>
+          <span class="folder-toggle__label">{{ $t('progression_tab.show_hidden') }}</span>
+        </label>
       </div>
 
       <div class="lineup-mix-row mt-2">
@@ -221,6 +231,7 @@ const prefDisplay = computed(() => ({
 const nation      = ref('')
 const branch      = ref('Ground')
 const activeTypes = shallowRef(new Set(BRANCH_TYPES.Ground))
+const showHidden  = ref(false)
 
 const lineupPrefs = ref({})
 
@@ -383,6 +394,7 @@ watchEffect(() => {
   const _mode       = store.mode
   const _branch     = branch.value
   const _prefs      = lineupPrefs.value
+  const _showHidden = showHidden.value
 
   nextTick(() => {
   if (!allVehicles.length || !_nation) { progressionData.value = []; return }
@@ -396,7 +408,8 @@ watchEffect(() => {
     v.Nation === selectedNation &&
     v.Mode   === selectedMode  &&
     (v.vdb_shop_rank ?? 0) > 0 &&
-    brTypes.includes(v.Type)
+    brTypes.includes(v.Type)   &&
+    (_showHidden || !v.vdb_shop_is_research_only)
   )
 
   const seen = new Map()
