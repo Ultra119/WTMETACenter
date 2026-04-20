@@ -81,7 +81,7 @@ def score(df: pd.DataFrame, settings: dict) -> pd.DataFrame:
 
                 peers_ext = df.loc[mask_peer & ~mask_self]
                 if peers_ext.empty:
-                    peers_ext = peers  # единственная техника в окне — fallback
+                    peers_ext = peers
                 avg_wr   = _weighted_avg(peers_ext["_wr_raw"],   peers_ext["Сыграно игр"])
                 avg_kd   = _weighted_avg(peers_ext["_kd_raw"],   peers_ext["Смерти"].clip(lower=1))
                 avg_ks_g = _weighted_avg(peers_ext["_ks_g_raw"], peers_ext["Возрождения"])
