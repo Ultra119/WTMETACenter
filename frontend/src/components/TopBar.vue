@@ -229,7 +229,7 @@ function selectActive() {
 
 .logo-title {
   font-family: 'Rajdhani', sans-serif;
-  font-size: 18px;
+  font-size: 22px;
   font-weight: 700;
   color: #a7f3d0;
   letter-spacing: 0.08em;
