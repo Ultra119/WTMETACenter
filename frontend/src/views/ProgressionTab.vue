@@ -76,14 +76,26 @@
         <v-icon class="legend-icon" size="12" :style="{ color: vc.border }">{{ vc.icon }}</v-icon>
         <span class="legend-text">{{ $t(`verdicts.${key.toLowerCase()}`, vc.label) }}</span>
       </span>
-      <InfoTip align="right" class="ml-auto">
-        <p><b>{{ $t('progression_tab.tip_title') }}</b></p>
-        <div class="tip-row"><span class="tip-icon">🟢</span><span><b class="tip-label">{{ $t('verdicts.must') }}</b> — {{ $t('progression_tab.tip_must') }}</span></div>
-        <div class="tip-row"><span class="tip-icon">🔵</span><span><b class="tip-label">{{ $t('verdicts.fill') }}</b> — {{ $t('progression_tab.tip_fill') }}</span></div>
-        <div class="tip-row"><span class="tip-icon">🟡</span><span><b class="tip-label">{{ $t('verdicts.pass') }}</b> — {{ $t('progression_tab.tip_pass') }}</span></div>
-        <div class="tip-row"><span class="tip-icon">🔴</span><span><b class="tip-label">{{ $t('verdicts.skip') }}</b> — {{ $t('progression_tab.tip_skip') }}</span></div>
-        <div class="tip-row"><span class="tip-icon">👑</span><span><b class="tip-label">{{ $t('verdicts.prem') }}</b> — {{ $t('progression_tab.tip_prem') }}</span></div>
-        <p style="margin-top:8px; color:#475569">{{ $t('progression_tab.tip_lineup') }}</p>
+      <InfoTip align="right" width="480px" class="ml-auto">
+        <div class="tip-two-col">
+          <div class="tip-col">
+            <p><b>{{ $t('progression_tab.tip_title') }}</b></p>
+            <div class="tip-row"><span class="tip-icon">🟢</span><span><b class="tip-label">{{ $t('verdicts.must') }}</b> — {{ $t('progression_tab.tip_must') }}</span></div>
+            <div class="tip-row"><span class="tip-icon">🔵</span><span><b class="tip-label">{{ $t('verdicts.fill') }}</b> — {{ $t('progression_tab.tip_fill') }}</span></div>
+            <div class="tip-row"><span class="tip-icon">🟡</span><span><b class="tip-label">{{ $t('verdicts.pass') }}</b> — {{ $t('progression_tab.tip_pass') }}</span></div>
+            <div class="tip-row"><span class="tip-icon">🔴</span><span><b class="tip-label">{{ $t('verdicts.skip') }}</b> — {{ $t('progression_tab.tip_skip') }}</span></div>
+            <div class="tip-row"><span class="tip-icon">👑</span><span><b class="tip-label">{{ $t('verdicts.prem') }}</b> — {{ $t('progression_tab.tip_prem') }}</span></div>
+            <p style="margin-top:8px; color:#475569">{{ $t('progression_tab.tip_lineup') }}</p>
+          </div>
+          <div class="tip-vdivider" />
+          <div class="tip-col tip-col--types">
+            <p><b>{{ $t('progression_tab.branch') }}</b></p>
+            <div v-for="t in (BRANCH_TYPES[branch] ?? [])" :key="t" class="tip-type-row">
+              <v-icon size="13" :style="{ color: '#64748b' }">{{ TYPE_ICON[t] }}</v-icon>
+              <span class="tip-type-label">{{ $t(`vehicle_types.${t}`, TYPE_LABELS[t] || t) }}</span>
+            </div>
+          </div>
+        </div>
       </InfoTip>
     </div>
 
@@ -749,6 +761,32 @@ lineupPrefs.value = defaultLineupPrefs(branch.value, DEFAULT_LINEUP_SLOTS, activ
 </script>
 
 <style scoped>
+.tip-two-col {
+  display: flex;
+  gap: 0;
+  align-items: flex-start;
+}
+.tip-col { flex: 1; min-width: 0; }
+.tip-col--types { flex: 0 0 130px; }
+.tip-vdivider {
+  width: 1px;
+  background: #1e3a5f;
+  align-self: stretch;
+  margin: 0 12px;
+  flex-shrink: 0;
+}
+.tip-type-row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 5px;
+}
+.tip-type-label {
+  font-size: 11px;
+  color: #94a3b8;
+  white-space: nowrap;
+}
+
 .prog-root { display: flex; flex-direction: column; height: 100%; }
 
 .ctrl-nation { max-width: 200px; flex-shrink: 0; }
