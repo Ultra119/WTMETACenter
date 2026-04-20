@@ -274,7 +274,7 @@ const generatedDate = computed(() => {
   padding-bottom: 14px;
   border-bottom: 1px solid #1e293b;
 }
-.sidebar-section:last-child { border-bottom: none; }
+.sidebar-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
 .sidebar-label {
   display: flex;
   justify-content: space-between;
