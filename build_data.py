@@ -234,7 +234,7 @@ def main() -> None:
         out_path = os.path.join(DATA_DIR, f"mega_db_{period_label}.json")
         print(f"   💾  {out_path} …")
         with open(out_path, "w", encoding="utf-8") as f:
-            json.dump(records, f, ensure_ascii=False, separators=(",", ":"))
+            json.dump(records, f, ensure_ascii=False, indent=2)
         size_mb = os.path.getsize(out_path) / 1_048_576
         print(f"   ✅  {len(records)} records · {size_mb:.2f} MB")
         period_record_counts[period_label] = len(records)
