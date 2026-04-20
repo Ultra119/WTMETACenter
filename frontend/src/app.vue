@@ -18,7 +18,7 @@
     <TopBar />
     <SideBar />
 
-    <v-main style="background: #020c1a; padding-left: 280px;">
+    <v-main style="background: #020c1a;">
       <v-tabs
         v-model="activeTab"
         bg-color="#0f172a"
