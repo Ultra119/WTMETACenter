@@ -143,6 +143,12 @@ def _process_period(
                 continue
 
             records = _df_to_records(df_mode)
+            before = len(records)
+            records = [r for r in records if r.get("Type") != "Uncategorized"]
+            dropped = before - len(records)
+            if dropped:
+                print(f"   ⚠️   Dropped {dropped} records with Type=Uncategorized (no VDB match)")
+
             unmatched = [r for r in records if not r.get("vdb_match_score")]
             if unmatched:
                 names = list({r.get("vdb_identifier") or r.get("Name", "?") for r in unmatched})

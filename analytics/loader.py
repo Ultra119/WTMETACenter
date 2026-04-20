@@ -206,6 +206,16 @@ def clean_dataframe(df: pd.DataFrame, vehicle_db) -> pd.DataFrame:
                 f"from {len(df)} (через vdb_vehicle_type)"
             )
 
+    _KNOWN_TYPES = set(VEHICLE_TYPE_CATEGORY.keys())
+    invalid_type = ~df["Type"].isin(_KNOWN_TYPES)
+    if invalid_type.any():
+        bad_values = df.loc[invalid_type, "Type"].unique().tolist()
+        log_debug(
+            f"[loader] {int(invalid_type.sum())} records with unknown Type "
+            f"(set to Uncategorized): {bad_values[:10]}"
+        )
+        df.loc[invalid_type, "Type"] = "Uncategorized"
+
     def _derive_class(row) -> str:
         if int(row.get("vdb_is_pack",          0) or 0): return "Pack"
         if int(row.get("vdb_on_marketplace",   0) or 0): return "Marketplace"
