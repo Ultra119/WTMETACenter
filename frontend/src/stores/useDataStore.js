@@ -128,8 +128,8 @@ export const useDataStore = defineStore('data', () => {
   }
 
   watch(currentPeriod, async () => {
-    if (!metaInfo.value) return   // loadData() not yet called; ignore
-    loading.value   = true
+    if (!metaInfo.value) return
+    filtering.value = true
     loadError.value = null
     try {
       await _loadVehicles()
@@ -137,7 +137,7 @@ export const useDataStore = defineStore('data', () => {
       loadError.value = e.message
       console.error('[DataStore] period switch error:', e)
     } finally {
-      loading.value = false
+      filtering.value = false
     }
   })
 
