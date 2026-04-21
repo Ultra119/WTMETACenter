@@ -3,7 +3,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from analytics.constants import ROLE_WEIGHTS, VEHICLE_TYPE_CATEGORY, SCORING_PEER_GROUP
+from analytics.constants import ROLE_WEIGHTS, VEHICLE_TYPE_CATEGORY, SCORING_PEER_GROUP, FARM_SCORING_PEER_GROUP
 
 
 
@@ -54,6 +54,7 @@ def score(df: pd.DataFrame, settings: dict) -> pd.DataFrame:
 
     df["_type_group"] = df["Type"].map(VEHICLE_TYPE_CATEGORY).fillna("_other")
     df["_peer_group"] = df["Type"].map(SCORING_PEER_GROUP).fillna(df["Type"])
+    df["_farm_peer_group"] = df["Type"].map(FARM_SCORING_PEER_GROUP).fillna(df["Type"])
 
     metric_keys  = ["_wr", "_kd", "_ks_g", "_ks_a", "_ks_n", "_surv"]
     unique_brs   = df["BR"].unique()
@@ -243,11 +244,13 @@ def score(df: pd.DataFrame, settings: dict) -> pd.DataFrame:
     df["Net SL за игру"] = net_sl.round(0).astype(int)
     df["_z_sl"]          = 0.0
 
+    farm_type_groups = df["_farm_peer_group"].dropna().unique()
+
     _global_sigma_sl: dict[tuple, float] = {}
     for mode in unique_modes:
         mask_mode = (df["Mode"] == mode) if mode is not None else pd.Series(True, index=df.index)
-        for tg in type_groups:
-            mask_tg  = (df["_peer_group"] == tg) & mask_mode
+        for tg in farm_type_groups:
+            mask_tg  = (df["_farm_peer_group"] == tg) & mask_mode
             g_sl     = df.loc[mask_tg, "_sl_eff"]
             g_mu_sl  = g_sl.median()
             g_mad_sl = (g_sl - g_mu_sl).abs().median()
@@ -259,14 +262,14 @@ def score(df: pd.DataFrame, settings: dict) -> pd.DataFrame:
     for mode in unique_modes:
         mask_mode = (df["Mode"] == mode) if mode is not None else pd.Series(True, index=df.index)
         for br in unique_brs:
-            for tg in type_groups:
+            for tg in farm_type_groups:
                 mask_peer = (
                     (df["BR"] >= br - mm_window) &
                     (df["BR"] <= br + mm_window) &
-                    (df["_peer_group"] == tg) &
+                    (df["_farm_peer_group"] == tg) &
                     mask_mode
                 )
-                mask_self = (df["BR"] == br) & (df["_peer_group"] == tg) & mask_mode
+                mask_self = (df["BR"] == br) & (df["_farm_peer_group"] == tg) & mask_mode
 
                 peers_ext_sl = df.loc[mask_peer & ~mask_self, "_sl_eff"]
                 if peers_ext_sl.empty:
