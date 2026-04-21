@@ -218,7 +218,7 @@ def main() -> None:
     period_record_counts: dict[str, int] = {}
 
     for period_label in all_period_labels:
-        print(f"\n▶  Период: {period_label}")
+        print(f"\n▶  Period: {period_label}")
         period_df = period_dfs.get(period_label, pd.DataFrame())
 
         if period_df.empty:
