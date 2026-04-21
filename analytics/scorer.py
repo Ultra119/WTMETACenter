@@ -184,7 +184,10 @@ def score(df: pd.DataFrame, settings: dict) -> pd.DataFrame:
                     ).clip(-z_clip, z_clip)
 
     def _sigmoid(z_col: str) -> pd.Series:
-        return 100.0 / (1.0 + np.exp(-sig_scale * df[z_col]))
+        raw = 100.0 / (1.0 + np.exp(-sig_scale * df[z_col]))
+        lo  = 100.0 / (1.0 + np.exp( sig_scale * z_clip))
+        hi  = 100.0 / (1.0 + np.exp(-sig_scale * z_clip))
+        return ((raw - lo) / (hi - lo) * 100.0).clip(0.0, 100.0)
 
     s_wr   = _sigmoid("z_wr")
     s_kd   = _sigmoid("z_kd")
@@ -281,9 +284,12 @@ def score(df: pd.DataFrame, settings: dict) -> pd.DataFrame:
                     (df.loc[mask_self, "_sl_eff"] - mu_sl) / sigma_sl
                 ).clip(-z_clip, z_clip)
 
+    _farm_raw = 100.0 / (1.0 + np.exp(-sig_scale * df["_z_sl"]))
+    _farm_lo  = 100.0 / (1.0 + np.exp( sig_scale * z_clip))
+    _farm_hi  = 100.0 / (1.0 + np.exp(-sig_scale * z_clip))
     df["FARM_SCORE"] = (
-        100.0 / (1.0 + np.exp(-sig_scale * df["_z_sl"]))
-    ).clip(0, 100)
+        (_farm_raw - _farm_lo) / (_farm_hi - _farm_lo) * 100.0
+    ).clip(0.0, 100.0)
 
     drop_cols = [
         c for c in df.columns
