@@ -228,7 +228,6 @@ function selectActive() {
 }
 
 .logo-title {
-  font-family: 'Rajdhani', sans-serif;
   font-size: 22px;
   font-weight: 700;
   color: #a7f3d0;
@@ -297,7 +296,6 @@ function selectActive() {
 
 .lang-switcher { display: flex; gap: 2px; }
 .lang-btn {
-  font-family: 'Rajdhani', sans-serif !important;
   font-size: 11px !important;
   min-width: 44px !important;
 }
@@ -324,7 +322,6 @@ function selectActive() {
   padding: 6px 14px;
   background: #0a1628;
   border-bottom: 1px solid #1e3a5f;
-  font-family: 'Rajdhani', sans-serif;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.12em;

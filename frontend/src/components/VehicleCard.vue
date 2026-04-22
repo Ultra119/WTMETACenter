@@ -160,13 +160,13 @@ const classColor = computed(() => {
 </script>
 
 <style scoped>
-.card-header { display: flex; align-items: center; padding: 12px 16px; font-family: 'Rajdhani', sans-serif; gap: 8px; }
+.card-header { display: flex; align-items: center; padding: 12px 16px; gap: 8px; }
 .vehicle-name { font-size: 18px; font-weight: 700; color: #a7f3d0; letter-spacing: .06em; }
 .br-badge { font-family: 'JetBrains Mono', monospace; font-size: 14px; color: #94a3b8; white-space: nowrap; }
 .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
 .card-section { padding: 14px 16px; border-right: 1px solid #1e293b; border-bottom: 1px solid #1e293b; }
 .card-section:nth-child(even) { border-right: none; }
-.section-title { font-family: 'Rajdhani', sans-serif; font-size: 10px; font-weight: 700; letter-spacing: .12em; color: #475569; text-transform: uppercase; margin-bottom: 10px; }
+.section-title { font-size: 10px; font-weight: 700; letter-spacing: .12em; color: #475569; text-transform: uppercase; margin-bottom: 10px; }
 .stat-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 12px; }
 .stat-label { color: #64748b; }
 .stat-value { color: #e2e8f0; font-weight: 600; }

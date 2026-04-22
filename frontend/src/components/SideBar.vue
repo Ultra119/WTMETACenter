@@ -278,7 +278,6 @@ const generatedDate = computed(() => {
 .sidebar-label {
   display: flex;
   justify-content: space-between;
-  font-family: 'Rajdhani', sans-serif;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -315,7 +314,6 @@ const generatedDate = computed(() => {
   border-radius: 5px;
   background: transparent;
   color: #475569;
-  font-family: 'Rajdhani', sans-serif;
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.06em;
@@ -339,7 +337,6 @@ const generatedDate = computed(() => {
 
 .period-select { font-size: 12px; }
 .period-select :deep(.v-field__input) {
-  font-family: 'Rajdhani', sans-serif;
   font-size: 12px;
   font-weight: 700;
   color: #38bdf8;
@@ -403,7 +400,6 @@ const generatedDate = computed(() => {
   border-radius: 6px;
   background: transparent;
   color: #475569;
-  font-family: 'Rajdhani', sans-serif;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.05em;
@@ -446,7 +442,6 @@ const generatedDate = computed(() => {
   border-radius: 6px;
   background: transparent;
   color: #475569;
-  font-family: 'Rajdhani', sans-serif;
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.07em;
@@ -482,7 +477,6 @@ const generatedDate = computed(() => {
   font-size: 10px;
   color: #a16207;
   line-height: 1.5;
-  font-family: 'Rajdhani', sans-serif;
   letter-spacing: 0.03em;
 }
 

@@ -122,7 +122,7 @@
             </span>
           </template>
           <template #item.BR="{ item }">
-            <span style="font-family:'Rajdhani',sans-serif;font-weight:600;color:#94a3b8">{{ fmtBR(item.BR) }}</span>
+            <span style="font-weight:600;color:#94a3b8">{{ fmtBR(item.BR) }}</span>
           </template>
           <template #item.FARM_SCORE="{ item }">
             <div class="score-cell">
@@ -162,7 +162,7 @@
             </span>
           </template>
           <template #item.BR="{ item }">
-            <span style="font-family:'Rajdhani',sans-serif;font-weight:600;color:#94a3b8">{{ fmtBR(item.BR) }}</span>
+            <span style="font-weight:600;color:#94a3b8">{{ fmtBR(item.BR) }}</span>
           </template>
           <template #item.FARM_SCORE="{ item }">
             <div class="score-cell">
@@ -318,7 +318,6 @@ const gemHeaders = computed(() => [
   gap: 8px;
 }
 .br-badge {
-  font-family: 'Rajdhani', sans-serif;
   font-size: 22px;
   font-weight: 700;
   color: #a78bfa;
@@ -343,7 +342,6 @@ const gemHeaders = computed(() => [
 .anchor-icon  { font-size: 20px; color: #a7f3d0; flex-shrink: 0; }
 .anchor-info  { display: flex; flex-direction: column; gap: 2px; }
 .anchor-name  {
-  font-family: 'Rajdhani', sans-serif;
   font-size: 17px;
   font-weight: 700;
   color: #a7f3d0;
@@ -358,7 +356,6 @@ const gemHeaders = computed(() => [
   min-width: 110px;
 }
 .anchor-score {
-  font-family: 'Rajdhani', sans-serif;
   font-size: 26px;
   font-weight: 700;
   color: #a78bfa;
@@ -380,7 +377,6 @@ const gemHeaders = computed(() => [
 
 .section-header  { display: flex; align-items: baseline; gap: 8px; }
 .section-title {
-  font-family: 'Rajdhani', sans-serif;
   font-size: 12px;
   font-weight: 700;
   color: #a7f3d0;
@@ -391,7 +387,6 @@ const gemHeaders = computed(() => [
 
 .role-badge {
   display: inline-block;
-  font-family: 'Rajdhani', sans-serif;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: .06em;

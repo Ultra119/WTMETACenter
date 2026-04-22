@@ -400,7 +400,6 @@ function totalColor(total) {
   margin-bottom: 10px;
 }
 .branch-title {
-  font-family: 'Rajdhani', sans-serif;
   font-size: 15px;
   font-weight: 700;
   color: #a7f3d0;
@@ -499,7 +498,6 @@ function totalColor(total) {
   text-align: right;
 }
 .total-label {
-  font-family: 'Rajdhani', sans-serif;
   font-size: 14px;
   font-weight: 700;
 }

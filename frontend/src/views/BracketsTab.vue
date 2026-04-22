@@ -283,7 +283,7 @@ function scoreColor(score) {
 .pivot-wrapper { overflow-x: auto; border: 1px solid #1e3a5f; border-radius: 8px; max-height: calc(100vh - 230px); overflow-y: auto; }
 .pivot-table { border-collapse: collapse; width: 100%; font-family: 'JetBrains Mono', monospace; font-size: 12px; }
 .pivot-table thead th {
-  background: #1e293b; color: #a7f3d0; font-family: 'Rajdhani', sans-serif; font-weight: 600;
+  background: #1e293b; color: #a7f3d0; font-weight: 600;
   font-size: 11px; letter-spacing: .08em; padding: 8px 12px; text-align: center;
   border-bottom: 1px solid #1e3a5f; white-space: nowrap; position: sticky; top: 0; z-index: 1;
 }

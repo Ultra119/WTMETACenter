@@ -62,7 +62,6 @@ defineEmits(['update:modelValue', 'accept'])
 <style scoped>
 .disclaimer-icon  { font-size: 22px; line-height: 1; }
 .disclaimer-title {
-  font-family: 'Rajdhani', sans-serif;
   font-size: 20px;
   font-weight: 700;
   color: #fbbf24;

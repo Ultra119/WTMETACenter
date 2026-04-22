@@ -906,7 +906,6 @@ lineupPrefs.value = defaultLineupPrefs(branch.value, DEFAULT_LINEUP_SLOTS, activ
   justify-content: center; min-height: 64px;
 }
 .rank-roman {
-  font-family: 'Rajdhani', 'Barlow Condensed', sans-serif;
   font-size: 24px; font-weight: 800; color: #a7f3d0; line-height: 1;
 }
 
