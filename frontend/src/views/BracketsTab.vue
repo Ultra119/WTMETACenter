@@ -66,9 +66,19 @@
           <p><b>{{ t('brackets_tab.description') }}</b></p>
           <p>{{ t('brackets_tab.tip_desc') }}</p>
           <p style="margin-top:8px">
-            <span style="color:#34d399">■</span> {{ t('brackets_tab.tip_strong') }} &nbsp;
-            <span style="color:#fbbf24">■</span> {{ t('brackets_tab.tip_average') }} &nbsp;
-            <span style="color:#f87171">■</span> {{ t('brackets_tab.tip_weak') }}
+            <span
+              style="
+                display:inline-block; width:140px; height:10px; border-radius:4px; vertical-align:middle;
+                background: linear-gradient(to right,
+                  #780f0f 0%, #fb242a 30%,
+                  #fbbf24 45%, #34d34a 75%, #05780f 100%
+                );
+              "
+            ></span>
+            &nbsp;
+            <span style="color:#fb242a">{{ t('brackets_tab.tip_weak') }}</span> →
+            <span style="color:#fbbf24">{{ t('brackets_tab.tip_average') }}</span> →
+            <span style="color:#34d34a">{{ t('brackets_tab.tip_strong') }}</span>
           </p>
         </InfoTip>
       </div>
