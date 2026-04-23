@@ -126,14 +126,19 @@
     "info":           "{n} vehicles in tree · sorted by research rank",
     "no_data":        "No tech tree data for this nation. Make sure build_data.py exports vdb_shop_rank.",
     "tip_title":      "Verdicts explained",
-    "tip_must":       "Top META score in its era",
+    "tip_must":       "Top META score in its rank",
     "tip_fill":       "Needed to fill your lineup slots",
     "tip_pass":       "Average, not essential",
     "tip_skip":       "Better option exists at this tier",
     "tip_prem":       "Premium vehicle — check boost label",
     "tip_lineup":     "Lineup Mix controls how many slots per type are expected when assigning verdicts.",
     "show_hidden":    "Hidden vehicles",
-    "show_hidden_tip": "Show vehicles visible only during limited research windows"
+    "show_hidden_tip": "Show vehicles visible only during limited research windows",
+    "reason_better_grind":  "Effective grind on \"{name}\" (META {eff} vs {score})",
+    "reason_weak_vehicle":  "Weak vehicle (META {score} < {thresh})",
+    "hint_cross_better":    "Better to use \"{name}\" ({br}) — stronger in adjacent branch",
+    "reason_cross_skip":    "Better to grind \"{name}\" ({br}) from adjacent branch",
+    "reason_not_in_lineup": "Not in lineup"
   },
 
   "cost_tab": {
@@ -141,9 +146,9 @@
     "metric_sl":       "Purchase SL",
     "skip_folder":     "Skip optional vehicles",
     "metric_train":    "Crew Training SL",
-    "up_to_era":       "Up to era",
+    "up_to_era":       "Up to rank",
     "include":         "Include",
-    "era":             "Era",
+    "era":             "Rank",
     "vehicles":        "vehicles",
     "n_vehicles":      "{n} vehicles",
     "branch_ground":   "Ground",
@@ -154,8 +159,8 @@
     "priciest":        "Most expensive",
     "tip_title":       "Tree Cost Comparison",
     "tip_desc":        "Total cost to research the full tech tree per nation and branch. Only Standard vehicles unless otherwise selected.",
-    "tip_bars":        "Each bar = total RP or SL. Segments = individual eras.",
-    "tip_eras":        "Darker color = higher era. Hover a segment for breakdown."
+    "tip_bars":        "Each bar = total RP or SL. Segments = individual ranks.",
+    "tip_eras":        "Darker color = higher rank. Hover a segment for breakdown."
   },
 
   "vehicle_card": {
@@ -193,7 +198,7 @@
     "aphe":           "APHE",
     "repair_rb":      "Repair (RB)",
     "sl_per_game":    "SL/game",
-    "era":            "Era",
+    "era":            "Rank",
     "no_vdb":         "—",
     "br_arcade":      "Arcade Battles",
     "br_realistic":   "Realistic Battles",

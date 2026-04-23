@@ -494,8 +494,7 @@ watchEffect(() => {
         }
         if (bestEff > locS * 1.05) {
           shouldSkip = true
-          reason     = `Effective grind on "${bestName}" ` +
-                       `(META ${bestEff.toFixed(0)} vs ${locS.toFixed(0)})`
+          reason = t('progression_tab.reason_better_grind', { name: bestName, eff: bestEff.toFixed(0), score: locS.toFixed(0) })
           altName    = bestName
         }
       }
@@ -504,8 +503,7 @@ watchEffect(() => {
         v.Verdict = VERDICT_SKIP; v.Skip_Reason = reason; v.Alt_Vehicle = altName
       } else if (!noData && locS < (eraJunk[era] ?? skipMaxMeta)) {
         v.Verdict     = VERDICT_SKIP
-        v.Skip_Reason = `Weak vehicle (META ${locS.toFixed(0)} ` +
-                        `< ${(eraJunk[era] ?? skipMaxMeta).toFixed(0)})`
+        v.Skip_Reason = t('progression_tab.reason_weak_vehicle', { score: locS.toFixed(0), thresh: (eraJunk[era] ?? skipMaxMeta).toFixed(0) })
       } else {
         v.Verdict = (!noData && locS >= p60 && locS >= mustMinMeta)
           ? VERDICT_MUST
@@ -534,14 +532,12 @@ watchEffect(() => {
 
     if (bestMeta > v._localScore * CROSS_THRESH) {
       v.Cross_Alt  = bestName
-      v.Cross_Hint = `Better to use "${bestName}" (${bestBr.toFixed(1)}) ` +
-                     `— stronger in adjacent branch`
+      v.Cross_Hint = t('progression_tab.hint_cross_better', { name: bestName, br: bestBr.toFixed(1) })
       if (v.Verdict === VERDICT_MUST) {
         v.Verdict = VERDICT_PASS
       } else if (bestMeta > v._localScore * CROSS_SKIP_THRESH && bestBr < v.BR) {
         v.Verdict     = VERDICT_SKIP
-        v.Skip_Reason = `Better to grind "${bestName}" (${bestBr.toFixed(1)}) ` +
-                        `from adjacent branch`
+        v.Skip_Reason = t('progression_tab.reason_cross_skip', { name: bestName, br: bestBr.toFixed(1) })
         v.Cross_Hint  = ''
       }
     }
@@ -604,7 +600,7 @@ watchEffect(() => {
     const want = prefs[pk] ?? 0
     if (want === 0) {
       v.Verdict     = VERDICT_SKIP
-      v.Skip_Reason = 'Not in lineup'
+      v.Skip_Reason = t('progression_tab.reason_not_in_lineup')
       v.Alt_Vehicle = ''
     }
   }
