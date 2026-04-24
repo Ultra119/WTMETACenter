@@ -191,12 +191,29 @@ function buildWtBrackets(stepsN) {
   const boundaryIndices = []
   for (let i = 0; i < n; i += step) boundaryIndices.push(i)
   if (boundaryIndices[boundaryIndices.length - 1] !== n - 1) boundaryIndices.push(n - 1)
-  const boundaryBrs = boundaryIndices.map(i => WT_BR_STEPS[i])
-  return boundaryBrs.slice(0, -1).map((br, i) => ({
-    label: step === 1 ? br.toFixed(1) : `${br.toFixed(1)}–${boundaryBrs[i + 1].toFixed(1)}`,
-    min:   br,
-    max:   boundaryBrs[i + 1] + 0.01,
-  }))
+
+  return boundaryIndices.slice(0, -1).map((startIdx, i) => {
+    const endIdx  = boundaryIndices[i + 1]
+    const minBr   = WT_BR_STEPS[startIdx]
+    const maxBr   = WT_BR_STEPS[endIdx]
+    const isLast  = i === boundaryIndices.length - 2
+
+    const lastIncludedBr = isLast ? maxBr : WT_BR_STEPS[endIdx - 1]
+
+    let label
+    if (step === 1) {
+      label = minBr.toFixed(1)
+    } else {
+      label = `${minBr.toFixed(1)}–${maxBr.toFixed(1)}`
+    }
+
+    return {
+      label,
+      min:       minBr,
+      max:       maxBr,
+      inclusive: isLast,
+    }
+  })
 }
 
 function weightedMeta(pool) {
@@ -223,7 +240,9 @@ watchEffect(() => {
     const nations  = [...new Set(vehicles.map(v => v.Nation))].sort()
 
     const rows = brackets.map(b => {
-      const inBracket = vehicles.filter(v => v.BR >= b.min && v.BR < b.max)
+      const inBracket = vehicles.filter(v =>
+        v.BR >= b.min && (b.inclusive ? v.BR <= b.max : v.BR < b.max)
+      )
       const row = { bracket: b.label }
       for (const nat of nations) {
         const pool = n
