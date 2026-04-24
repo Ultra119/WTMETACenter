@@ -91,16 +91,14 @@
     "target_br":      "Target BR",
     "nation":         "Nation",
     "veh_type":       "Vehicle type",
-    "anchor_label":   "ANCHOR:",
+    "anchor_label":   "BEST AT BR",
     "anchor_br":      "({br})",
     "anchor_farm":    "Farm Score:",
     "main_set":       "MAIN LINEUP",
     "gems":           "GEMS (Low BR / High Efficiency)",
-    "gems_empty":     "No gems in -2.0 BR range with Farm Score above anchor.",
-    "no_anchor":      "No anchor vehicle found at this BR with the current filters.",
+    "gems_empty":     "No standout vehicles in the -2.0 BR window above the best pick.",
+    "no_anchor":      "No vehicle found at this BR with the current filters.",
     "role":           "Role",
-    "role_anchor":    "Anchor",
-    "role_top":       "Top farmer",
     "role_reserve":   "Reserve",
     "col_vehicle":    "Vehicle",
     "col_nation":     "Nation",
@@ -109,8 +107,11 @@
     "col_net_sl":     "Net SL",
     "tip_desc":       "Finds the best farming lineup for a chosen BR. Select a nation and vehicle type, then click Calculate.",
     "tip_anchor":     "Highest Farm Score vehicle at the target BR.",
-    "tip_gems":       "Lower-BR vehicles that still beat the anchor's Farm Score.",
-    "gems_label":     "Gems"
+    "tip_gems":       "Lower-BR vehicles that beat the best pick's Farm Score.",
+    "gems_label":     "Gems",
+    "role_primary":   "Primary",
+    "role_candidate": "Candidate",
+    "delta_vs":       "↑ vs Best"
   },
 
   "progression_tab": {
