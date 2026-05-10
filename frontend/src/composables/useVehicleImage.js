@@ -46,7 +46,7 @@ export function useVehicleImage(nameRef, typeRef) {
   const error  = ref(false)
 
   function probe() {
-    const name = nameRef.value
+    const name = nameRef.value?.trim() ?? ''
     const type = typeRef.value
 
     src.value    = null
