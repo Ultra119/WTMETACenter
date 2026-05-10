@@ -140,15 +140,13 @@ export const useDataStore = defineStore('data', () => {
     if (!metaInfo.value) return
     filtering.value = true
     loadError.value = null
-    let aborted = false
     try {
       await _loadVehicles()
     } catch (e) {
-      if (e.name === 'AbortError') { aborted = true; return }
+      if (e.name === 'AbortError') return
       loadError.value = e.message
+      filtering.value = false
       console.error('[DataStore] period switch error:', e)
-    } finally {
-      if (!aborted) filtering.value = false
     }
   })
 
