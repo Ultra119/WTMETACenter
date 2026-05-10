@@ -73,8 +73,8 @@ export const STD_CLASS = 'Standard'
 
 export const MM_WINDOW      = 1.0
 export const BR_FILL_WINDOW = 1.0
-export const JUNK_FLOOR     = 35.0
-export const YELLOW_FLOOR   = 35.0
+export const JUNK_FLOOR     = 30.0
+export const YELLOW_FLOOR   = 30.0
 export const YELLOW_PCTILE  = 0.30
 
 export const RANK_PENALTY = {
