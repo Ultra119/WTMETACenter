@@ -351,7 +351,7 @@ function computeDynamicThresholds(allMeta) {
   const valid = allMeta.filter(m => m > 1.0)
   if (!valid.length) return [JUNK_FLOOR, YELLOW_FLOOR]
   const yellow = Math.max(quantile(valid, YELLOW_PCTILE), YELLOW_FLOOR)
-  return [yellow, yellow]
+  return [JUNK_FLOOR, yellow]
 }
 
 function lineupScore(eraVehicles, anchorBr, junkThresh, minLineup) {
