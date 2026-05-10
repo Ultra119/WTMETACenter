@@ -200,6 +200,7 @@ const brByMode = computed(() => {
   const type   = v.Type
 
   const result = {}
+  const totalModes = BR_MODES.length
   for (const entry of store.allVehicles) {
     if (
       entry.Name   === name   &&
@@ -210,6 +211,7 @@ const brByMode = computed(() => {
     ) {
       if (!(entry.Mode in result)) {
         result[entry.Mode] = fmtBR(entry.BR)
+        if (Object.keys(result).length === totalModes) break
       }
     }
   }
