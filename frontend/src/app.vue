@@ -93,11 +93,6 @@ onMounted(() => {
 </script>
 
 <style>
-:root {
-  --font-mono: 'JetBrains Mono', monospace;
-  --font-ui:   'Google Sans', sans-serif;
-}
-.v-application { font-family: var(--font-mono) !important; }
 .v-tab { font-family: var(--font-ui) !important; font-weight: 600; letter-spacing: 0.08em; }
 ::-webkit-scrollbar       { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: #0f172a; }
