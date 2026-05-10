@@ -96,14 +96,22 @@ export const useDataStore = defineStore('data', () => {
   watch(brRange,    v => commitRange([...v]))
   watch(minBattles, v => commitBattles(v))
 
+  let _vehicleAC = null
+
   async function _loadVehicles() {
+    if (_vehicleAC) _vehicleAC.abort()
+    _vehicleAC = new AbortController()
+    const { signal } = _vehicleAC
+
     const hash = metaInfo.value?.dataset_hash ?? ''
     const qs   = hash ? `?v=${hash.slice(0, 8)}` : ''
     const url  = `${_basePath.value}/data/mega_db_${currentPeriod.value}.json${qs}`
-    const res  = await fetch(url)
+
+    const res = await fetch(url, { signal })
     if (!res.ok) throw new Error(`mega_db_${currentPeriod.value}.json: ${res.status}`)
     allVehicles.value = await res.json()
   }
+
   async function loadData(basePath = '') {
     _basePath.value  = basePath
     loading.value    = true
@@ -120,6 +128,7 @@ export const useDataStore = defineStore('data', () => {
 
       await _loadVehicles()
     } catch (e) {
+      if (e.name === 'AbortError') return
       loadError.value = e.message
       console.error('[DataStore]', e)
     } finally {
@@ -131,13 +140,15 @@ export const useDataStore = defineStore('data', () => {
     if (!metaInfo.value) return
     filtering.value = true
     loadError.value = null
+    let aborted = false
     try {
       await _loadVehicles()
     } catch (e) {
+      if (e.name === 'AbortError') { aborted = true; return }
       loadError.value = e.message
       console.error('[DataStore] period switch error:', e)
     } finally {
-      filtering.value = false
+      if (!aborted) filtering.value = false
     }
   })
 
