@@ -73,23 +73,8 @@ export const useDataStore = defineStore('data', () => {
   const showLargeFleet  = ref(false)
   const showSmallFleet  = ref(false)
 
-  const _mode            = ref('Realistic')
-  const _minBattles      = ref(50)
-  const _brRange         = ref([BR_MIN, BR_MAX])
-  const _classes         = ref(['Standard','Premium','Pack','Squadron','Marketplace','Gift','Event'])
-  const _showGround      = ref(true)
-  const _showAviation    = ref(true)
-  const _showHelicopters = ref(false)
-  const _showLargeFleet  = ref(false)
-  const _showSmallFleet  = ref(false)
-
-  watch(mode,            v => { _mode.value           = v       })
-  watch(classes,         v => { _classes.value         = [...v]  }, { deep: true })
-  watch(showGround,      v => { _showGround.value      = v       })
-  watch(showAviation,    v => { _showAviation.value    = v       })
-  watch(showHelicopters, v => { _showHelicopters.value = v       })
-  watch(showLargeFleet,  v => { _showLargeFleet.value  = v       })
-  watch(showSmallFleet,  v => { _showSmallFleet.value  = v       })
+  const _minBattles = ref(50)
+  const _brRange    = ref([BR_MIN, BR_MAX])
 
   const commitRange   = debounce(v => { _brRange.value    = v }, 220)
   const commitBattles = debounce(v => { _minBattles.value = v }, 220)
@@ -152,11 +137,11 @@ export const useDataStore = defineStore('data', () => {
 
   const activeTypes = computed(() => {
     const wanted = new Set()
-    if (_showGround.value)      wanted.add('Ground')
-    if (_showAviation.value)    wanted.add('Aviation')
-    if (_showHelicopters.value) wanted.add('Helicopters')
-    if (_showLargeFleet.value)  wanted.add('LargeFleet')
-    if (_showSmallFleet.value)  wanted.add('SmallFleet')
+    if (showGround.value)      wanted.add('Ground')
+    if (showAviation.value)    wanted.add('Aviation')
+    if (showHelicopters.value) wanted.add('Helicopters')
+    if (showLargeFleet.value)  wanted.add('LargeFleet')
+    if (showSmallFleet.value)  wanted.add('SmallFleet')
     if (wanted.size === 0) return []
 
     const all = metaInfo.value?.types ?? []
@@ -172,13 +157,13 @@ export const useDataStore = defineStore('data', () => {
   let _filterVersion = 0
 
   watchEffect(() => {
-    const vehicles = allVehicles.value
-    const mode     = _mode.value
-    const brMin    = _brRange.value[0]
-    const brMax    = _brRange.value[1]
-    const minB     = _minBattles.value
-    const cls      = _classes.value
-    const types    = activeTypes.value
+    const vehicles    = allVehicles.value
+    const currentMode = mode.value
+    const brMin       = _brRange.value[0]
+    const brMax       = _brRange.value[1]
+    const minB        = _minBattles.value
+    const cls         = classes.value
+    const types       = activeTypes.value
 
     const version = ++_filterVersion
 
@@ -187,7 +172,7 @@ export const useDataStore = defineStore('data', () => {
     setTimeout(() => {
       if (version !== _filterVersion) return
       filteredVehicles.value = !vehicles.length ? [] : vehicles.filter(v =>
-        v.Mode === mode &&
+        v.Mode === currentMode &&
         v.BR   >= brMin &&
         v.BR   <= brMax &&
         (v['Сыграно игр'] ?? 0) >= minB &&
