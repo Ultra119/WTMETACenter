@@ -11,7 +11,7 @@
       </div>
     </Transition>
 
-    <v-snackbar v-if="store.loadError" :model-value="true" color="error" timeout="-1" location="top">
+    <v-snackbar :model-value="!!store.loadError" color="error" timeout="-1" location="top">
       {{ t('common.error_load', { msg: store.loadError }) }}
     </v-snackbar>
 
