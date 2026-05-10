@@ -388,6 +388,7 @@ function superCat(branchName) {
 
 
 const progressionData = shallowRef([])
+let _progVersion = 0
 watchEffect(() => {
   const allVehicles = store.allVehicles ?? []
   const _nation     = nation.value
@@ -396,7 +397,9 @@ watchEffect(() => {
   const _prefs      = lineupPrefs.value
   const _showHidden = showHidden.value
 
+  const version = ++_progVersion
   nextTick(() => {
+  if (version !== _progVersion) return
   if (!allVehicles.length || !_nation) { progressionData.value = []; return }
 
   const selectedNation = _nation
@@ -665,7 +668,12 @@ watchEffect(() => {
   )
   for (const v of stdVehicles) {
     if (skipNames.has(v.Alt_Vehicle)) {
-      v.Skip_Reason = ''; v.Alt_Vehicle = ''; v.Verdict = VERDICT_PASS
+      v.Skip_Reason = ''
+      v.Alt_Vehicle = ''
+      const ownJunk = eraJunk[v._era_int] ?? skipMaxMeta
+      if (v._localScore >= ownJunk) {
+        v.Verdict = VERDICT_PASS
+      }
     }
     if (skipNames.has(v.Cross_Alt)) { v.Cross_Alt = ''; v.Cross_Hint = '' }
   }
@@ -676,9 +684,13 @@ watchEffect(() => {
 
 
 const gridData = shallowRef(null)
+let _gridVersion = 0
 watchEffect(() => {
   const vehicles = progressionData.value
+
+  const version = ++_gridVersion
   nextTick(() => {
+  if (version !== _gridVersion) return
   if (!vehicles.length) { gridData.value = null; return }
 
   const std  = vehicles.filter(v => v.VehicleClass === STD_CLASS)
