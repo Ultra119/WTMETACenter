@@ -12,7 +12,7 @@
     </Transition>
 
     <Transition name="veh-img-fade">
-      <div v-if="!loaded && !imgError && showFallback" class="veh-img-skeleton" />
+      <div v-if="src && !loaded && !imgError && showFallback" class="veh-img-skeleton" />
     </Transition>
 
     <Transition name="veh-img-fade">
