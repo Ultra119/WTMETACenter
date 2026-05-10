@@ -76,7 +76,14 @@
             >+</button>
           </div>
         </div>
-        <span class="lm-total">{{ totalPrefUsed }}</span>
+        <span
+          class="lm-total"
+          :class="{
+            'lm-total--full':  totalPrefUsed === DEFAULT_LINEUP_SLOTS,
+            'lm-total--over':  totalPrefUsed >   DEFAULT_LINEUP_SLOTS,
+            'lm-total--under': totalPrefUsed <   DEFAULT_LINEUP_SLOTS,
+          }"
+        >{{ totalPrefUsed }}</span>
         <button class="lm-reset" :title="$t('progression_tab.reset_defaults')" @click="resetLineupPrefs">↺</button>
       </div>
     </div>
@@ -255,7 +262,7 @@ function toPrefKey(type) {
   return TANK_TYPES.has(type) ? 'tank' : type
 }
 
-function fromPrefKey(prefKey, branchName) {
+function fromPrefKey(prefKey) {
   if (prefKey === 'tank') return [...TANK_TYPES]
   return [prefKey]
 }
@@ -380,7 +387,7 @@ function superCat(branchName) {
   if (branchName === 'spaa')                              return 'AntiAir'
   if (BRANCH_TYPES.Ground.includes(branchName))          return 'Ground'
   if (BRANCH_TYPES.Aviation.includes(branchName))        return 'Aviation'
-  if (BRANCH_TYPES.Helicopters.includes(branchName))     return 'Aviation'
+  if (BRANCH_TYPES.Helicopters.includes(branchName))     return 'Helicopters'
   if (BRANCH_TYPES.LargeFleet?.includes(branchName))     return 'LargeFleet'
   if (BRANCH_TYPES.SmallFleet?.includes(branchName))     return 'SmallFleet'
   return 'Fleet'
@@ -560,7 +567,7 @@ watchEffect(() => {
   for (const [prefKey, want] of Object.entries(prefs)) {
     if (!want || want <= 0) continue
 
-    const realTypes = new Set(fromPrefKey(prefKey, branch.value)
+    const realTypes = new Set(fromPrefKey(prefKey)
       .filter(t => brTypes.includes(t)))
     if (!realTypes.size) continue
 
@@ -611,7 +618,7 @@ watchEffect(() => {
   for (const [prefKey, want] of Object.entries(prefs)) {
     if (want <= 0) continue
     const realTypes = new Set(
-      fromPrefKey(prefKey, branch.value).filter(t => brTypes.includes(t))
+      fromPrefKey(prefKey).filter(t => brTypes.includes(t))
     )
     if (!realTypes.size) continue
 
@@ -745,8 +752,8 @@ watchEffect(() => {
   }
 
   gridData.value = { eras, numCols, typesInDf, getCellVehicles, getPremVehicles }
-  }) // nextTick
-}) // watchEffect
+  })
+})
 
 
 function groupedCells(cellVehicles) {
