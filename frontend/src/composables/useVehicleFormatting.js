@@ -163,10 +163,14 @@ export const SAFE_KEYS = {
   'RP за игру':     'rp',
 }
 
+const _normRowCache = new WeakMap()
+
 export function normRow(v) {
+  if (_normRowCache.has(v)) return _normRowCache.get(v)
   const row = { ...v }
   for (const [orig, safe] of Object.entries(SAFE_KEYS)) {
     if (orig in row) row[safe] = row[orig]
   }
+  _normRowCache.set(v, row)
   return row
 }
