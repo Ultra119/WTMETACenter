@@ -204,7 +204,7 @@ function buildWtBrackets(stepsN) {
     if (step === 1) {
       label = minBr.toFixed(1)
     } else {
-      label = `${minBr.toFixed(1)}–${maxBr.toFixed(1)}`
+      label = `${minBr.toFixed(1)}–${lastIncludedBr.toFixed(1)}`
     }
 
     return {
