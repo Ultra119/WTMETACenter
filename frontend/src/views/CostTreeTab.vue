@@ -222,9 +222,9 @@ function niceMax(val) {
 
 const MAX_SCALE = computed(() => {
   let max = 0
-  for (const branchData of Object.values(aggregated.value)) {
-    for (const entry of Object.values(branchData)) {
-      if (entry.total > max) max = entry.total
+  for (const { rows } of Object.values(chartData.value)) {
+    for (const row of rows) {
+      if (row.total > max) max = row.total
     }
   }
   if (!max) return metric.value === 'sl' ? 40_000_000 : 20_000_000
@@ -253,7 +253,7 @@ watchEffect(() => {
   })
 })
 
-const aggregated = shallowRef({})
+const chartData = shallowRef({})
 watchEffect(() => {
   const vehicles = uniqueVehicles.value
   const met      = metric.value
@@ -274,6 +274,7 @@ watchEffect(() => {
           if (BRANCH_TYPE_SET[b.key].has(v.Type)) { bKey = b.key; break }
         }
         if (!bKey) continue
+        if (met === 'rp' && (v.VehicleClass ?? 'Standard') !== 'Standard') continue
         const val = met === 'rp' ? Number(v.vdb_req_exp ?? 0) : Number(v.vdb_value ?? 0)
         const key = `${v.Nation}__${bKey}__${g}`
         const cur = groupMin.get(key)
@@ -282,8 +283,9 @@ watchEffect(() => {
       const keep = new Set([...groupMin.values()].map(({ v }) => v))
       src = vehicles.filter(v => !v.vdb_shop_group || keep.has(v))
     }
-    const result = {}
-    for (const b of BRANCHES) result[b.key] = {}
+
+    const byBranch = {}
+    for (const b of BRANCHES) byBranch[b.key] = {}
 
     for (const v of src) {
       if (!cls.includes(v.VehicleClass ?? 'Standard')) continue
@@ -305,30 +307,34 @@ watchEffect(() => {
       const nat = v.Nation
       if (!nat) continue
 
-      if (!result[bKey][nat]) {
-        result[bKey][nat] = { nation: nat, total: 0, byEra: {}, countByEra: {} }
+      if (!byBranch[bKey][nat]) {
+        byBranch[bKey][nat] = { nation: nat, total: 0, byEra: {}, countByEra: {} }
       }
-      const entry = result[bKey][nat]
-      entry.total            += val
-      entry.byEra[era]        = (entry.byEra[era]     ?? 0) + val
-      entry.countByEra[era]   = (entry.countByEra[era] ?? 0) + 1
+      const entry = byBranch[bKey][nat]
+      entry.total          += val
+      entry.byEra[era]      = (entry.byEra[era]     ?? 0) + val
+      entry.countByEra[era] = (entry.countByEra[era] ?? 0) + 1
     }
 
-    aggregated.value = result
+    const result = {}
+    for (const b of BRANCHES) {
+      const rows = Object.values(byBranch[b.key]).sort((a, z) => z.total - a.total)
+      const vehicleCount = rows.reduce(
+        (sum, row) => sum + Object.values(row.countByEra).reduce((s, n) => s + n, 0),
+        0
+      )
+      result[b.key] = { rows, vehicleCount }
+    }
+    chartData.value = result
   })
 })
 
 function chartRows(branchKey) {
-  const map = aggregated.value[branchKey] ?? {}
-  return Object.values(map).sort((a, b) => b.total - a.total)
+  return chartData.value[branchKey]?.rows ?? []
 }
 
 function branchVehicleCount(branchKey) {
-  return uniqueVehicles.value.filter(v =>
-    store.classes.includes(v.VehicleClass) &&
-    Number(v.vdb_era ?? 0) >= 1 &&
-    BRANCH_TYPE_SET[branchKey]?.has(v.Type)
-  ).length
+  return chartData.value[branchKey]?.vehicleCount ?? 0
 }
 
 
