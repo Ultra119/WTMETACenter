@@ -34,10 +34,18 @@ def _extract_engine_stats(raw) -> dict:
 
 
 def _extract_armor(raw) -> tuple[float, float, float]:
-    lst = _parse_json_field(raw, [])
-    if isinstance(lst, list) and len(lst) >= 3:
+    parsed = _parse_json_field(raw, [])
+    if isinstance(parsed, list) and len(parsed) >= 3:
         try:
-            return float(lst[0]), float(lst[1]), float(lst[2])
+            return float(parsed[0]), float(parsed[1]), float(parsed[2])
+        except (ValueError, TypeError):
+            pass
+    elif isinstance(parsed, dict):
+        try:
+            front = float(parsed.get("front", parsed.get("0", 0)) or 0)
+            side  = float(parsed.get("side",  parsed.get("1", 0)) or 0)
+            rear  = float(parsed.get("rear",  parsed.get("2", 0)) or 0)
+            return front, side, rear
         except (ValueError, TypeError):
             pass
     return 0.0, 0.0, 0.0
@@ -109,25 +117,7 @@ def _extract_modifications_summary(raw) -> dict:
     }
 
 
-def _build_vdb_row(v: dict) -> dict:
-    row: dict = {}
-
-    row.update(_extract_engine_stats(v.get("engine")))
-
-    hf, hs, hr = _extract_armor(v.get("hull_armor",   "[]"))
-    tf, ts, tr = _extract_armor(v.get("turret_armor", "[]"))
-    row.update({
-        "vdb_hull_front":   hf, "vdb_hull_side":   hs, "vdb_hull_rear":   hr,
-        "vdb_turret_front": tf, "vdb_turret_side": ts, "vdb_turret_rear": tr,
-    })
-
-    row.update(_extract_weapon_summary(v.get("weapons")))
-    row.update(_extract_modifications_summary(v.get("modifications")))
-
-    thermal = _parse_json_field(v.get("thermal_devices"), {})
-    row["vdb_has_thermal"] = isinstance(thermal, dict) and len(thermal) > 0
-
-    _NUM_FIELDS: list[tuple[str, type, object]] = [
+_NUM_FIELDS: list[tuple[str, type, object]] = [
         ("arcade_br",                           float, 0.0),
         ("realistic_br",                        float, 0.0),
         ("simulator_br",                        float, 0.0),
@@ -168,7 +158,27 @@ def _build_vdb_row(v: dict) -> dict:
         ("sl_mul_arcade",                       float, 1.0),
         ("sl_mul_realistic",                    float, 1.0),
         ("sl_mul_simulator",                    float, 1.0),
-    ]
+]
+
+
+def _build_vdb_row(v: dict) -> dict:
+    row: dict = {}
+
+    row.update(_extract_engine_stats(v.get("engine")))
+
+    hf, hs, hr = _extract_armor(v.get("hull_armor",   "[]"))
+    tf, ts, tr = _extract_armor(v.get("turret_armor", "[]"))
+    row.update({
+        "vdb_hull_front":   hf, "vdb_hull_side":   hs, "vdb_hull_rear":   hr,
+        "vdb_turret_front": tf, "vdb_turret_side": ts, "vdb_turret_rear": tr,
+    })
+
+    row.update(_extract_weapon_summary(v.get("weapons")))
+    row.update(_extract_modifications_summary(v.get("modifications")))
+
+    thermal = _parse_json_field(v.get("thermal_devices"), {})
+    row["vdb_has_thermal"] = isinstance(thermal, dict) and len(thermal) > 0
+
     for field, cast, default in _NUM_FIELDS:
         raw_val = v.get(field, default)
         try:
@@ -293,13 +303,21 @@ class VehicleDB:
             print("[VehicleDB] ❌ Unexpected format from vehicles.json (not list/dict)")
             return
 
+        bad = 0
         for v in data:
             if not isinstance(v, dict):
                 continue
             identifier = str(v.get("identifier", "") or "").strip()
             if not identifier:
                 continue
-            self._index[identifier] = _build_vdb_row(v)
+            try:
+                self._index[identifier] = _build_vdb_row(v)
+            except Exception as exc:
+                bad += 1
+                print(f"[VehicleDB] ⚠️  Skipped '{identifier}': {exc}")
+
+        if bad:
+            print(f"[VehicleDB] ⚠️  {bad} vehicles skipped due to parse errors")
 
         print(f"[VehicleDB] ✅ Downloaded {len(self._index)} entries from vehicles.json")
 
@@ -414,9 +432,6 @@ class VehicleDB:
     @property
     def loaded(self) -> bool:
         return len(self._index) > 0
-
-    def get_by_identifier(self, identifier: str) -> Optional[dict]:
-        return self._index.get(identifier)
 
     def stats(self) -> dict:
         return {"total": len(self._index)}
