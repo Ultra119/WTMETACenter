@@ -4,9 +4,10 @@
 
       <v-card-title class="card-header">
         <span class="vehicle-name">{{ displayName }}</span>
-        <v-chip v-if="vehicle.VehicleClass !== 'Standard'" :color="classColor" size="x-small" class="ml-2">
+        <span v-if="vehicle.VehicleClass !== 'Standard'" class="class-chip ml-2" :style="classChipStyle(vehicle.VehicleClass)">
+          <span v-if="CLASS_PREFIX[vehicle.VehicleClass]" class="mdi" :class="CLASS_PREFIX[vehicle.VehicleClass]" style="font-size:9px; margin-right:2px;" />
           {{ t(`vehicle_classes.${vehicle.VehicleClass}`) }}
-        </v-chip>
+        </span>
         <v-chip v-if="vehicle.vdb_shop_rank" color="teal" size="x-small" variant="tonal" class="ml-1" style="font-family:'JetBrains Mono',monospace;">
           Rank {{ vehicle.vdb_shop_rank }}
         </v-chip>
@@ -171,7 +172,7 @@ import { useI18n }  from 'vue-i18n'
 import { useDataStore } from '../stores/useDataStore.js'
 import {
   vehicleDisplayName, fmtType, fmtNation, fmtBR, fmtSL,
-  metaColor, farmColor, wrColor,
+  metaColor, farmColor, wrColor, CLASS_PREFIX, classChipStyle,
 } from '../composables/useVehicleFormatting.js'
 import VehicleImage from './VehicleImage.vue'
 
@@ -223,11 +224,6 @@ function v(key) {
   return val ?? t('vehicle_card.no_vdb')
 }
 
-const classColor = computed(() => {
-  const map = { Premium: 'warning', Pack: 'success', Squadron: 'info',
-                Marketplace: 'secondary', Gift: 'pink', Event: 'error' }
-  return map[veh.value?.VehicleClass] ?? 'default'
-})
 </script>
 
 <style scoped>

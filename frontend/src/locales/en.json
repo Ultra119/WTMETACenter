@@ -274,6 +274,8 @@
     "collapse":         "Collapse",
     "limited":          "Limited",
     "search_empty":     "No vehicles match your filters.",
-    "info":             "{n} vehicles · {groups} update groups · {launch} at launch"
+    "info":             "{n} vehicles · {groups} update groups · {launch} at launch",
+    "tip_sort":         "Vehicles are sorted by nation then BR within each update group.",
+    "tip_limited":      "Orange border = limited-availability vehicle (event or gift)."
   }
 }

@@ -1,4 +1,7 @@
 import { useI18n } from 'vue-i18n'
+import { CLASS_PREFIX, CLASS_BR_COLOR } from './constants.js'
+
+export { CLASS_PREFIX }
 
 export const NATION_FLAG = {
   usa:         '🇺🇸', germany:    '🇩🇪', ussr:        '🇷🇺',
@@ -7,31 +10,31 @@ export const NATION_FLAG = {
   china:       '🇨🇳',
 }
 
-export const CLASS_PREFIX = {
-  Premium:    'mdi-star',
-  Pack:       'mdi-package-variant',
-  Squadron:   'mdi-star-four-points',
-  Marketplace:'mdi-store',
-  Gift:       'mdi-gift',
-  Event:      'mdi-ticket',
-  Standard:   '',
-}
-
-const CLASS_ICON_COLOR = {
-  Premium:     '#fbbf24',
-  Pack:        '#60a5fa',
-  Squadron:    '#34d399',
-  Marketplace: '#a78bfa',
-  Gift:        '#f472b6',
-  Event:       '#fb923c',
-}
-
 export function vehicleClassMdiIcon(v) {
   return CLASS_PREFIX[v?.VehicleClass ?? 'Standard'] ?? ''
 }
 
 export function vehicleClassMdiColor(v) {
-  return CLASS_ICON_COLOR[v?.VehicleClass] ?? null
+  return CLASS_BR_COLOR[v?.VehicleClass] ?? null
+}
+
+export const CLASS_CHIP_COLORS = Object.fromEntries(
+  Object.entries(CLASS_BR_COLOR).map(([cls, hex]) => {
+    const r = parseInt(hex.slice(1, 3), 16)
+    const g = parseInt(hex.slice(3, 5), 16)
+    const b = parseInt(hex.slice(5, 7), 16)
+    return [cls, {
+      border: `rgba(${r},${g},${b},0.45)`,
+      bg:     `rgba(${r},${g},${b},0.10)`,
+      text:   hex,
+    }]
+  })
+)
+
+export function classChipStyle(cls) {
+  const c = CLASS_CHIP_COLORS[cls]
+  if (!c) return {}
+  return { border: `1px solid ${c.border}`, background: c.bg, color: c.text }
 }
 
 export function useFmtType() {

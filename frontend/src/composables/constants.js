@@ -120,3 +120,13 @@ export const NO_CROSS_TYPES     = new Set(['spaa'])
 export const FILL_MIN_SCORE     = 1.0   // минимальный META_SCORE для FILL-кандидата
 
 export const REDBOOK_LOW_BATTLES = 100
+
+export const TYPE_BRANCH_COLOR = {
+  medium_tank:        '#94a3b8', light_tank:         '#94a3b8',
+  heavy_tank:         '#94a3b8', tank_destroyer:     '#94a3b8', spaa: '#a78bfa',
+  fighter:            '#38bdf8', bomber:             '#38bdf8', assault: '#38bdf8',
+  attack_helicopter:  '#34d399', utility_helicopter: '#34d399',
+  destroyer:          '#60a5fa', heavy_cruiser:      '#60a5fa', light_cruiser: '#60a5fa',
+  battleship:         '#60a5fa', battlecruiser:      '#60a5fa',
+  boat:               '#7dd3fc', heavy_boat:         '#7dd3fc', frigate: '#7dd3fc', barge: '#7dd3fc',
+}

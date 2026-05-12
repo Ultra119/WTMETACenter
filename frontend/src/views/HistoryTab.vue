@@ -33,7 +33,7 @@
           />
         </div>
 
-        <div class="ml-auto stats-row">
+        <div class="ml-auto stats-row" style="display:flex;align-items:center;gap:8px;">
           <div class="stat-pill">
             <span class="mdi mdi-rocket-launch-outline stat-icon" />
             <span class="stat-val">{{ filteredTotal.toLocaleString() }}</span>
@@ -49,6 +49,15 @@
             <span class="stat-val">{{ launchCount.toLocaleString() }}</span>
             <span class="stat-lbl">{{ t('history_tab.founding') }}</span>
           </div>
+
+          <InfoTip align="left" width="260px">
+            <b>{{ t('history_tab.info', { n: filteredTotal, groups: datedGroupCount, launch: launchCount }) }}</b>
+            <p>{{ t('history_tab.tip_sort') }}</p>
+            <div class="tip-row" style="margin-top:8px">
+              <span class="mdi mdi-circle tip-icon" style="color:#fb923c" />
+              <span>{{ t('history_tab.tip_limited') }}</span>
+            </div>
+          </InfoTip>
         </div>
 
       </div>
@@ -124,13 +133,13 @@
                 <div class="veh-right">
                   <span
                     v-if="v.VehicleClass !== 'Standard'"
-                    class="veh-class-chip"
+                    class="class-chip"
                     :style="classChipStyle(v.VehicleClass)"
                   >
                     <span
-                      v-if="CLASS_ICON[v.VehicleClass]"
+                      v-if="CLASS_PREFIX[v.VehicleClass]"
                       class="mdi"
-                      :class="CLASS_ICON[v.VehicleClass]"
+                      :class="CLASS_PREFIX[v.VehicleClass]"
                       style="font-size: 9px; margin-right: 2px;"
                     />{{ t(`vehicle_classes.${v.VehicleClass}`) }}
                   </span>
@@ -170,8 +179,9 @@ import { ref, computed, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useDataStore } from '../stores/useDataStore.js'
 import { useTabFilters } from '../composables/useTabFilters.js'
-import { NATION_FLAG, fmtType, fmtBR } from '../composables/useVehicleFormatting.js'
-import { TYPE_ICON } from '../composables/constants.js'
+import { NATION_FLAG, fmtType, fmtBR, CLASS_PREFIX, classChipStyle } from '../composables/useVehicleFormatting.js'
+import { TYPE_ICON, TYPE_BRANCH_COLOR } from '../composables/constants.js'
+import InfoTip from '../components/InfoTip.vue'
 
 const { t }    = useI18n()
 const store    = useDataStore()
@@ -181,35 +191,6 @@ useTabFilters({ period: false, mode: false, brRange: false, minBattles: false, c
 
 
 const PAGE_SIZE = 30
-
-const CLASS_ICON = {
-  Premium:     'mdi-star',
-  Pack:        'mdi-package-variant',
-  Squadron:    'mdi-star-four-points',
-  Marketplace: 'mdi-store',
-  Gift:        'mdi-gift',
-  Event:       'mdi-ticket',
-}
-
-const CLASS_CHIP_COLORS = {
-  Premium:     { border: 'rgba(251,191,36,0.45)',   bg: 'rgba(251,191,36,0.10)',   text: '#fbbf24' },
-  Pack:        { border: 'rgba(96,165,250,0.45)',   bg: 'rgba(96,165,250,0.10)',   text: '#60a5fa' },
-  Squadron:    { border: 'rgba(52,211,153,0.45)',   bg: 'rgba(52,211,153,0.10)',   text: '#34d399' },
-  Marketplace: { border: 'rgba(167,139,250,0.45)',  bg: 'rgba(167,139,250,0.10)',  text: '#a78bfa' },
-  Gift:        { border: 'rgba(244,114,182,0.45)',  bg: 'rgba(244,114,182,0.10)',  text: '#f472b6' },
-  Event:       { border: 'rgba(251,146,60,0.45)',   bg: 'rgba(251,146,60,0.10)',   text: '#fb923c' },
-}
-
-const TYPE_BRANCH_COLOR = {
-  medium_tank: '#94a3b8',  light_tank: '#94a3b8',
-  heavy_tank:  '#94a3b8',  tank_destroyer: '#94a3b8',  spaa: '#a78bfa',
-  fighter:     '#38bdf8',  bomber:     '#38bdf8',       assault: '#38bdf8',
-  attack_helicopter:  '#34d399', utility_helicopter: '#34d399',
-  destroyer:   '#60a5fa',  heavy_cruiser: '#60a5fa',   light_cruiser: '#60a5fa',
-  battleship:  '#60a5fa',  battlecruiser: '#60a5fa',
-  boat:        '#7dd3fc',  heavy_boat: '#7dd3fc',       frigate: '#7dd3fc', barge: '#7dd3fc',
-}
-
 
 const search  = ref('')
 const nation  = ref('All')
@@ -302,7 +283,14 @@ const groups = computed(() => {
     if (a.isLaunch) return  1
     if (b.isLaunch) return -1
     return b.key.localeCompare(a.key)
-  })
+  }).map(g => ({
+    ...g,
+    vehicles: g.vehicles.slice().sort((a, b) => {
+      const nc = (a.Nation ?? '').localeCompare(b.Nation ?? '')
+      if (nc !== 0) return nc
+      return (a.BR ?? 0) - (b.BR ?? 0)
+    }),
+  }))
 })
 
 
@@ -336,16 +324,6 @@ function displayBR(v) {
   return fmtBR(br)
 }
 
-function classChipStyle(cls) {
-  const c = CLASS_CHIP_COLORS[cls]
-  if (!c) return {}
-  return {
-    border:     `1px solid ${c.border}`,
-    background: c.bg,
-    color:      c.text,
-  }
-}
-
 function typeIconColor(type) {
   return TYPE_BRANCH_COLOR[type] ?? '#475569'
 }
@@ -357,7 +335,7 @@ function open(v) {
 
 <style scoped>
 .history-root {
-  max-width: 1200px;
+  width: 100%;
 }
 
 
@@ -634,17 +612,6 @@ function open(v) {
   align-items: center;
   gap: 5px;
   flex-shrink: 0;
-}
-.veh-class-chip {
-  display: inline-flex;
-  align-items: center;
-  padding: 1px 5px;
-  border-radius: 3px;
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-  white-space: nowrap;
 }
 .veh-br {
   font-family: 'JetBrains Mono', monospace;
