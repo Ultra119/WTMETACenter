@@ -564,6 +564,7 @@ function slideAfterLeave(el) {
   text-align: right;
   flex-shrink: 0;
 }
+.tl-count--right { margin-left: auto; }
 
 .tl-chevron {
   font-size: 14px;
