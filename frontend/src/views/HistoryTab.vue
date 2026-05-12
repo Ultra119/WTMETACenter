@@ -50,7 +50,7 @@
             <span class="stat-lbl">{{ t('history_tab.founding') }}</span>
           </div>
 
-          <InfoTip align="left" width="260px">
+          <InfoTip align="right" class="ml-auto">
             <b>{{ t('history_tab.info', { n: filteredTotal, groups: datedGroupCount, launch: launchCount }) }}</b>
             <p>{{ t('history_tab.tip_sort') }}</p>
             <div class="tip-row" style="margin-top:8px">
