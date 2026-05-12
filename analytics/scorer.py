@@ -250,12 +250,31 @@ def score(df: pd.DataFrame, settings: dict) -> pd.DataFrame:
 
     df["META_SCORE"] = df["META_SCORE"].clip(0.0, 100.0)
 
-    if "vdb_repair_cost_realistic" in df.columns:
-        repair  = df["vdb_repair_cost_realistic"].fillna(0).astype(float)
+    _REPAIR_COL_BY_MODE: dict[str, str] = {
+        "Realistic":  "vdb_repair_cost_realistic",
+        "Arcade":     "vdb_repair_cost_arcade",
+        "Simulator":  "vdb_repair_cost_simulator",
+    }
+
+    _any_repair_col = any(c in df.columns for c in _REPAIR_COL_BY_MODE.values())
+    if _any_repair_col:
         has_vdb = df.get("vdb_match_score", pd.Series(0.0, index=df.index)) > 0
-        deaths_per_game = (
-            df["Смерти"] / df["Сыграно игр"].clip(lower=1)
-        )
+
+        repair = pd.Series(0.0, index=df.index)
+        if "Mode" in df.columns:
+            for mode_name, col_name in _REPAIR_COL_BY_MODE.items():
+                if col_name in df.columns:
+                    mask = df["Mode"] == mode_name
+                    repair = repair.where(
+                        ~mask,
+                        df[col_name].fillna(0).astype(float),
+                    )
+        else:
+            fallback_col = "vdb_repair_cost_realistic"
+            if fallback_col in df.columns:
+                repair = df[fallback_col].fillna(0).astype(float)
+
+        deaths_per_game = df["Смерти"] / df["Сыграно игр"].clip(lower=1)
         repair_per_game = repair * deaths_per_game
 
         net_sl = df["SL за игру"].where(~has_vdb, df["SL за игру"] - repair_per_game)
