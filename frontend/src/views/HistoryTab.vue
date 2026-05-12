@@ -72,18 +72,12 @@
         v-for="(group, gi) in groups"
         :key="group.key"
         class="tl-group"
+        :class="group.isLaunch ? 'tl-group--launch' : (gi % 2 === 0 ? 'tl-group--even' : 'tl-group--odd')"
       >
         <div
           class="tl-header"
-          :class="{ 'tl-header--launch': group.isLaunch }"
           @click="toggleGroup(group.key)"
         >
-          <div class="tl-rail">
-            <div class="tl-rail-line tl-rail-line--top" :class="{ invisible: gi === 0 }" />
-            <div class="tl-dot" :class="group.isLaunch ? 'tl-dot--launch' : 'tl-dot--patch'" />
-            <div class="tl-rail-line tl-rail-line--bot" :class="{ invisible: gi === groups.length - 1 && collapsed.has(group.key) }" />
-          </div>
-
           <div class="tl-date-area">
             <span class="tl-date-text" :class="{ 'tl-date-text--launch': group.isLaunch }">
               {{ group.label }}
@@ -112,10 +106,6 @@
           @after-leave="slideAfterLeave"
         >
           <div v-if="!collapsed.has(group.key)" class="tl-body">
-            <div class="tl-body-rail">
-              <div class="tl-rail-line tl-rail-line--full" :class="{ invisible: gi === groups.length - 1 }" />
-            </div>
-
             <div class="veh-grid">
               <div
                 v-for="v in visibleVehicles(group)"
@@ -477,9 +467,21 @@ function slideAfterLeave(el) {
 }
 
 
-.timeline { display: flex; flex-direction: column; }
+.timeline { display: flex; flex-direction: column; gap: 5px; }
 
-.tl-group { display: flex; flex-direction: column; }
+.tl-group {
+  display: flex;
+  flex-direction: column;
+  border-radius: 8px;
+  border: 1px solid #1e3a5f;
+  overflow: hidden;
+}
+.tl-group--even   { background: #080f1e; }
+.tl-group--odd    { background: #0d1b2e; }
+.tl-group--launch {
+  background: #0d1505;
+  border-color: rgba(251, 191, 36, 0.25);
+}
 
 .tl-header {
   display: flex;
@@ -487,52 +489,10 @@ function slideAfterLeave(el) {
   gap: 10px;
   cursor: pointer;
   user-select: none;
-  padding: 2px 0;
-  border-radius: 6px;
+  padding: 8px 12px;
   transition: background 0.12s;
 }
-.tl-header:hover { background: rgba(255, 255, 255, 0.02); }
-.tl-header--launch .tl-date-text { color: #fbbf24; }
-
-.tl-rail {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  flex-shrink: 0;
-  width: 20px;
-}
-.tl-rail-line {
-  width: 2px;
-  flex: 1;
-  min-height: 10px;
-  background: #1e3a5f;
-}
-.tl-rail-line--top { min-height: 8px; }
-.tl-rail-line--bot { min-height: 8px; }
-.tl-rail-line--full { width: 2px; background: #1e3a5f; flex: 1; min-height: 100%; }
-.invisible { visibility: hidden; }
-
-.tl-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  border: 2px solid #1e3a5f;
-  background: #0f172a;
-  flex-shrink: 0;
-  transition: border-color 0.15s, background 0.15s;
-}
-.tl-dot--patch {
-  border-color: #38bdf8;
-  background: rgba(56, 189, 248, 0.15);
-}
-.tl-dot--launch {
-  border-color: #fbbf24;
-  background: rgba(251, 191, 36, 0.15);
-  width: 12px;
-  height: 12px;
-}
-.tl-header:hover .tl-dot--patch  { background: rgba(56, 189, 248, 0.30); }
-.tl-header:hover .tl-dot--launch { background: rgba(251, 191, 36, 0.30); }
+.tl-header:hover { background: rgba(255, 255, 255, 0.025); }
 
 .tl-date-area {
   display: flex;
@@ -596,28 +556,16 @@ function slideAfterLeave(el) {
 .tl-header:hover .tl-chevron { color: #64748b; }
 
 .tl-body {
-  display: flex;
-  gap: 0;
-  padding-bottom: 6px;
+  padding: 0 8px 8px;
   overflow: hidden;
-}
-
-.tl-body-rail {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  flex-shrink: 0;
-  width: 20px;
-  padding-top: 0;
+  border-top: 1px solid #1e293b;
 }
 
 .veh-grid {
-  flex: 1;
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 2px;
-  padding: 4px 0 4px 8px;
-  min-width: 0;
+  padding: 6px 0 2px;
 }
 
 .veh-row {
@@ -683,13 +631,11 @@ function slideAfterLeave(el) {
   text-align: right;
 }
 
-.tl-body { flex-wrap: wrap; }
+.tl-body { flex-wrap: unset; }
 .show-more-row {
   display: flex;
   justify-content: flex-start;
-  padding: 4px 8px;
-  flex-basis: 100%;
-  width: 100%;
+  padding: 4px 0 2px;
 }
 
 .show-more-btn {
