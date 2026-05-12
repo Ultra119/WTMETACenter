@@ -67,6 +67,7 @@ const tabs = [
   { to: '/farm',        icon: 'mdi-wrench',                   labelKey: 'tabs.farm'        },
   { to: '/progression', icon: 'mdi-chart-timeline-variant',   labelKey: 'tabs.progression' },
   { to: '/cost',        icon: 'mdi-chart-bar',                labelKey: 'tabs.cost' },
+  { to: '/history',     icon: 'mdi-clock-time-eight-outline', labelKey: 'tabs.history' },
 ]
 
 const modalOpen       = ref(false)

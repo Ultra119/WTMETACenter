@@ -6,6 +6,7 @@ const BracketsTab    = () => import('../views/BracketsTab.vue')
 const FarmTab        = () => import('../views/FarmTab.vue')
 const ProgressionTab = () => import('../views/ProgressionTab.vue')
 const CostTreeTab    = () => import('../views/CostTreeTab.vue')
+const HistoryTab     = () => import('../views/HistoryTab.vue')
 
 const routes = [
   { path: '/',            redirect: '/meta' },
@@ -15,6 +16,7 @@ const routes = [
   { path: '/farm',        component: FarmTab,         name: 'farm'        },
   { path: '/progression', component: ProgressionTab,  name: 'progression' },
   { path: '/cost',        component: CostTreeTab,     name: 'cost' },
+  { path: '/history',     component: HistoryTab,      name: 'history' },
 ]
 
 export default createRouter({

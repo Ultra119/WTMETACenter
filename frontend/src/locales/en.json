@@ -29,7 +29,8 @@
     "brackets":    "BR Grid",
     "farm":        "Lineup",
     "progression": "Tech Tree",
-    "cost":        "Tree Cost"
+    "cost":        "Tree Cost",
+    "history":     "History"
   },
 
   "sidebar": {
@@ -260,5 +261,19 @@
     "Realistic":  "RB",
     "Arcade":     "AB",
     "Simulator":  "SB"
+  },
+
+  "history_tab": {
+    "vehicles":         "vehicles",
+    "patches":          "update groups",
+    "founding":         "at launch",
+    "game_launch":      "Game Launch",
+    "launch_subtitle":  "Present since release · ~2013",
+    "all_time":         "LAUNCH FLEET",
+    "show_all":         "Show all {n} vehicles",
+    "collapse":         "Collapse",
+    "limited":          "Limited",
+    "search_empty":     "No vehicles match your filters.",
+    "info":             "{n} vehicles · {groups} update groups · {launch} at launch"
   }
 }

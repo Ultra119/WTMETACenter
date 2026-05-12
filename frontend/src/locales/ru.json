@@ -29,7 +29,8 @@
     "brackets":    "Сетка БР",
     "farm":        "Сетап",
     "progression": "Прокачка",
-    "cost":        "Стоимость дерева"
+    "cost":        "Стоимость дерева",
+    "history":     "История"
   },
 
   "sidebar": {
@@ -260,5 +261,19 @@
     "Realistic":  "RB",
     "Arcade":     "AB",
     "Simulator":  "SB"
+  },
+
+  "history_tab": {
+    "vehicles":         "единиц техники",
+    "patches":          "групп обновлений",
+    "founding":         "с релиза",
+    "game_launch":      "Релиз игры",
+    "launch_subtitle":  "В игре с релиза · ~2013",
+    "all_time":         "НАЧАЛЬНЫЙ ПАРК",
+    "show_all":         "Показать все {n} машин",
+    "collapse":         "Свернуть",
+    "limited":          "Временная",
+    "search_empty":     "Нет техники по заданным фильтрам.",
+    "info":             "{n} единиц · {groups} групп обновлений · {launch} с релиза"
   }
 }
