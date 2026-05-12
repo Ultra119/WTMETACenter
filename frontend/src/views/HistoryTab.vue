@@ -72,7 +72,7 @@
         v-for="(group, gi) in groups"
         :key="group.key"
         class="tl-group"
-        :class="group.isLaunch ? 'tl-group--launch' : (gi % 2 === 0 ? 'tl-group--even' : 'tl-group--odd')"
+        :class="{ 'tl-group--launch': group.isLaunch }"
       >
         <div
           class="tl-header"
@@ -88,8 +88,7 @@
             <span v-if="group.subtitle" class="tl-subtitle">{{ group.subtitle }}</span>
           </div>
 
-          <div class="tl-dash" />
-          <span class="tl-count">{{ group.vehicles.length }}</span>
+          <span class="tl-count tl-count--right">{{ group.vehicles.length }}</span>
 
           <span
             class="mdi tl-chevron"
@@ -125,7 +124,7 @@
                   :title="fmtType(v.Type)"
                 />
 
-                <span class="veh-name">{{ v.Name }}</span>
+                <span class="veh-name" v-html="highlightName(v.Name)" />
 
                 <div class="veh-right">
                   <span
@@ -172,7 +171,7 @@
 </template>
 
 <script setup>
-import { ref, computed, inject } from 'vue'
+import { ref, computed, inject, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useDataStore } from '../stores/useDataStore.js'
 import { useTabFilters } from '../composables/useTabFilters.js'
@@ -312,7 +311,26 @@ const filteredTotal   = computed(() => filtered.value.length)
 const datedGroupCount = computed(() => groups.value.filter(g => !g.isLaunch).length)
 const launchCount     = computed(() => groups.value.find(g => g.isLaunch)?.vehicles.length ?? 0)
 
-const collapsed = ref(new Set([LAUNCH_KEY]))
+const collapsed = ref(new Set())
+const _seenGroupKeys = new Set()
+watch(groups, (gs) => {
+  const next = new Set(collapsed.value)
+  for (const g of gs) {
+    if (!_seenGroupKeys.has(g.key)) {
+      _seenGroupKeys.add(g.key)
+      next.add(g.key)
+    }
+  }
+  collapsed.value = next
+}, { immediate: true })
+
+watch(search, (q) => {
+  if (q.trim()) {
+    collapsed.value = new Set()
+  } else {
+    collapsed.value = new Set(groups.value.map(g => g.key))
+  }
+})
 const expanded  = ref(new Set())
 
 function toggleGroup(key) {
@@ -346,6 +364,17 @@ function open(v) {
   openVehicle?.(v)
 }
 
+function escapeHtml(s) {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+}
+
+function highlightName(name) {
+  const q = search.value.trim()
+  const safe = escapeHtml(name ?? '')
+  if (!q) return safe
+  const escapedQ = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  return safe.replace(new RegExp(`(${escapedQ})`, 'gi'), '<mark class="hl">$1</mark>')
+}
 function slideBeforeEnter(el) {
   el.style.maxHeight = '0'
   el.style.opacity   = '0'
@@ -476,10 +505,7 @@ function slideAfterLeave(el) {
   border: 1px solid #1e3a5f;
   overflow: hidden;
 }
-.tl-group--even   { background: #080f1e; }
-.tl-group--odd    { background: #0d1b2e; }
 .tl-group--launch {
-  background: #0d1505;
   border-color: rgba(251, 191, 36, 0.25);
 }
 
@@ -527,14 +553,6 @@ function slideAfterLeave(el) {
   border: 1px solid rgba(251, 191, 36, 0.35);
   background: rgba(251, 191, 36, 0.08);
   color: #fbbf24;
-}
-
-.tl-dash {
-  flex: 1;
-  height: 1px;
-  background: #1e293b;
-  margin: 0 4px;
-  min-width: 20px;
 }
 
 .tl-count {
@@ -662,4 +680,10 @@ function slideAfterLeave(el) {
 .show-more-btn--collapse:hover { color: #94a3b8; border-color: #334155; background: transparent; }
 
 
+:deep(.hl) {
+  background: rgba(251, 191, 36, 0.25);
+  color: #fde68a;
+  border-radius: 2px;
+  font-style: normal;
+}
 </style>
