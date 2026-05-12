@@ -103,7 +103,14 @@
           />
         </div>
 
-        <Transition name="group-slide">
+        <Transition
+          @before-enter="slideBeforeEnter"
+          @enter="slideEnter"
+          @after-enter="slideAfterEnter"
+          @before-leave="slideBeforeLeave"
+          @leave="slideLeave"
+          @after-leave="slideAfterLeave"
+        >
           <div v-if="!collapsed.has(group.key)" class="tl-body">
             <div class="tl-body-rail">
               <div class="tl-rail-line tl-rail-line--full" :class="{ invisible: gi === groups.length - 1 }" />
@@ -243,8 +250,25 @@ const filtered = computed(() => {
 function parseReleaseDate(raw) {
   if (!raw) return null
   const s = String(raw).replace(/[./]/g, '-').trim()
-  const d = new Date(s)
-  return isNaN(d.getTime()) ? null : d
+  const parts = s.split('-')
+  if (parts.length !== 3) return null
+
+  let year, month, day
+  if (parts[0].length === 4) {
+    ;[year, month, day] = parts.map(Number)
+  } else {
+    ;[day, month, year] = parts.map(Number)
+  }
+
+  if (
+    !Number.isInteger(year)  || year  < 2013 || year  > 2100 ||
+    !Number.isInteger(month) || month < 1    || month > 12   ||
+    !Number.isInteger(day)   || day   < 1    || day   > 31
+  ) return null
+
+  const d = new Date(year, month - 1, day)
+  if (d.getFullYear() !== year || d.getMonth() !== month - 1 || d.getDate() !== day) return null
+  return d
 }
 
 function formatGroupDate(isoKey) {
@@ -330,6 +354,43 @@ function typeIconColor(type) {
 
 function open(v) {
   openVehicle?.(v)
+}
+
+function slideBeforeEnter(el) {
+  el.style.maxHeight = '0'
+  el.style.opacity   = '0'
+  el.style.overflow  = 'hidden'
+}
+function slideEnter(el, done) {
+  requestAnimationFrame(() => {
+    el.style.transition = 'max-height 0.28s ease, opacity 0.22s ease'
+    el.style.maxHeight  = el.scrollHeight + 'px'
+    el.style.opacity    = '1'
+    el.addEventListener('transitionend', done, { once: true })
+  })
+}
+function slideAfterEnter(el) {
+  el.style.maxHeight  = 'none'
+  el.style.transition = ''
+  el.style.overflow   = ''
+}
+function slideBeforeLeave(el) {
+  el.style.maxHeight = el.scrollHeight + 'px'
+  el.style.overflow  = 'hidden'
+}
+function slideLeave(el, done) {
+  requestAnimationFrame(() => {
+    el.style.transition = 'max-height 0.25s ease, opacity 0.2s ease'
+    el.style.maxHeight  = '0'
+    el.style.opacity    = '0'
+    el.addEventListener('transitionend', done, { once: true })
+  })
+}
+function slideAfterLeave(el) {
+  el.style.maxHeight  = ''
+  el.style.opacity    = ''
+  el.style.transition = ''
+  el.style.overflow   = ''
 }
 </script>
 
@@ -622,15 +683,14 @@ function open(v) {
   text-align: right;
 }
 
+.tl-body { flex-wrap: wrap; }
 .show-more-row {
   display: flex;
   justify-content: flex-start;
-  padding: 4px 8px 4px 8px;
-  grid-column: 1 / -1;
+  padding: 4px 8px;
+  flex-basis: 100%;
   width: 100%;
 }
-.tl-body { flex-wrap: wrap; }
-.show-more-row { flex-basis: 100%; }
 
 .show-more-btn {
   display: inline-flex;
@@ -656,15 +716,4 @@ function open(v) {
 .show-more-btn--collapse:hover { color: #94a3b8; border-color: #334155; background: transparent; }
 
 
-.group-slide-enter-active,
-.group-slide-leave-active {
-  transition: max-height 0.25s ease, opacity 0.2s ease;
-  max-height: 2000px;
-  overflow: hidden;
-}
-.group-slide-enter-from,
-.group-slide-leave-to {
-  max-height: 0;
-  opacity: 0;
-}
 </style>
