@@ -162,7 +162,7 @@ export const useDataStore = defineStore('data', () => {
     const brMin       = _brRange.value[0]
     const brMax       = _brRange.value[1]
     const minB        = _minBattles.value
-    const cls         = classes.value
+    const cls         = [...classes.value]
     const types       = activeTypes.value
 
     const version = ++_filterVersion
