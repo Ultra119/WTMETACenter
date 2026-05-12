@@ -47,6 +47,7 @@ _KEEP_COLS = [
     "vdb_shop_group",
     "vdb_crew_total_count","vdb_visibility","vdb_mass",
     "vdb_match_score",
+    "vdb_release_date",
 ]
 
 _ALL_VEHICLE_CLASSES = [
