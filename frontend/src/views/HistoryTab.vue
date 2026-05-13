@@ -76,6 +76,7 @@
       >
         <div
           class="tl-header"
+          :class="{ 'tl-header--open': !collapsed.has(group.key) }"
           @click="toggleGroup(group.key)"
         >
           <div class="tl-date-area">
@@ -97,10 +98,8 @@
         </div>
 
         <Transition
-          @before-enter="slideBeforeEnter"
           @enter="slideEnter"
           @after-enter="slideAfterEnter"
-          @before-leave="slideBeforeLeave"
           @leave="slideLeave"
           @after-leave="slideAfterLeave"
         >
@@ -375,41 +374,45 @@ function highlightName(name) {
   const escapedQ = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
   return safe.replace(new RegExp(`(${escapedQ})`, 'gi'), '<mark class="hl">$1</mark>')
 }
-function slideBeforeEnter(el) {
-  el.style.maxHeight = '0'
-  el.style.opacity   = '0'
-  el.style.overflow  = 'hidden'
-}
-function slideEnter(el, done) {
-  requestAnimationFrame(() => {
-    el.style.transition = 'max-height 0.28s ease, opacity 0.22s ease'
-    el.style.maxHeight  = el.scrollHeight + 'px'
-    el.style.opacity    = '1'
-    el.addEventListener('transitionend', done, { once: true })
-  })
+
+const SLIDE_EASING = 'cubic-bezier(0.4, 0, 0.2, 1)'
+
+function slideEnter(el) {
+  const cs = getComputedStyle(el)
+  const pt = cs.paddingTop
+  const pb = cs.paddingBottom
+  const h  = el.scrollHeight
+  el.style.height        = '0px'
+  el.style.paddingTop    = '0px'
+  el.style.paddingBottom = '0px'
+  el.style.opacity       = '0'
+  el.style.overflow      = 'hidden'
+  el.offsetHeight
+  el.style.transition    = `height 0.28s ${SLIDE_EASING}, padding-top 0.28s ${SLIDE_EASING}, padding-bottom 0.28s ${SLIDE_EASING}, opacity 0.22s ease`
+  el.style.height        = h + 'px'
+  el.style.paddingTop    = pt
+  el.style.paddingBottom = pb
+  el.style.opacity       = '1'
 }
 function slideAfterEnter(el) {
-  el.style.maxHeight  = 'none'
-  el.style.transition = ''
-  el.style.overflow   = ''
+  el.style.cssText = ''
 }
-function slideBeforeLeave(el) {
-  el.style.maxHeight = el.scrollHeight + 'px'
-  el.style.overflow  = 'hidden'
-}
-function slideLeave(el, done) {
-  requestAnimationFrame(() => {
-    el.style.transition = 'max-height 0.25s ease, opacity 0.2s ease'
-    el.style.maxHeight  = '0'
-    el.style.opacity    = '0'
-    el.addEventListener('transitionend', done, { once: true })
-  })
+function slideLeave(el) {
+  const cs = getComputedStyle(el)
+  el.style.height        = el.scrollHeight + 'px'
+  el.style.paddingTop    = cs.paddingTop
+  el.style.paddingBottom = cs.paddingBottom
+  el.style.opacity       = '1'
+  el.style.overflow      = 'hidden'
+  el.offsetHeight
+  el.style.transition    = `height 0.24s ${SLIDE_EASING}, padding-top 0.24s ${SLIDE_EASING}, padding-bottom 0.24s ${SLIDE_EASING}, opacity 0.18s ease`
+  el.style.height        = '0px'
+  el.style.paddingTop    = '0px'
+  el.style.paddingBottom = '0px'
+  el.style.opacity       = '0'
 }
 function slideAfterLeave(el) {
-  el.style.maxHeight  = ''
-  el.style.opacity    = ''
-  el.style.transition = ''
-  el.style.overflow   = ''
+  el.style.cssText = ''
 }
 </script>
 
@@ -574,10 +577,12 @@ function slideAfterLeave(el) {
 }
 .tl-header:hover .tl-chevron { color: #64748b; }
 
+.tl-header--open {
+  border-bottom: 1px solid #1e293b;
+}
 .tl-body {
   padding: 0 8px 8px;
   overflow: hidden;
-  border-top: 1px solid #1e293b;
 }
 
 .veh-grid {
