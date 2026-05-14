@@ -417,7 +417,7 @@ watchEffect(() => {
   const raw = allVehicles.filter(v =>
     v.Nation === selectedNation &&
     v.Mode   === selectedMode  &&
-    (v.vdb_shop_rank ?? 0) > 0 &&
+    (v.VehicleClass !== STD_CLASS || (v.vdb_shop_rank ?? 0) > 0) &&
     brTypes.includes(v.Type)   &&
     (_showHidden || !v.vdb_shop_is_research_only)
   )
