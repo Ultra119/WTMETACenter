@@ -226,11 +226,28 @@ def score(df: pd.DataFrame, settings: dict) -> pd.DataFrame:
         weights = ROLE_WEIGHTS.get(vtype, ROLE_WEIGHTS["_default"]).copy()
 
         if vtype == "spaa":
-            z_g    = float(row.get("z_ks_g", 0.0))
-            t      = max(0.0, min(1.0, z_g / z_clip)) if z_clip > 1e-9 else 0.0
-            w_spaa = ROLE_WEIGHTS["spaa"]
-            w_td   = ROLE_WEIGHTS["tank_destroyer"]
-            weights = {k: w_spaa[k] * (1.0 - t) + w_td[k] * t for k in w_spaa}
+            z_g     = float(row.get("z_ks_g", 0.0))
+            t       = max(0.0, min(1.0, z_g / z_clip)) if z_clip > 1e-9 else 0.0
+            w_alt   = ROLE_WEIGHTS["tank_destroyer"]
+            weights = {k: weights[k] * (1.0 - t) + w_alt[k] * t for k in weights}
+
+        elif vtype in ("tank_destroyer", "light_tank", "medium_tank"):
+            z_a     = float(row.get("z_ks_a", 0.0))
+            t       = max(0.0, min(1.0, z_a / z_clip)) if z_clip > 1e-9 else 0.0
+            w_alt   = ROLE_WEIGHTS["spaa"]
+            weights = {k: weights[k] * (1.0 - t) + w_alt[k] * t for k in weights}
+
+        elif vtype == "fighter":
+            z_g     = float(row.get("z_ks_g", 0.0))
+            t       = max(0.0, min(1.0, z_g / z_clip)) if z_clip > 1e-9 else 0.0
+            w_alt   = ROLE_WEIGHTS["assault"]
+            weights = {k: weights[k] * (1.0 - t) + w_alt[k] * t for k in weights}
+
+        elif vtype in ("assault", "bomber"):
+            z_a     = float(row.get("z_ks_a", 0.0))
+            t       = max(0.0, min(1.0, z_a / z_clip)) if z_clip > 1e-9 else 0.0
+            w_alt   = ROLE_WEIGHTS["fighter"]
+            weights = {k: weights[k] * (1.0 - t) + w_alt[k] * t for k in weights}
 
         w_sum = sum(weights.values())
         if w_sum > 1e-9:
