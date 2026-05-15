@@ -266,15 +266,15 @@
   "history_tab": {
     "vehicles":         "vehicles",
     "patches":          "update groups",
-    "founding":         "at launch",
-    "game_launch":      "Game Launch",
-    "launch_subtitle":  "Present since · ~2013-2016",
-    "all_time":         "LAUNCH FLEET",
+    "founding":         "no date",
+    "game_launch":      "No Release Date",
+    "launch_subtitle":  "pre-2017",
+    "all_time":         "PRE-2017",
     "show_all":         "Show all {n} vehicles",
     "collapse":         "Collapse",
     "limited":          "Limited",
     "search_empty":     "No vehicles match your filters.",
-    "info":             "{n} vehicles · {groups} update groups · {launch} at launch",
+    "info":             "{n} vehicles · {groups} update groups · {launch} without date",
     "tip_sort":         "Vehicles are sorted by nation then BR within each update group.",
     "tip_limited":      "Orange border = limited-availability vehicle (event or gift)."
   }

@@ -45,7 +45,7 @@
             <span class="stat-lbl">{{ t('history_tab.patches') }}</span>
           </div>
           <div class="stat-pill stat-pill--muted">
-            <span class="mdi mdi-history stat-icon" />
+            <span class="mdi mdi-calendar-question stat-icon" />
             <span class="stat-val">{{ launchCount.toLocaleString() }}</span>
             <span class="stat-lbl">{{ t('history_tab.founding') }}</span>
           </div>
@@ -189,7 +189,6 @@
       <div v-if="launchGroup" class="month-section month-section--launch">
         <div class="month-header">
           <span class="month-header__date month-header__date--launch">{{ launchGroup.label }}</span>
-          <span class="tl-badge tl-badge--launch">{{ t('history_tab.all_time') }}</span>
           <span v-if="launchGroup.subtitle" class="tl-subtitle" style="margin-left:4px">
             {{ launchGroup.subtitle }}
           </span>
@@ -797,11 +796,6 @@ function highlightName(name) {
   text-transform: uppercase;
   padding: 2px 6px;
   border-radius: 4px;
-}
-.tl-badge--launch {
-  border: 1px solid rgba(251, 191, 36, 0.35);
-  background: rgba(251, 191, 36, 0.08);
-  color: #fbbf24;
 }
 
 .tl-type-pill {
