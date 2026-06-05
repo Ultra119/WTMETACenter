@@ -3,7 +3,11 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from analytics.constants import ROLE_WEIGHTS, VEHICLE_TYPE_CATEGORY, SCORING_PEER_GROUP, FARM_SCORING_PEER_GROUP
+from analytics.constants import (
+    ROLE_WEIGHTS, VEHICLE_TYPE_CATEGORY,
+    SCORING_PEER_GROUP, FARM_SCORING_PEER_GROUP,
+    ROLE_SHIFT_RAW_THRESHOLDS,
+)
 
 
 
@@ -226,28 +230,40 @@ def score(df: pd.DataFrame, settings: dict) -> pd.DataFrame:
         weights = ROLE_WEIGHTS.get(vtype, ROLE_WEIGHTS["_default"]).copy()
 
         if vtype == "spaa":
-            z_g     = float(row.get("z_ks_g", 0.0))
-            t       = max(0.0, min(1.0, z_g / z_clip)) if z_clip > 1e-9 else 0.0
-            w_alt   = ROLE_WEIGHTS["tank_destroyer"]
-            weights = {k: weights[k] * (1.0 - t) + w_alt[k] * t for k in weights}
+            z_g      = float(row.get("z_ks_g", 0.0))
+            raw_ks_g = float(row.get("_ks_g_raw", 0.0))
+            thr      = ROLE_SHIFT_RAW_THRESHOLDS.get(("spaa", "_ks_g_raw"), 0.0)
+            t        = (max(0.0, min(1.0, z_g / z_clip)) if z_clip > 1e-9 else 0.0) \
+                       if raw_ks_g >= thr else 0.0
+            w_alt    = ROLE_WEIGHTS["tank_destroyer"]
+            weights  = {k: weights[k] * (1.0 - t) + w_alt[k] * t for k in weights}
 
         elif vtype in ("tank_destroyer", "light_tank", "medium_tank"):
-            z_a     = float(row.get("z_ks_a", 0.0))
-            t       = max(0.0, min(1.0, z_a / z_clip)) if z_clip > 1e-9 else 0.0
-            w_alt   = ROLE_WEIGHTS["spaa"]
-            weights = {k: weights[k] * (1.0 - t) + w_alt[k] * t for k in weights}
+            z_a      = float(row.get("z_ks_a", 0.0))
+            raw_ks_a = float(row.get("_ks_a_raw", 0.0))
+            thr      = ROLE_SHIFT_RAW_THRESHOLDS.get((vtype, "_ks_a_raw"), 0.0)
+            t        = (max(0.0, min(1.0, z_a / z_clip)) if z_clip > 1e-9 else 0.0) \
+                       if raw_ks_a >= thr else 0.0
+            w_alt    = ROLE_WEIGHTS["spaa"]
+            weights  = {k: weights[k] * (1.0 - t) + w_alt[k] * t for k in weights}
 
         elif vtype == "fighter":
-            z_g     = float(row.get("z_ks_g", 0.0))
-            t       = max(0.0, min(1.0, z_g / z_clip)) if z_clip > 1e-9 else 0.0
-            w_alt   = ROLE_WEIGHTS["assault"]
-            weights = {k: weights[k] * (1.0 - t) + w_alt[k] * t for k in weights}
+            z_g      = float(row.get("z_ks_g", 0.0))
+            raw_ks_g = float(row.get("_ks_g_raw", 0.0))
+            thr      = ROLE_SHIFT_RAW_THRESHOLDS.get(("fighter", "_ks_g_raw"), 0.0)
+            t        = (max(0.0, min(1.0, z_g / z_clip)) if z_clip > 1e-9 else 0.0) \
+                       if raw_ks_g >= thr else 0.0
+            w_alt    = ROLE_WEIGHTS["assault"]
+            weights  = {k: weights[k] * (1.0 - t) + w_alt[k] * t for k in weights}
 
         elif vtype in ("assault", "bomber"):
-            z_a     = float(row.get("z_ks_a", 0.0))
-            t       = max(0.0, min(1.0, z_a / z_clip)) if z_clip > 1e-9 else 0.0
-            w_alt   = ROLE_WEIGHTS["fighter"]
-            weights = {k: weights[k] * (1.0 - t) + w_alt[k] * t for k in weights}
+            z_a      = float(row.get("z_ks_a", 0.0))
+            raw_ks_a = float(row.get("_ks_a_raw", 0.0))
+            thr      = ROLE_SHIFT_RAW_THRESHOLDS.get((vtype, "_ks_a_raw"), 0.0)
+            t        = (max(0.0, min(1.0, z_a / z_clip)) if z_clip > 1e-9 else 0.0) \
+                       if raw_ks_a >= thr else 0.0
+            w_alt    = ROLE_WEIGHTS["fighter"]
+            weights  = {k: weights[k] * (1.0 - t) + w_alt[k] * t for k in weights}
 
         w_sum = sum(weights.values())
         if w_sum > 1e-9:

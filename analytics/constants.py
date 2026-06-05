@@ -132,5 +132,19 @@ DEFAULT_SETTINGS: dict = {
     "c_deaths":      3000,
 }
 
+ROLE_SHIFT_RAW_THRESHOLDS: dict[tuple, float] = {
+    ("tank_destroyer", "_ks_a_raw"): 0.15,
+    ("light_tank",     "_ks_a_raw"): 0.15,
+    ("medium_tank",    "_ks_a_raw"): 0.15,
+
+    ("spaa",           "_ks_g_raw"): 0.30,
+
+    ("fighter",        "_ks_g_raw"): 0.10,
+
+    ("assault",        "_ks_a_raw"): 0.30,
+    ("bomber",         "_ks_a_raw"): 0.30,
+}
+
+
 def snap_to_wt_br(br: float) -> float:
     return min(WT_BR_STEPS, key=lambda x: abs(x - br))
