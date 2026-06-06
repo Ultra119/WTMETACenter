@@ -18,8 +18,9 @@
             v-for="m in BR_MODES"
             :key="m.key"
             class="br-pill"
-            :class="{ 'br-pill--active': m.key === vehicle.Mode }"
+            :class="{ 'br-pill--active': m.key === activeMode }"
             :title="t(`vehicle_card.${m.titleKey}`)"
+            @click="activeMode = m.key"
           >
             <span class="br-pill__mode">{{ m.short }}</span>
             <span class="br-pill__val">{{ brByMode[m.key] ?? '—' }}</span>
@@ -64,22 +65,43 @@
         <div class="card-grid">
 
           <div class="card-section">
-            <div class="section-title"><v-icon size="12" style="margin-right:4px;opacity:.7">mdi-trophy</v-icon>{{ t('vehicle_card.scores') }}</div>
+            <div class="section-title">
+              <v-icon size="12" style="margin-right:4px;opacity:.7">mdi-trophy</v-icon>
+              {{ t('vehicle_card.scores') }}
+              <span class="scores-mode">{{ activeModePill }}</span>
+            </div>
+
             <div class="score-row">
               <span class="score-label">{{ t('vehicle_card.meta_score') }}</span>
               <div class="score-bar-wrap">
-                <span class="score-val" :style="{ color: metaColor(vehicle.META_SCORE) }">{{ vehicle.META_SCORE?.toFixed(1) }}</span>
+                <span class="score-val" :style="{ color: metaColor(activeScores.meta) }">
+                  {{ activeScores.meta != null ? activeScores.meta.toFixed(1) : '—' }}
+                </span>
                 <div class="score-track">
-                  <div class="score-bar" :style="{ width: vehicle.META_SCORE + '%', background: metaColor(vehicle.META_SCORE) }" />
+                  <div
+                    class="score-bar"
+                    :style="{
+                      width: (activeScores.meta ?? 0) + '%',
+                      background: metaColor(activeScores.meta),
+                    }"
+                  />
                 </div>
               </div>
             </div>
             <div class="score-row">
               <span class="score-label">{{ t('vehicle_card.farm_score') }}</span>
               <div class="score-bar-wrap">
-                <span class="score-val" :style="{ color: farmColor(vehicle.FARM_SCORE) }">{{ vehicle.FARM_SCORE?.toFixed(1) }}</span>
+                <span class="score-val" :style="{ color: farmColor(activeScores.farm) }">
+                  {{ activeScores.farm != null ? activeScores.farm.toFixed(1) : '—' }}
+                </span>
                 <div class="score-track">
-                  <div class="score-bar" :style="{ width: vehicle.FARM_SCORE + '%', background: farmColor(vehicle.FARM_SCORE) }" />
+                  <div
+                    class="score-bar"
+                    :style="{
+                      width: (activeScores.farm ?? 0) + '%',
+                      background: farmColor(activeScores.farm),
+                    }"
+                  />
                 </div>
               </div>
             </div>
@@ -167,7 +189,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref, watch, computed } from 'vue'
 import { useI18n }  from 'vue-i18n'
 import { useDataStore } from '../stores/useDataStore.js'
 import {
@@ -191,6 +213,13 @@ const BR_MODES = [
 const veh      = computed(() => props.vehicle ?? {})
 const hasVdb   = computed(() => (veh.value?.vdb_match_score ?? 0) > 0)
 const displayName = computed(() => vehicleDisplayName(veh.value))
+
+const activeMode = ref(props.vehicle?.Mode ?? 'Realistic')
+watch(veh, v => { if (v?.Mode) activeMode.value = v.Mode }, { immediate: true })
+
+const activeModePill = computed(() =>
+  BR_MODES.find(m => m.key === activeMode.value)?.short ?? ''
+)
 
 const brByMode = computed(() => {
   const v = veh.value
@@ -219,11 +248,48 @@ const brByMode = computed(() => {
   return result
 })
 
+const scoresByMode = computed(() => {
+  const v = veh.value
+  if (!v?.Name) return {}
+
+  const name   = v.Name
+  const nation = v.Nation
+  const type   = v.Type
+
+  const result = {}
+  const totalModes = BR_MODES.length
+  for (const entry of store.allVehicles) {
+    if (
+      entry.Name   === name   &&
+      entry.Nation === nation &&
+      entry.Type   === type   &&
+      entry.Mode   != null
+    ) {
+      if (!(entry.Mode in result)) {
+        result[entry.Mode] = {
+          meta: entry.META_SCORE ?? null,
+          farm: entry.FARM_SCORE ?? null,
+        }
+        if (Object.keys(result).length === totalModes) break
+      }
+    }
+  }
+  return result
+})
+
+const activeScores = computed(() => {
+  const s = scoresByMode.value[activeMode.value]
+  if (s) return s
+  return {
+    meta: veh.value?.META_SCORE ?? null,
+    farm: veh.value?.FARM_SCORE ?? null,
+  }
+})
+
 function v(key) {
   const val = veh.value?.[key]
   return val ?? t('vehicle_card.no_vdb')
 }
-
 </script>
 
 <style scoped>
@@ -243,7 +309,12 @@ function v(key) {
   border: 1px solid #1e3a5f;
   border-radius: 5px;
   background: transparent;
+  cursor: pointer;
   transition: border-color .15s, background .15s;
+}
+.br-pill:hover:not(.br-pill--active) {
+  border-color: rgba(56, 189, 248, 0.25);
+  background: rgba(56, 189, 248, 0.04);
 }
 .br-pill--active {
   border-color: rgba(56, 189, 248, 0.45);
@@ -264,6 +335,15 @@ function v(key) {
   color: #94a3b8;
 }
 .br-pill--active .br-pill__val { color: #38bdf8; }
+
+.scores-mode {
+  margin-left: 5px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  color: #38bdf8;
+  opacity: 0.75;
+}
 
 .info-band {
   display: grid;
@@ -304,7 +384,7 @@ function v(key) {
 .score-bar-wrap { display: flex; align-items: center; gap: 8px; background: #1e293b; border-radius: 4px; height: 18px; padding: 0 8px; }
 .score-val { font-size: 11px; font-weight: 700; font-family: 'JetBrains Mono', monospace; flex-shrink: 0; min-width: 26px; }
 .score-track { flex: 1; height: 4px; background: rgba(255,255,255,.06); border-radius: 2px; overflow: hidden; }
-.score-bar { height: 100%; border-radius: 2px; transition: width .3s; }
+.score-bar { height: 100%; border-radius: 2px; transition: width .3s, background .3s; }
 .armor-table { width: 100%; font-size: 11px; border-collapse: collapse; font-family: 'JetBrains Mono', monospace; }
 .armor-table th { color: #475569; font-weight: 600; text-align: center; padding: 2px 6px 5px; font-family: inherit; }
 .armor-table td { text-align: center; color: #e2e8f0; padding: 4px 6px; }
