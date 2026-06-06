@@ -118,11 +118,11 @@
                 <span class="stat-label">{{ t('vehicle_card.speed_rb') }}</span>
                 <span class="stat-value">{{ v('vdb_engine_max_speed_rb') }} {{ t('vehicle_card.speed_unit') }}</span>
               </div>
-              <div class="stat-row">
+              <div v-if="showReverseSpeed" class="stat-row">
                 <span class="stat-label">{{ t('vehicle_card.reverse_rb') }}</span>
                 <span class="stat-value">{{ v('vdb_engine_reverse_rb') }} {{ t('vehicle_card.speed_unit') }}</span>
               </div>
-              <div class="stat-row">
+              <div v-if="showHp" class="stat-row">
                 <span class="stat-label">{{ t('vehicle_card.hp_rb') }}</span>
                 <span class="stat-value">{{ v('vdb_engine_hp_rb') }} {{ t('vehicle_card.hp_unit') }}</span>
               </div>
@@ -139,7 +139,7 @@
           </div>
 
           <template v-if="hasVdb">
-            <div class="card-section">
+            <div v-if="showArmor" class="card-section">
               <div class="section-title"><v-icon size="12" style="margin-right:4px;opacity:.7">mdi-shield</v-icon>{{ t('vehicle_card.armor') }}</div>
               <table class="armor-table">
                 <thead>
@@ -163,7 +163,7 @@
               </table>
             </div>
 
-            <div class="card-section">
+            <div class="card-section" :style="!showArmor ? { gridColumn: '1 / -1' } : {}">
               <div class="section-title"><v-icon size="12" style="margin-right:4px;opacity:.7">mdi-bullet</v-icon>{{ t('vehicle_card.weapons') }}</div>
               <div class="stat-row">
                 <span class="stat-label">{{ t('vehicle_card.caliber')      }}</span>
@@ -174,10 +174,10 @@
                 <span class="stat-value">{{ v('vdb_main_gun_speed') > 0 ? v('vdb_main_gun_speed') + ' ' + t('vehicle_card.speed_unit_ms') : t('vehicle_card.no_vdb') }}</span>
               </div>
               <div class="chips-row">
-                <v-chip v-if="vehicle.vdb_has_thermal" color="info"      size="x-small">{{ t('vehicle_card.thermal') }}</v-chip>
-                <v-chip v-if="vehicle.vdb_has_atgm"    color="error"     size="x-small">{{ t('vehicle_card.atgm')    }}</v-chip>
-                <v-chip v-if="vehicle.vdb_has_heat"    color="warning"   size="x-small">{{ t('vehicle_card.heat')    }}</v-chip>
-                <v-chip v-if="vehicle.vdb_has_aphe"    color="secondary" size="x-small">{{ t('vehicle_card.aphe')    }}</v-chip>
+                <v-chip v-if="showThermal && vehicle.vdb_has_thermal" color="info"      size="x-small">{{ t('vehicle_card.thermal') }}</v-chip>
+                <v-chip v-if="showAtgm   && vehicle.vdb_has_atgm"    color="error"     size="x-small">{{ t('vehicle_card.atgm')    }}</v-chip>
+                <v-chip v-if="showHeat   && vehicle.vdb_has_heat"    color="warning"   size="x-small">{{ t('vehicle_card.heat')    }}</v-chip>
+                <v-chip v-if="showAphe   && vehicle.vdb_has_aphe"    color="secondary" size="x-small">{{ t('vehicle_card.aphe')    }}</v-chip>
               </div>
             </div>
           </template>
@@ -213,6 +213,24 @@ const BR_MODES = [
 const veh      = computed(() => props.vehicle ?? {})
 const hasVdb   = computed(() => (veh.value?.vdb_match_score ?? 0) > 0)
 const displayName = computed(() => vehicleDisplayName(veh.value))
+
+const _GROUND_SET = new Set(['medium_tank', 'light_tank', 'heavy_tank', 'tank_destroyer', 'spaa'])
+const _AIR_SET    = new Set(['fighter', 'bomber', 'assault'])
+const _HELI_SET   = new Set(['attack_helicopter', 'utility_helicopter'])
+
+const vehType  = computed(() => veh.value?.Type ?? '')
+const isGround = computed(() => _GROUND_SET.has(vehType.value))
+const isAir    = computed(() => _AIR_SET.has(vehType.value))
+const isHeli   = computed(() => _HELI_SET.has(vehType.value))
+const isFlying = computed(() => isAir.value || isHeli.value)
+
+const showReverseSpeed = computed(() => !isFlying.value)
+const showArmor        = computed(() => isGround.value)
+const showThermal      = computed(() => !isAir.value)
+const showAtgm         = computed(() => true)
+const showHeat         = computed(() => isGround.value)
+const showAphe         = computed(() => isGround.value)
+const showHp           = computed(() => !isAir.value || !!veh.value?.vdb_engine_hp_rb)
 
 const activeMode = ref(props.vehicle?.Mode ?? 'Realistic')
 watch(veh, v => { if (v?.Mode) activeMode.value = v.Mode }, { immediate: true })
