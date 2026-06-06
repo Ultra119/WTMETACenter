@@ -35,7 +35,7 @@
         density="compact"
         fixed-header
         height="calc(100vh - 230px)"
-        :sort-by="[{ key: 'META_SCORE', order: 'desc' }]"
+        v-model:sort-by="sortBy"
         :row-props="({ index }) => ({ class: index % 2 === 0 ? 'row-even' : 'row-odd' })"
         class="wt-table"
         @click:row="(_, { item }) => openVehicle(item)"
@@ -84,7 +84,8 @@ const store = useDataStore()
 useTabFilters()
 const openVehicle = inject('openVehicle')
 
-const nation = ref('All')
+const nation  = ref('All')
+const sortBy  = ref([{ key: 'META_SCORE', order: 'desc' }])
 
 const nationItems = computed(() =>
   (store.nations ?? []).map(n => ({
@@ -100,8 +101,11 @@ const filtered = computed(() => {
 })
 
 const tableRows = shallowRef([])
+let _lastFilteredRef = null
 watchEffect(() => {
   const rows = filtered.value
+  if (rows === _lastFilteredRef) return
+  _lastFilteredRef = rows
   nextTick(() => {
     tableRows.value = rows.map(v => ({
       ...normRow(v),
