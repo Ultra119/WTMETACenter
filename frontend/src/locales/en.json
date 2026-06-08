@@ -55,15 +55,13 @@
   "topbar": {
     "title":          "WT META Center",
     "report":         "Report issue",
-    "report_title":   "Report a bug or data issue on GitHub",
-    "search_hint":    "Search vehicles…",
-    "search_header":  "RESULTS",
-    "search_empty":   "Nothing found"
+    "report_title":   "Report a bug or data issue on GitHub"
   },
 
   "meta_tab": {
     "info":           "{n} vehicles · BR {min}–{max} · {mode} · click row for details",
     "nation_label":   "Nation",
+    "search_hint":    "Search vehicle…",
     "tip_click":      "Click any row to open the vehicle card.",
     "tip_colors":     "META colour scale:"
   },

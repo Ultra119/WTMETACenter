@@ -14,8 +14,18 @@
           hide-details
           style="max-width:220px"
         />
+        <v-text-field
+          v-model="searchQuery"
+          prepend-inner-icon="mdi-magnify"
+          :placeholder="t('meta_tab.search_hint')"
+          density="compact"
+          variant="outlined"
+          hide-details
+          clearable
+          style="max-width:240px"
+        />
         <InfoTip align="right" class="ml-auto">
-          <p><b>{{ filtered.length }}</b> {{ t('common.vehicle').toLowerCase() }} · BR {{ store.brRange[0].toFixed(1) }}–{{ store.brRange[1].toFixed(1) }} · {{ store.mode }}</p>
+          <p><b>{{ searchFiltered.length }}</b> {{ t('common.vehicle').toLowerCase() }} · BR {{ store.brRange[0].toFixed(1) }}–{{ store.brRange[1].toFixed(1) }} · {{ store.mode }}</p>
           <p>{{ t('meta_tab.tip_click') }}</p>
           <p style="margin-top:8px">
             {{ t('meta_tab.tip_colors') }}&nbsp;
@@ -50,6 +60,9 @@
             >{{ item.classIcon }}</v-icon>{{ item.Name_Display }}
           </span>
         </template>
+        <template #item.BR="{ item }">
+          <span>{{ fmtBR(item.BR) }}</span>
+        </template>
         <template #item.META_SCORE="{ item }">
           <span class="cell-score" :style="{ color: metaColor(item.META_SCORE) }">{{ item.META_SCORE?.toFixed(1) }}</span>
         </template>
@@ -74,7 +87,7 @@ import { useTabFilters } from '../composables/useTabFilters.js'
 import { useDataStore } from '../stores/useDataStore.js'
 import {
   vehicleDisplayName, vehicleClassMdiIcon, vehicleClassMdiColor,
-  fmtType, fmtNation,
+  fmtType, fmtNation, fmtBR,
   metaColor, farmColor, wrColor, normRow,
 } from '../composables/useVehicleFormatting.js'
 import InfoTip from '../components/InfoTip.vue'
@@ -100,10 +113,18 @@ const filtered = computed(() => {
   return rows
 })
 
+const searchQuery = ref('')
+
+const searchFiltered = computed(() => {
+  const q = (searchQuery.value ?? '').trim().toLowerCase()
+  if (!q) return filtered.value
+  return filtered.value.filter(v => v.Name?.toLowerCase().includes(q))
+})
+
 const tableRows = shallowRef([])
 let _lastFilteredRef = null
 watchEffect(() => {
-  const rows = filtered.value
+  const rows = searchFiltered.value
   if (rows === _lastFilteredRef) return
   _lastFilteredRef = rows
   nextTick(() => {
