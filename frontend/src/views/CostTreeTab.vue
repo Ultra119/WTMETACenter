@@ -3,25 +3,32 @@
     <div class="controls-bar mb-4">
       <div class="controls-row">
 
-        <div class="metric-group">
+        <div class="seg-ctrl">
           <button
             v-for="m in METRICS"
             :key="m.key"
-            :class="['metric-btn', metric === m.key && 'active']"
+            :class="['seg-btn', metric === m.key && 'seg-btn--active']"
             @click="metric = m.key"
           >
-            <span class="mdi metric-icon" :class="m.icon" />
+            <span class="mdi seg-btn-icon" :class="m.icon" />
             {{ t(`cost_tab.metric_${m.key}`) }}
           </button>
         </div>
 
-        <label class="folder-toggle ml-auto">
+        <label class="folder-toggle">
           <input type="checkbox" v-model="skipFolderDupes" class="folder-toggle__input" />
           <span class="folder-toggle__box">
             <span class="mdi mdi-folder-multiple-outline folder-toggle__icon" />
           </span>
           <span class="folder-toggle__label">{{ t('cost_tab.skip_folder') }}</span>
         </label>
+
+        <div class="era-legend ml-auto">
+          <span v-for="e in 8" :key="e" class="era-pip">
+            <span class="era-dot" :style="{ background: ERA_COLORS[e] }" />
+            {{ ROMAN[e] }}
+          </span>
+        </div>
 
         <InfoTip align="right">
           <p><b>{{ t('cost_tab.tip_title') }}</b></p>
@@ -35,109 +42,91 @@
             <span>{{ t('cost_tab.tip_eras') }}</span>
           </div>
         </InfoTip>
+
       </div>
     </div>
 
-    <div class="era-legend mb-4">
-      <span
-        v-for="e in 8"
-        :key="e"
-        class="era-pip"
+    <div class="branches-grid">
+      <div
+        v-for="branch in BRANCHES"
+        :key="branch.key"
+        class="branch-card"
+        :style="{ '--accent': branch.accent }"
       >
-        <span class="era-dot" :style="{ background: ERA_COLORS[e] }" />
-        {{ t('cost_tab.era') }} {{ e }}
-      </span>
-    </div>
 
-    <div v-for="branch in BRANCHES" :key="branch.key" class="branch-section mb-6">
+        <div class="branch-card__hdr">
+          <span class="mdi branch-card__icon" :class="branch.icon" />
+          <span class="branch-card__title">
+            {{ t(`cost_tab.branch_${branch.key.toLowerCase()}`) }}
+          </span>
+          <span class="branch-card__count">
+            {{ t('cost_tab.n_vehicles', { n: branchVehicleCount(branch.key) }) }}
+          </span>
+          <template v-if="chartRows(branch.key).length >= 2">
+            <div class="branch-card__summary ml-auto">
+              <span class="card-stat card-stat--cheap">
+                <span class="card-stat__dot" />
+                {{ nationFlag(chartRows(branch.key).at(-1)?.nation) }}
+                <b>{{ fmtNationName(chartRows(branch.key).at(-1)?.nation) }}</b>
+                <span class="card-stat__val">{{ fmtM(chartRows(branch.key).at(-1)?.total) }}</span>
+              </span>
+              <span class="card-stat card-stat--exp">
+                <span class="card-stat__dot" />
+                {{ nationFlag(chartRows(branch.key)[0]?.nation) }}
+                <b>{{ fmtNationName(chartRows(branch.key)[0]?.nation) }}</b>
+                <span class="card-stat__val">{{ fmtM(chartRows(branch.key)[0]?.total) }}</span>
+              </span>
+            </div>
+          </template>
+        </div>
 
-      <div class="branch-header">
-        <span class="mdi branch-icon" :class="branch.icon" />
-        <span class="branch-title">{{ t(`cost_tab.branch_${branch.key.toLowerCase()}`) }}</span>
-        <span class="branch-sub">{{ t('cost_tab.n_vehicles', { n: branchVehicleCount(branch.key) }) }}</span>
-      </div>
+        <div class="branch-card__rows">
+          <div
+            v-for="row in chartRows(branch.key)"
+            :key="row.nation"
+            class="bar-row"
+          >
+            <div class="nation-col">
+              <span class="nation-flag">{{ nationFlag(row.nation) }}</span>
+              <span class="nation-name">{{ fmtNationName(row.nation) }}</span>
+            </div>
 
-      <div class="chart-card">
+            <div class="bar-col">
+              <div class="bar-track">
+                <template v-for="e in 8" :key="e">
+                  <v-tooltip v-if="row.byEra[e]" location="top">
+                    <template #activator="{ props }">
+                      <div
+                        v-bind="props"
+                        class="bar-seg"
+                        :style="{
+                          width: segPctLocal(row.byEra[e], branch.key) + '%',
+                          background: ERA_COLORS[e],
+                        }"
+                      />
+                    </template>
+                    <span class="tooltip-content">
+                      <b>{{ t('cost_tab.era') }} {{ e }}</b><br/>
+                      {{ fmtFull(row.byEra[e]) }} {{ metricUnit }}<br/>
+                      {{ row.countByEra[e] }} {{ t('cost_tab.vehicles') }}
+                    </span>
+                  </v-tooltip>
+                </template>
+              </div>
+            </div>
 
-        <div class="scale-row">
-          <div class="nation-col" />
-          <div class="bar-col">
-            <div class="ticks">
-              <span v-for="tick in SCALE_TICKS" :key="tick" class="tick-label"
-                    :style="{ left: (tick / MAX_SCALE * 100) + '%' }">
-                {{ tick === 0 ? '0' : (tick / 1e6) + 'M' }}
+            <div class="total-col">
+              <span class="total-label" :style="{ color: totalColorLocal(row.total, branch.key) }">
+                {{ fmtM(row.total) }}
               </span>
             </div>
           </div>
-          <div class="total-col" />
-        </div>
 
-        <div class="rows-wrap">
-          <div class="grid-overlay">
-            <div v-for="tick in SCALE_TICKS" :key="'g' + tick" class="tick-gridline"
-                 :style="{ left: (tick / MAX_SCALE * 100) + '%' }" />
-          </div>
-        <div
-          v-for="row in chartRows(branch.key)"
-          :key="row.nation"
-          class="bar-row"
-        >
-          <div class="nation-col">
-            <span class="nation-flag">{{ nationFlag(row.nation) }}</span>
-            <span class="nation-name">{{ fmtNationName(row.nation) }}</span>
-          </div>
-
-          <div class="bar-col">
-            <div class="bar-track">
-              <template v-for="e in 8" :key="e">
-                <v-tooltip :disabled="!row.byEra[e]" location="top">
-                  <template #activator="{ props }">
-                    <div
-                      v-if="row.byEra[e]"
-                      v-bind="props"
-                      class="bar-seg"
-                      :style="{
-                        width: segPct(row.byEra[e]) + '%',
-                        background: ERA_COLORS[e],
-                      }"
-                    />
-                  </template>
-                  <span class="tooltip-content">
-                    <b>{{ t('cost_tab.era') }} {{ e }}</b><br/>
-                    {{ fmtFull(row.byEra[e]) }} {{ metricUnit }}<br/>
-                    {{ row.countByEra[e] }} {{ t('cost_tab.vehicles') }}
-                  </span>
-                </v-tooltip>
-              </template>
-            </div>
-          </div>
-
-          <div class="total-col">
-            <span class="total-label" :style="{ color: totalColor(row.total) }">
-              {{ fmtM(row.total) }}
-            </span>
+          <div v-if="!chartRows(branch.key).length" class="no-data">
+            {{ t('common.no_data') }}
           </div>
         </div>
 
-        </div>
-        <div v-if="!chartRows(branch.key).length" class="no-data">
-          {{ t('common.no_data') }}
-        </div>
-
-        <div v-else class="branch-summary">
-          <span class="summary-item cheap">
-            <span class="summary-dot cheap-dot" />
-            {{ t('cost_tab.cheapest') }}:
-            <b>{{ fmtNationName(chartRows(branch.key).at(-1)?.nation) }}</b>
-            · {{ fmtM(chartRows(branch.key).at(-1)?.total) }}
-          </span>
-          <span class="summary-item expensive">
-            <span class="summary-dot expensive-dot" />
-            {{ t('cost_tab.priciest') }}:
-            <b>{{ fmtNationName(chartRows(branch.key)[0]?.nation) }}</b>
-            · {{ fmtM(chartRows(branch.key)[0]?.total) }}
-          </span>
-        </div>
       </div>
     </div>
 
@@ -156,29 +145,20 @@ const store = useDataStore()
 useTabFilters({ period: false, mode: false, brRange: false, minBattles: false, classes: true, types: false })
 
 const ERA_COLORS = {
-  1: '#6ee7b7',
-  2: '#4ade80',
-  3: '#a3e635',
-  4: '#facc15',
-  5: '#fb923c',
-  6: '#f87171',
-  7: '#c084fc',
-  8: '#818cf8',
+  1: '#6ee7b7', 2: '#4ade80', 3: '#a3e635', 4: '#facc15',
+  5: '#fb923c', 6: '#f87171', 7: '#c084fc', 8: '#818cf8',
 }
 
+const ROMAN = { 1:'I', 2:'II', 3:'III', 4:'IV', 5:'V', 6:'VI', 7:'VII', 8:'VIII' }
+
 const NATION_FLAG = {
-  usa:         '🇺🇸', germany:     '🇩🇪', ussr:        '🇷🇺',
-  britain:     '🇬🇧', japan:       '🇯🇵', italy:       '🇮🇹',
-  france:      '🇫🇷', sweden:      '🇸🇪', israel:      '🇮🇱',
-  china:       '🇨🇳',
+  usa:'🇺🇸', germany:'🇩🇪', ussr:'🇷🇺', britain:'🇬🇧', japan:'🇯🇵',
+  italy:'🇮🇹', france:'🇫🇷', sweden:'🇸🇪', israel:'🇮🇱', china:'🇨🇳',
 }
 
 const NATION_DISPLAY = {
-  usa:         'USA',        germany:     'Germany',
-  ussr:        'USSR',       britain:     'Britain',
-  japan:       'Japan',      italy:       'Italy',
-  france:      'France',     sweden:      'Sweden',
-  israel:      'Israel',     china:       'China',
+  usa:'USA', germany:'Germany', ussr:'USSR', britain:'Britain', japan:'Japan',
+  italy:'Italy', france:'France', sweden:'Sweden', israel:'Israel', china:'China',
 }
 
 function fmtNationName(n) {
@@ -192,10 +172,10 @@ function nationFlag(n) {
 }
 
 const BRANCHES = [
-  { key: 'Ground',      icon: 'mdi-tank', types: ['medium_tank','light_tank','heavy_tank','tank_destroyer','spaa'] },
-  { key: 'Aviation',    icon: 'mdi-airplane', types: ['fighter','bomber','assault'] },
-  { key: 'Helicopters', icon: 'mdi-helicopter', types: ['attack_helicopter','utility_helicopter'] },
-  { key: 'Fleet',       icon: 'mdi-anchor', types: ['destroyer','heavy_cruiser','light_cruiser','battleship','battlecruiser','boat','heavy_boat','frigate','barge'] },
+  { key: 'Ground',      icon: 'mdi-tank',       accent: '#a7f3d0', types: ['medium_tank','light_tank','heavy_tank','tank_destroyer','spaa'] },
+  { key: 'Aviation',    icon: 'mdi-airplane',    accent: '#38bdf8', types: ['fighter','bomber','assault'] },
+  { key: 'Helicopters', icon: 'mdi-helicopter',  accent: '#a78bfa', types: ['attack_helicopter','utility_helicopter'] },
+  { key: 'Fleet',       icon: 'mdi-anchor',      accent: '#60a5fa', types: ['destroyer','heavy_cruiser','light_cruiser','battleship','battlecruiser','boat','heavy_boat','frigate','barge'] },
 ]
 const BRANCH_TYPE_SET = Object.fromEntries(
   BRANCHES.map(b => [b.key, new Set(b.types)])
@@ -208,32 +188,6 @@ const METRICS = [
 
 const metric          = ref('rp')
 const skipFolderDupes = ref(true)
-
-function niceMax(val) {
-  if (!val || val <= 0) return 1_000_000
-  const log = Math.floor(Math.log10(val))
-  const magnitude = Math.pow(10, log)
-  for (const mult of [1, 2, 5, 10]) {
-    const candidate = magnitude * mult
-    if (candidate >= val) return candidate
-  }
-  return magnitude * 10
-}
-
-const MAX_SCALE = computed(() => {
-  let max = 0
-  for (const { rows } of Object.values(chartData.value)) {
-    for (const row of rows) {
-      if (row.total > max) max = row.total
-    }
-  }
-  if (!max) return metric.value === 'sl' ? 40_000_000 : 20_000_000
-  return niceMax(max)
-})
-const SCALE_TICKS = computed(() => {
-  const m = MAX_SCALE.value
-  return [0, m * 0.25, m * 0.5, m * 0.75, m]
-})
 
 const metricUnit = computed(() => metric.value === 'rp' ? 'RP' : 'SL')
 
@@ -337,6 +291,26 @@ function branchVehicleCount(branchKey) {
   return chartData.value[branchKey]?.vehicleCount ?? 0
 }
 
+const branchMaxes = computed(() => {
+  const out = {}
+  for (const b of BRANCHES) {
+    const rows = chartRows(b.key)
+    out[b.key] = rows.length ? Math.max(...rows.map(r => r.total)) : 1
+  }
+  return out
+})
+
+function segPctLocal(val, branchKey) {
+  return Math.min((val / (branchMaxes.value[branchKey] ?? 1)) * 100, 100)
+}
+
+function totalColorLocal(total, branchKey) {
+  const p = total / (branchMaxes.value[branchKey] ?? 1)
+  if (p > 0.85) return '#f87171'
+  if (p > 0.60) return '#fb923c'
+  if (p < 0.25) return '#4ade80'
+  return '#e2e8f0'
+}
 
 function fmtM(n) {
   if (!n) return '0'
@@ -349,48 +323,23 @@ function fmtFull(n) {
   if (!n) return '0'
   return n.toLocaleString()
 }
-
-function segPct(val) {
-  return Math.min((val / MAX_SCALE.value) * 100, 100)
-}
-
-function totalColor(total) {
-  const pct = total / MAX_SCALE.value
-  if (pct > 0.7) return '#f87171'
-  if (pct > 0.5) return '#fb923c'
-  return '#4ade80'
-}
 </script>
 
 <style scoped>
-.controls-bar {
-  background: rgba(15, 23, 42, 0.6);
-  border: 1px solid #1e3a5f;
-  border-radius: 10px;
-  padding: 12px 16px;
-}
-.controls-row {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 16px;
-}
-
-.metric-btn:hover { border-color: #334155; color: #94a3b8; }
-.tip-icon  { font-size: 14px; color: #475569; flex-shrink: 0; }
-.branch-icon { font-size: 20px; color: #a7f3d0; }
-
 .era-legend {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   flex-wrap: wrap;
+  align-items: center;
 }
 .era-pip {
   display: flex;
   align-items: center;
-  gap: 5px;
-  font-size: 11px;
-  color: #94a3b8;
+  gap: 4px;
+  font-size: 10px;
+  color: #64748b;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: .03em;
 }
 .era-dot {
   width: 10px;
@@ -399,84 +348,94 @@ function totalColor(total) {
   flex-shrink: 0;
 }
 
-.branch-header {
+.branches-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.branch-card {
+  background: rgba(12, 20, 38, 0.65);
+  border: 1px solid #1e3a5f;
+  border-left: 3px solid var(--accent, #a7f3d0);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.branch-card__hdr {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 10px;
-}
-.branch-title {
-  font-size: 15px;
-  font-weight: 700;
-  color: #a7f3d0;
-  text-transform: uppercase;
-  letter-spacing: .08em;
-}
-.branch-sub { font-size: 11px; color: #475569; }
-
-.chart-card {
-  background: rgba(15, 23, 42, 0.5);
-  border: 1px solid #1e3a5f;
-  border-radius: 10px;
-  padding: 12px 16px 8px;
-  overflow: hidden;
-}
-
-.scale-row {
-  display: grid;
-  grid-template-columns: 120px 1fr 54px;
-  gap: 10px;
-  align-items: center;
-  margin: -12px -16px 0;
-  padding: 8px 16px 6px;
-  background: rgba(10, 18, 35, 0.45);
+  gap: 8px;
+  padding: 9px 14px;
+  background: rgba(7, 14, 28, 0.6);
   border-bottom: 1px solid #1e3a5f;
-  border-radius: 10px 10px 0 0;
+  flex-wrap: wrap;
 }
-.ticks {
-  position: relative;
-  height: 16px;
+.branch-card__icon {
+  font-size: 18px;
+  color: var(--accent, #a7f3d0);
+  flex-shrink: 0;
 }
-.tick-label {
-  position: absolute;
-  transform: translateX(-50%);
+.branch-card__title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent, #a7f3d0);
+  text-transform: uppercase;
+  letter-spacing: .1em;
+}
+.branch-card__count {
   font-size: 10px;
   color: #475569;
-  white-space: nowrap;
+  background: rgba(30, 58, 95, 0.5);
+  border: 1px solid rgba(30, 58, 95, 0.9);
+  border-radius: 4px;
+  padding: 1px 7px;
+  font-family: 'JetBrains Mono', monospace;
 }
-.rows-wrap {
-  position: relative;
-  overflow: hidden;
+.branch-card__summary {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
 }
-.grid-overlay {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 130px;
-  right: 64px;
-  pointer-events: none;
-  z-index: 0;
+
+.card-stat {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  color: #64748b;
 }
-.tick-gridline {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 1px;
-  background: rgba(30, 58, 95, 0.6);
-  pointer-events: none;
+.card-stat__dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 1px;
+  flex-shrink: 0;
 }
+.card-stat--cheap .card-stat__dot { background: #4ade80; }
+.card-stat--exp   .card-stat__dot { background: #f87171; }
+.card-stat--cheap b { color: #4ade80; }
+.card-stat--exp   b { color: #f87171; }
+.card-stat__val {
+  color: #475569;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.branch-card__rows { padding: 3px 0; }
 
 .bar-row {
   display: grid;
-  grid-template-columns: 120px 1fr 54px;
-  gap: 10px;
+  grid-template-columns: 110px 1fr 52px;
+  gap: 8px;
   align-items: center;
-  padding: 5px 0;
+  padding: 5px 14px;
+  border-top: 1px solid rgba(30, 58, 95, 0.35);
+  transition: opacity .12s;
+  cursor: default;
 }
-.bar-row + .bar-row { border-top: 1px solid rgba(30,58,95,0.4); }
+.bar-row:first-child { border-top: none; }
 
-.chart-card:has(.bar-row:hover) .bar-row:not(:hover) {
-  opacity: 0.35;
+.branch-card__rows:has(.bar-row:hover) .bar-row:not(:hover) {
+  opacity: 0.18;
 }
 
 .nation-col {
@@ -485,75 +444,43 @@ function totalColor(total) {
   gap: 6px;
   min-width: 0;
 }
-.nation-flag { font-size: 16px; line-height: 1; flex-shrink: 0; }
+.nation-flag { font-size: 14px; line-height: 1; flex-shrink: 0; }
 .nation-name {
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 11px;
+  font-weight: 700;
   color: #cbd5e1;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  letter-spacing: .04em;
 }
 
-.bar-col {
-  min-width: 0;
-  position: relative;
-}
-
-.total-col {
-  text-align: right;
-}
-.total-label {
-  font-size: 14px;
-  font-weight: 700;
-}
+.bar-col { min-width: 0; }
 
 .bar-track {
   display: flex;
-  height: 20px;
+  height: 24px;
   border-radius: 3px;
   overflow: hidden;
   background: rgba(30, 58, 95, 0.3);
   width: 100%;
-  position: relative;
-  z-index: 1;
 }
 .bar-seg {
   height: 100%;
-  min-width: 1px;
-  transition: filter .15s;
+  min-width: 2px;
+  margin-right: 1px;
+  flex-shrink: 0;
+  transition: filter .12s;
 }
-.bar-seg:hover { filter: brightness(1.3); cursor: default; }
+.bar-seg:last-child { margin-right: 0; }
+.bar-seg:hover { filter: brightness(1.3); }
+
+.total-col { text-align: right; }
+.total-label {
+  font-size: 12px;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+}
 
 .tooltip-content { font-size: 12px; line-height: 1.6; }
-
-.branch-summary {
-  display: flex;
-  align-items: center;
-  gap: 24px;
-  padding: 9px 16px 4px;
-  margin: 0 -16px -8px;
-  border-top: 1px solid #1e3a5f;
-  background: rgba(10, 18, 35, 0.45);
-  flex-wrap: wrap;
-  border-radius: 0 0 10px 10px;
-}
-.summary-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 11px;
-  color: #64748b;
-}
-.summary-item b { color: #94a3b8; }
-.summary-item.cheap b     { color: #4ade80; }
-.summary-item.expensive b { color: #f87171; }
-.summary-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 2px;
-  flex-shrink: 0;
-}
-.cheap-dot     { background: #4ade80; }
-.expensive-dot { background: #f87171; }
 </style>
