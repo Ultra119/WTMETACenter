@@ -1,10 +1,5 @@
 <template>
   <v-app theme="wt">
-    <v-overlay :model-value="store.loading" persistent class="align-center justify-center">
-      <v-progress-circular indeterminate size="64" color="primary" />
-      <div class="mt-4 text-caption text-medium-emphasis">{{ t('common.loading') }}</div>
-    </v-overlay>
-
     <Transition name="filter-bar-fade">
       <div v-if="store.filtering" class="filter-progress-bar">
         <div class="filter-progress-inner" />
