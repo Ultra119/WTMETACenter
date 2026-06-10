@@ -1,6 +1,7 @@
 <template>
   <v-navigation-drawer
-    permanent
+    :model-value="open"
+    :scrim="false"
     :width="272"
     color="#0a1628"
     style="border-right: 1px solid #1e3a5f; top: 48px; height: calc(100% - 48px);"
@@ -168,6 +169,10 @@
 <script setup>
 import { computed } from 'vue'
 import { useI18n }  from 'vue-i18n'
+
+const props = defineProps({
+  open: { type: Boolean, default: true },
+})
 import { useDataStore }     from '../stores/useDataStore.js'
 import { formatPeriodLabel } from '../stores/useDataStore.js'
 

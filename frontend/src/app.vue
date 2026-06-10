@@ -12,7 +12,7 @@
 
     <TopBar />
 
-    <SideBar v-if="showSidebar" />
+    <SideBar :open="showSidebar" />
 
     <v-main style="background: #020c1a;">
       <v-tabs
