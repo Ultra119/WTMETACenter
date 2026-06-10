@@ -50,6 +50,9 @@
             >{{ item.classIcon }}</v-icon>{{ item.Name_Display }}
           </span>
         </template>
+        <template #item.BR="{ item }">
+          <span>{{ fmtBR(item.BR) }}</span>
+        </template>
         <template #item.META_SCORE="{ item }">
           <span class="cell-score" :style="{ color: metaColor(item.META_SCORE) }">{{ item.META_SCORE?.toFixed(1) }}</span>
         </template>
@@ -74,7 +77,7 @@ import { useTabFilters } from '../composables/useTabFilters.js'
 import { useDataStore } from '../stores/useDataStore.js'
 import {
   vehicleDisplayName, vehicleClassMdiIcon, vehicleClassMdiColor,
-  fmtType, fmtNation,
+  fmtType, fmtNation, fmtBR,
   metaColor, farmColor, wrColor, normRow,
 } from '../composables/useVehicleFormatting.js'
 import InfoTip from '../components/InfoTip.vue'
