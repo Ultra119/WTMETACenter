@@ -11,10 +11,12 @@
     </v-snackbar>
 
     <TopBar />
-    <SideBar />
+
+    <SideBar v-if="showSidebar" />
 
     <v-main style="background: #020c1a;">
       <v-tabs
+        v-if="showNav"
         v-model="activeTab"
         bg-color="#0f172a"
         color="primary"
@@ -42,16 +44,29 @@
 </template>
 
 <script setup>
-import { ref, provide, onMounted } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { ref, computed, provide, onMounted } from 'vue'
+import { useRoute }     from 'vue-router'
+import { useI18n }      from 'vue-i18n'
 import { useDataStore } from './stores/useDataStore.js'
-import TopBar      from './components/TopBar.vue'
-import SideBar     from './components/SideBar.vue'
+import TopBar           from './components/TopBar.vue'
+import SideBar          from './components/SideBar.vue'
 import VehicleCard      from './components/VehicleCard.vue'
-import DisclaimerModal from './components/DisclaimerModal.vue'
+import DisclaimerModal  from './components/DisclaimerModal.vue'
 
-const { t } = useI18n()
+const { t }  = useI18n()
 const store  = useDataStore()
+const route  = useRoute()
+
+const sidebarOpen = ref(true)
+const showSidebar = computed(() => sidebarOpen.value && route.path !== '/')
+const showNav     = computed(() => route.path !== '/')
+
+function toggleSidebar() {
+  sidebarOpen.value = !sidebarOpen.value
+}
+
+provide('sidebarOpen',   sidebarOpen)
+provide('toggleSidebar', toggleSidebar)
 
 const activeTab = ref('/meta')
 
@@ -61,8 +76,8 @@ const tabs = [
   { to: '/brackets',    icon: 'mdi-view-grid',                labelKey: 'tabs.brackets'    },
   { to: '/farm',        icon: 'mdi-wrench',                   labelKey: 'tabs.farm'        },
   { to: '/progression', icon: 'mdi-chart-timeline-variant',   labelKey: 'tabs.progression' },
-  { to: '/cost',        icon: 'mdi-chart-bar',                labelKey: 'tabs.cost' },
-  { to: '/history',     icon: 'mdi-clock-time-eight-outline', labelKey: 'tabs.history' },
+  { to: '/cost',        icon: 'mdi-chart-bar',                labelKey: 'tabs.cost'        },
+  { to: '/history',     icon: 'mdi-clock-time-eight-outline', labelKey: 'tabs.history'     },
 ]
 
 const modalOpen       = ref(false)
@@ -75,8 +90,9 @@ function openVehicle(v) {
 
 provide('openVehicle', openVehicle)
 
-const DISCLAIMER_KEY     = 'wt_disclaimer_accepted'
-const disclaimerVisible  = ref(!localStorage.getItem(DISCLAIMER_KEY))
+const DISCLAIMER_KEY    = 'wt_disclaimer_accepted'
+const disclaimerVisible = ref(!localStorage.getItem(DISCLAIMER_KEY))
+
 function acceptDisclaimer() {
   localStorage.setItem(DISCLAIMER_KEY, '1')
   disclaimerVisible.value = false

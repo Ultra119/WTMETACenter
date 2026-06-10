@@ -263,6 +263,18 @@
     "Simulator":  "SB"
   },
 
+  "home_tab": {
+    "eyebrow":      "War Thunder Analytics",
+    "subtitle":     "War Thunder analytics and statistics — all in one place.",
+    "desc_meta":        "Full performance ranking of all vehicles — META score, K/D, and win rate, filterable by BR, mode, and class.",
+    "desc_redbook":     "Vehicles with the fewest battles played — endangered and rarely seen in matches.",
+    "desc_brackets":    "Weighted META score per nation across every BR bracket. See who dominates each tier.",
+    "desc_farm":        "Build the most efficient SL farming lineup for any BR. Find the best earners and hidden gems.",
+    "desc_progression": "Tech tree verdicts for every vehicle: must-grind, skip, lineup filler, or premium fix.",
+    "desc_cost":        "Compare total RP and SL cost to fully unlock each nation's tech tree, broken down by rank.",
+    "desc_history":     "Browse all vehicles grouped by the game update they were introduced in."
+  },
+
   "history_tab": {
     "vehicles":         "vehicles",
     "patches":          "update groups",

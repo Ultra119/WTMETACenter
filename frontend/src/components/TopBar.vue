@@ -4,9 +4,20 @@
     height="48"
     style="background: #0a1628; border-bottom: 1px solid #1e3a5f; z-index: 1000;"
   >
+    <button
+      v-if="!isHomePage"
+      class="sidebar-toggle"
+      :title="sidebarOpen ? 'Hide sidebar' : 'Show sidebar'"
+      @click="toggleSidebar()"
+    >
+      <span class="mdi" :class="sidebarOpen ? 'mdi-backburger' : 'mdi-menu'" />
+    </button>
+
     <v-app-bar-title>
       <div class="logo-group">
-        <span class="logo-title">{{ t('topbar.title') }}</span>
+        <router-link to="/" class="logo-title-link">
+          <span class="logo-title">{{ t('topbar.title') }}</span>
+        </router-link>
         <a
           href="https://github.com/Ultra119/wt_meta_center/issues"
           target="_blank"
@@ -104,7 +115,8 @@
 </template>
 
 <script setup>
-import { ref, shallowRef, watchEffect, nextTick, inject, onMounted, onBeforeUnmount } from 'vue'
+import { ref, shallowRef, watchEffect, nextTick, inject, computed, onMounted, onBeforeUnmount } from 'vue'
+import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useDataStore } from '../stores/useDataStore.js'
 import { setLocale, SUPPORTED_LOCALES } from '../i18n/index.js'
@@ -112,8 +124,13 @@ import { vehicleDisplayName, fmtBR, NATION_FLAG } from '../composables/useVehicl
 import { TYPE_ICON } from '../composables/constants.js'
 
 const { t, locale } = useI18n()
-const store       = useDataStore()
-const openVehicle = inject('openVehicle')
+const store         = useDataStore()
+const route         = useRoute()
+const openVehicle   = inject('openVehicle')
+const toggleSidebar = inject('toggleSidebar', null)
+const sidebarOpen   = inject('sidebarOpen', null)
+
+const isHomePage = computed(() => route.path === '/')
 
 const query      = ref('')
 const isOpen     = ref(false)
@@ -139,21 +156,18 @@ function onDocClick(e) {
   if (!wrapperRef.value?.contains(e.target)) closeSearch()
 }
 
-onMounted(()   => document.addEventListener('mousedown', onDocClick))
-onBeforeUnmount(() => document.removeEventListener('mousedown', onDocClick))
+onMounted(()        => document.addEventListener('mousedown', onDocClick))
+onBeforeUnmount(()  => document.removeEventListener('mousedown', onDocClick))
 
 const MAX_HITS = 12
-
 const hits = shallowRef([])
+
 watchEffect(() => {
   const q        = query.value.trim()
   const vehicles = store.allVehicles
 
   nextTick(() => {
-    if (q.length < 2) {
-      hits.value = []
-      return
-    }
+    if (q.length < 2) { hits.value = []; return }
     const lower  = q.toLowerCase()
     const seen   = new Set()
     const result = []
@@ -169,7 +183,7 @@ watchEffect(() => {
   })
 })
 
-function typeIcon(type)   { return TYPE_ICON[type] ?? 'mdi-car' }
+function typeIcon(type)     { return TYPE_ICON[type] ?? 'mdi-car' }
 function nationFlag(nation) { return NATION_FLAG[nation?.toLowerCase()] ?? '🏴' }
 
 function onInput() {
@@ -186,10 +200,7 @@ function onFocus() {
   }
 }
 
-function closeSearch() {
-  isOpen.value    = false
-  activeIdx.value = -1
-}
+function closeSearch() { isOpen.value = false; activeIdx.value = -1 }
 
 function clearQuery() {
   query.value     = ''
@@ -198,35 +209,49 @@ function clearQuery() {
   inputRef.value?.focus()
 }
 
-function pick(v) {
-  openVehicle?.(v)
-  closeSearch()
-  query.value = ''
-}
+function pick(v) { openVehicle?.(v); closeSearch(); query.value = '' }
 
 function moveDown() {
   if (!hits.value.length) return
   activeIdx.value = (activeIdx.value + 1) % hits.value.length
 }
-
 function moveUp() {
   if (!hits.value.length) return
   activeIdx.value = activeIdx.value <= 0 ? hits.value.length - 1 : activeIdx.value - 1
 }
-
-function selectActive() {
-  const v = hits.value[activeIdx.value]
-  if (v) pick(v)
-}
+function selectActive() { const v = hits.value[activeIdx.value]; if (v) pick(v) }
 </script>
 
 <style scoped>
+.sidebar-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  margin-left: 8px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  color: #475569;
+  font-size: 18px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.sidebar-toggle:hover {
+  color: #94a3b8;
+  border-color: #1e3a5f;
+  background: rgba(255,255,255,0.04);
+}
+
+/* Logo */
 .logo-group {
   display: inline-flex;
   align-items: baseline;
   gap: 10px;
 }
-
+.logo-title-link { text-decoration: none; }
 .logo-title {
   font-size: 22px;
   font-weight: 700;
@@ -271,7 +296,7 @@ function selectActive() {
   box-shadow: 0 0 0 2px rgba(56,189,248,0.12);
 }
 
-.search-icon { font-size: 16px; color: #475569; flex-shrink: 0; }
+.search-icon  { font-size: 16px; color: #475569; flex-shrink: 0; }
 
 .search-input {
   flex: 1;
@@ -295,10 +320,7 @@ function selectActive() {
 .search-clear .mdi  { font-size: 15px; }
 
 .lang-switcher { display: flex; gap: 2px; }
-.lang-btn {
-  font-size: 11px !important;
-  min-width: 44px !important;
-}
+.lang-btn { font-size: 11px !important; min-width: 44px !important; }
 
 .dropdown-enter-active { transition: opacity 0.12s ease, transform 0.12s ease; }
 .dropdown-leave-active { transition: opacity 0.08s ease; }
@@ -372,7 +394,7 @@ function selectActive() {
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
-.item-flag  { font-size: 15px; line-height: 1; flex-shrink: 0; }
+.item-flag { font-size: 15px; line-height: 1; flex-shrink: 0; }
 
 .item-br {
   font-family: 'JetBrains Mono', monospace;
