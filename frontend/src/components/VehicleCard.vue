@@ -49,15 +49,15 @@
             </div>
             <div class="meta-row">
               <span class="meta-lbl">{{ t('vehicle_card.battles') }}</span>
-              <span class="meta-val">{{ (vehicle['Сыграно игр'] ?? 0).toLocaleString() }}</span>
+              <span class="meta-val">{{ (modeVehicle['Сыграно игр'] ?? 0).toLocaleString() }}</span>
             </div>
             <div class="meta-row">
               <span class="meta-lbl">{{ t('vehicle_card.wr') }}</span>
-              <span class="meta-val" :style="{ color: wrColor(vehicle.WR) }">{{ vehicle.WR?.toFixed(1) }}%</span>
+              <span class="meta-val" :style="{ color: wrColor(modeVehicle.WR) }">{{ modeVehicle.WR?.toFixed(1) }}%</span>
             </div>
             <div class="meta-row">
               <span class="meta-lbl">{{ t('vehicle_card.kd') }}</span>
-              <span class="meta-val">{{ vehicle.KD?.toFixed(2) }}</span>
+              <span class="meta-val">{{ modeVehicle.KD?.toFixed(2) }}</span>
             </div>
           </div>
         </div>
@@ -107,7 +107,7 @@
             </div>
             <div class="stat-row mt-2">
               <span class="stat-label">{{ t('vehicle_card.net_sl') }}</span>
-              <span class="stat-value" style="color: #34d399;">{{ fmtSL(vehicle['Net SL за игру']) }}</span>
+              <span class="stat-value" style="color: #34d399;">{{ fmtSL(modeVehicle['Net SL за игру']) }}</span>
             </div>
           </div>
 
@@ -133,7 +133,7 @@
               </div>
               <div class="stat-row">
                 <span class="stat-label">{{ t('vehicle_card.sl_per_game') }}</span>
-                <span class="stat-value" style="color: #34d399;">{{ fmtSL(vehicle['SL за игру']) }}</span>
+                <span class="stat-value" style="color: #34d399;">{{ fmtSL(modeVehicle['SL за игру']) }}</span>
               </div>
             </template>
           </div>
@@ -234,6 +234,18 @@ const showHp           = computed(() => !isAir.value || !!veh.value?.vdb_engine_
 
 const activeMode = ref(props.vehicle?.Mode ?? 'Realistic')
 watch(veh, v => { if (v?.Mode) activeMode.value = v.Mode }, { immediate: true })
+
+const modeVehicle = computed(() => {
+  const base = veh.value
+  if (!base?.Name) return base
+  return store.allVehicles.find(
+    e =>
+      e.Name   === base.Name   &&
+      e.Nation === base.Nation &&
+      e.Type   === base.Type   &&
+      e.Mode   === activeMode.value
+  ) ?? base
+})
 
 const activeModePill = computed(() =>
   BR_MODES.find(m => m.key === activeMode.value)?.short ?? ''
