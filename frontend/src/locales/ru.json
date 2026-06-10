@@ -55,13 +55,15 @@
   "topbar": {
     "title":          "WT META Center",
     "report":         "Сообщить о проблеме",
-    "report_title":   "Сообщить об ошибке или неточности данных на GitHub"
+    "report_title":   "Сообщить об ошибке или неточности данных на GitHub",
+    "search_hint":    "Поиск техники…",
+    "search_header":  "РЕЗУЛЬТАТЫ",
+    "search_empty":   "Ничего не найдено"
   },
 
   "meta_tab": {
     "info":           "{n} машин · БР {min}–{max} · {mode} · кликните строку для карточки",
     "nation_label":   "Нация",
-    "search_hint":    "Поиск техники…",
     "tip_click":      "Кликните по строке, чтобы открыть карточку техники.",
     "tip_colors":     "Цветовая шкала META:"
   },
