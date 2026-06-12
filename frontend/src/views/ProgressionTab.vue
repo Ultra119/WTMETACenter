@@ -581,21 +581,21 @@ watchEffect(() => {
       const mustCount = grp.filter(v => v.Verdict === VERDICT_MUST).length
       if (mustCount >= want) continue
       const need = want - mustCount
-
-      const nonSkip = grp
+      const fillCands = grp
         .filter(v =>
           v.Verdict !== VERDICT_MUST &&
-          v.Verdict !== VERDICT_SKIP &&
           v._localScore >= FILL_MIN_SCORE
         )
-        .sort((a, b) => b._localScore - a._localScore)
-
-      const skipFallback = grp
-        .filter(v => v.Verdict === VERDICT_SKIP && v._localScore >= FILL_MIN_SCORE)
-        .sort((a, b) => b._localScore - a._localScore)
+        .sort((a, b) => {
+          const scoreDiff = b._localScore - a._localScore
+          if (Math.abs(scoreDiff) > 0.5) return scoreDiff
+          const aIsSkip = a.Verdict === VERDICT_SKIP ? 1 : 0
+          const bIsSkip = b.Verdict === VERDICT_SKIP ? 1 : 0
+          return aIsSkip - bIsSkip
+        })
 
       let filled = 0
-      for (const cand of [...nonSkip, ...skipFallback]) {
+      for (const cand of fillCands) {
         if (filled >= need) break
         cand.Verdict     = VERDICT_FILL
         cand.Skip_Reason = ''
