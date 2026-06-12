@@ -81,6 +81,9 @@ export const useDataStore = defineStore('data', () => {
   watch(brRange,    v => commitRange([...v]))
   watch(minBattles, v => commitBattles(v))
 
+  const searchQuery = ref('')
+  const metaTabActive = ref(false)
+
   let _vehicleAC = null
 
   async function _loadVehicles() {
@@ -197,5 +200,7 @@ export const useDataStore = defineStore('data', () => {
     loadData,
     tabFilterConfig, setTabFilters, clearTabFilters,
     BR_MIN, BR_MAX, WT_BR_STEPS,
+    searchQuery,
+    metaTabActive,
   }
 })

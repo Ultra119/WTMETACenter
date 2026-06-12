@@ -35,7 +35,7 @@
 
     <div class="search-wrapper" ref="wrapperRef">
 
-      <div class="search-field" :class="{ 'search-field--active': isOpen }">
+      <div class="search-field" :class="{ 'search-field--active': isOpen || (store.metaTabActive && query.trim().length >= 2) }">
         <span class="mdi mdi-magnify search-icon" />
         <input
           ref="inputRef"
@@ -59,7 +59,7 @@
       <Teleport to="body">
         <Transition name="dropdown">
           <div
-            v-if="isOpen"
+            v-if="isOpen && !store.metaTabActive"
             class="search-dropdown"
             :style="dropdownStyle"
           >
@@ -115,7 +115,7 @@
 </template>
 
 <script setup>
-import { ref, shallowRef, watchEffect, nextTick, inject, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, shallowRef, watchEffect, nextTick, inject, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useDataStore } from '../stores/useDataStore.js'
@@ -139,6 +139,7 @@ const inputRef   = ref(null)
 const wrapperRef = ref(null)
 
 const dropdownStyle = ref({})
+watch(query, q => { store.searchQuery = q.trim() })
 
 function updateDropdownPos() {
   if (!wrapperRef.value) return
@@ -188,13 +189,13 @@ function nationFlag(nation) { return NATION_FLAG[nation?.toLowerCase()] ?? '🏴
 
 function onInput() {
   activeIdx.value = -1
-  const show = query.value.trim().length >= 2
+  const show = query.value.trim().length >= 2 && !store.metaTabActive
   if (show) updateDropdownPos()
   isOpen.value = show
 }
 
 function onFocus() {
-  if (query.value.trim().length >= 2) {
+  if (query.value.trim().length >= 2 && !store.metaTabActive) {
     updateDropdownPos()
     isOpen.value = true
   }
@@ -245,7 +246,6 @@ function selectActive() { const v = hits.value[activeIdx.value]; if (v) pick(v) 
   background: rgba(255,255,255,0.04);
 }
 
-/* Logo */
 .logo-group {
   display: inline-flex;
   align-items: baseline;

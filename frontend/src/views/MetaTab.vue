@@ -71,7 +71,7 @@
 </template>
 
 <script setup>
-import { ref, shallowRef, computed, watchEffect, nextTick, inject } from 'vue'
+import { ref, shallowRef, computed, watchEffect, nextTick, inject, onMounted, onBeforeUnmount, onActivated, onDeactivated } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useTabFilters } from '../composables/useTabFilters.js'
 import { useDataStore } from '../stores/useDataStore.js'
@@ -90,6 +90,11 @@ const openVehicle = inject('openVehicle')
 const nation  = ref('All')
 const sortBy  = ref([{ key: 'META_SCORE', order: 'desc' }])
 
+onMounted(()     => { store.metaTabActive = true  })
+onBeforeUnmount(()  => { store.metaTabActive = false })
+onActivated(()   => { store.metaTabActive = true  })
+onDeactivated(() => { store.metaTabActive = false })
+
 const nationItems = computed(() =>
   (store.nations ?? []).map(n => ({
     title: n === 'All' ? t('common.all') : fmtNation(n),
@@ -100,6 +105,16 @@ const nationItems = computed(() =>
 const filtered = computed(() => {
   let rows = store.filteredVehicles
   if (nation.value !== 'All') rows = rows.filter(v => v.Nation === nation.value)
+
+  const q = store.searchQuery.toLowerCase()
+  if (q.length >= 2) {
+    rows = rows.filter(v => {
+      const raw     = v.Name?.toLowerCase() ?? ''
+      const display = vehicleDisplayName(v).toLowerCase()
+      return raw.includes(q) || display.includes(q)
+    })
+  }
+
   return rows
 })
 
