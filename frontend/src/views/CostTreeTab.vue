@@ -68,13 +68,13 @@
                 <span class="card-stat__dot" />
                 {{ nationFlag(chartRows(branch.key).at(-1)?.nation) }}
                 <b>{{ fmtNationName(chartRows(branch.key).at(-1)?.nation) }}</b>
-                <span class="card-stat__val">{{ fmtM(chartRows(branch.key).at(-1)?.total) }}</span>
+                <span class="card-stat__val">{{ fmtRowVal(chartRows(branch.key).at(-1)) }}</span>
               </span>
               <span class="card-stat card-stat--exp">
                 <span class="card-stat__dot" />
                 {{ nationFlag(chartRows(branch.key)[0]?.nation) }}
                 <b>{{ fmtNationName(chartRows(branch.key)[0]?.nation) }}</b>
-                <span class="card-stat__val">{{ fmtM(chartRows(branch.key)[0]?.total) }}</span>
+                <span class="card-stat__val">{{ fmtRowVal(chartRows(branch.key)[0]) }}</span>
               </span>
             </div>
           </template>
@@ -100,14 +100,22 @@
                         v-bind="props"
                         class="bar-seg"
                         :style="{
-                          width: segPctLocal(row.byEra[e], branch.key) + '%',
+                          width: segPctLocal(row.byEra[e], row, branch.key) + '%',
                           background: ERA_COLORS[e],
                         }"
                       />
                     </template>
                     <span class="tooltip-content">
                       <b>{{ t('cost_tab.era') }} {{ e }}</b><br/>
-                      {{ fmtFull(row.byEra[e]) }} {{ metricUnit }}<br/>
+                      <template v-if="metric === 'meta_eff'">
+                        {{ fmtFull(Math.round(row.byEra[e] / row.countByEra[e])) }} RP/v<br/>
+                        Ø META: {{ row.sumMetaByEra?.[e] && row.countByEra[e]
+                          ? (row.sumMetaByEra[e] / row.countByEra[e]).toFixed(1)
+                          : '—' }}<br/>
+                      </template>
+                      <template v-else>
+                        {{ fmtFull(row.byEra[e]) }} {{ metricUnit }}<br/>
+                      </template>
                       {{ row.countByEra[e] }} {{ t('cost_tab.vehicles') }}
                     </span>
                   </v-tooltip>
@@ -115,9 +123,20 @@
               </div>
             </div>
 
+            <div class="count-col">
+              <span
+                class="count-chip"
+                :class="{ 'count-chip--meta': metric === 'meta_eff' }"
+                :title="metric === 'meta_eff' ? 'Avg META score' : 'Vehicles'"
+              >
+                <template v-if="metric === 'meta_eff'">M:{{ row.avgMeta }}</template>
+                <template v-else>{{ row.count }}</template>
+              </span>
+            </div>
+
             <div class="total-col">
-              <span class="total-label" :style="{ color: totalColorLocal(row.total, branch.key) }">
-                {{ fmtM(row.total) }}
+              <span class="total-label" :style="{ color: totalColorLocal(row, branch.key) }">
+                {{ fmtRowVal(row) }}
               </span>
             </div>
           </div>
@@ -182,14 +201,15 @@ const BRANCH_TYPE_SET = Object.fromEntries(
 )
 
 const METRICS = [
-  { key: 'rp', icon: 'mdi-flask' },
-  { key: 'sl', icon: 'mdi-cash' },
+  { key: 'rp',       icon: 'mdi-flask'         },
+  { key: 'sl',       icon: 'mdi-cash'          },
+  { key: 'meta_eff', icon: 'mdi-medal-outline' },
 ]
 
 const metric          = ref('rp')
 const skipFolderDupes = ref(true)
 
-const metricUnit = computed(() => metric.value === 'rp' ? 'RP' : 'SL')
+const metricUnit = computed(() => metric.value === 'sl' ? 'SL' : 'RP')
 
 const uniqueVehicles = shallowRef([])
 watchEffect(() => {
@@ -207,12 +227,26 @@ watchEffect(() => {
   })
 })
 
+const metaScoreMap = computed(() => {
+  const map  = new Map()
+  const mode = store.mode
+  for (const v of store.allVehicles) {
+    if (v.Mode !== mode || !v.META_SCORE) continue
+    map.set(`${v.Nation}__${v.Name}`, v.META_SCORE)
+  }
+  return map
+})
+
 const chartData = shallowRef({})
 watchEffect(() => {
   const vehicles = uniqueVehicles.value
   const met      = metric.value
   const cls      = store.classes
   const skipDup  = skipFolderDupes.value
+  const metaMap  = metaScoreMap.value
+
+  const isRpBased = met === 'rp' || met === 'meta_eff'
+  const isMetaEff = met === 'meta_eff'
 
   nextTick(() => {
     let src = vehicles
@@ -228,8 +262,8 @@ watchEffect(() => {
           if (BRANCH_TYPE_SET[b.key].has(v.Type)) { bKey = b.key; break }
         }
         if (!bKey) continue
-        if (met === 'rp' && (v.VehicleClass ?? 'Standard') !== 'Standard') continue
-        const val = met === 'rp' ? Number(v.vdb_req_exp ?? 0) : Number(v.vdb_value ?? 0)
+        if (isRpBased && (v.VehicleClass ?? 'Standard') !== 'Standard') continue
+        const val = isRpBased ? Number(v.vdb_req_exp ?? 0) : Number(v.vdb_value ?? 0)
         const key = `${v.Nation}__${bKey}__${g}`
         const cur = groupMin.get(key)
         if (!cur || val < cur.val) groupMin.set(key, { v, val })
@@ -243,12 +277,12 @@ watchEffect(() => {
 
     for (const v of src) {
       if (!cls.includes(v.VehicleClass ?? 'Standard')) continue
-      if (met === 'rp' && v.VehicleClass !== 'Standard') continue
+      if (isRpBased && v.VehicleClass !== 'Standard') continue
 
       const era = Number(v.vdb_era ?? 0)
       if (era < 1 || era > 8) continue
 
-      const val = met === 'rp' ? Number(v.vdb_req_exp ?? 0) : Number(v.vdb_value ?? 0)
+      const val = isRpBased ? Number(v.vdb_req_exp ?? 0) : Number(v.vdb_value ?? 0)
       if (!val) continue
 
       const vType = v.Type
@@ -268,15 +302,30 @@ watchEffect(() => {
       entry.total          += val
       entry.byEra[era]      = (entry.byEra[era]     ?? 0) + val
       entry.countByEra[era] = (entry.countByEra[era] ?? 0) + 1
+
+      if (isMetaEff) {
+        const ms = metaMap.get(`${nat}__${v.Name}`) ?? 50
+        entry.sumMeta              = (entry.sumMeta              ?? 0) + ms
+        entry.sumMetaByEra         = entry.sumMetaByEra ?? {}
+        entry.sumMetaByEra[era]    = (entry.sumMetaByEra[era]    ?? 0) + ms
+      }
+    }
+
+    for (const bKey of Object.keys(byBranch)) {
+      for (const row of Object.values(byBranch[bKey])) {
+        row.count      = Object.values(row.countByEra).reduce((s, n) => s + n, 0)
+        const sumW     = row.sumMeta ?? 0
+        row.metaAdjVal = (isMetaEff && sumW > 0) ? Math.round(row.total / (sumW / 100)) : 0
+        row.avgMeta    = row.count > 0 ? Math.round(sumW / row.count) : 0
+      }
     }
 
     const result = {}
     for (const b of BRANCHES) {
-      const rows = Object.values(byBranch[b.key]).sort((a, z) => z.total - a.total)
-      const vehicleCount = rows.reduce(
-        (sum, row) => sum + Object.values(row.countByEra).reduce((s, n) => s + n, 0),
-        0
+      const rows = Object.values(byBranch[b.key]).sort((a, z) =>
+        met === 'meta_eff' ? z.metaAdjVal - a.metaAdjVal : z.total - a.total
       )
+      const vehicleCount = rows.reduce((sum, row) => sum + row.count, 0)
       result[b.key] = { rows, vehicleCount }
     }
     chartData.value = result
@@ -295,21 +344,32 @@ const branchMaxes = computed(() => {
   const out = {}
   for (const b of BRANCHES) {
     const rows = chartRows(b.key)
-    out[b.key] = rows.length ? Math.max(...rows.map(r => r.total)) : 1
+    if (!rows.length) { out[b.key] = 1; continue }
+    out[b.key] = metric.value === 'meta_eff'
+      ? Math.max(...rows.map(r => r.metaAdjVal ?? 0))
+      : Math.max(...rows.map(r => r.total))
   }
   return out
 })
 
-function segPctLocal(val, branchKey) {
-  return Math.min((val / (branchMaxes.value[branchKey] ?? 1)) * 100, 100)
+function segPctLocal(eraVal, row, branchKey) {
+  const max    = branchMaxes.value[branchKey] ?? 1
+  const refVal = metric.value === 'meta_eff' ? row.metaAdjVal : row.total
+  return Math.min((eraVal / (row.total || 1)) * (refVal / max) * 100, 100)
 }
 
-function totalColorLocal(total, branchKey) {
-  const p = total / (branchMaxes.value[branchKey] ?? 1)
+function totalColorLocal(row, branchKey) {
+  const val = metric.value === 'meta_eff' ? (row.metaAdjVal ?? 0) : (row.total ?? 0)
+  const p   = val / (branchMaxes.value[branchKey] ?? 1)
   if (p > 0.85) return '#f87171'
   if (p > 0.60) return '#fb923c'
   if (p < 0.25) return '#4ade80'
   return '#e2e8f0'
+}
+
+function fmtRowVal(row) {
+  if (!row) return '—'
+  return metric.value === 'meta_eff' ? fmtM(row.metaAdjVal) + '/mv' : fmtM(row.total)
 }
 
 function fmtM(n) {
@@ -424,7 +484,7 @@ function fmtFull(n) {
 
 .bar-row {
   display: grid;
-  grid-template-columns: 110px 1fr 52px;
+  grid-template-columns: 110px 1fr 36px 62px;
   gap: 8px;
   align-items: center;
   padding: 5px 14px;
@@ -480,6 +540,25 @@ function fmtFull(n) {
   font-size: 12px;
   font-weight: 700;
   font-family: 'JetBrains Mono', monospace;
+}
+
+.count-col { text-align: right; }
+.count-chip {
+  display: inline-block;
+  font-size: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  color: #475569;
+  background: rgba(30, 58, 95, 0.4);
+  border: 1px solid rgba(30, 58, 95, 0.75);
+  border-radius: 4px;
+  padding: 1px 5px;
+  white-space: nowrap;
+  line-height: 1.6;
+}
+.count-chip--meta {
+  color: #a78bfa;
+  background: rgba(167, 139, 250, 0.08);
+  border-color: rgba(167, 139, 250, 0.3);
 }
 
 .tooltip-content { font-size: 12px; line-height: 1.6; }

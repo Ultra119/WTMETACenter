@@ -146,6 +146,7 @@
   "cost_tab": {
     "metric_rp":       "Research Points",
     "metric_sl":       "Purchase SL",
+    "metric_meta_eff": "META Efficiency",
     "skip_folder":     "Skip optional vehicles",
     "metric_train":    "Crew Training SL",
     "up_to_era":       "Up to rank",

@@ -146,6 +146,7 @@
   "cost_tab": {
     "metric_rp":       "Очки исследования",
     "metric_sl":       "Покупка (SL)",
+    "metric_meta_eff": "META-эффективность",
     "metric_train":    "Экипаж (SL)",
     "skip_folder":     "Пропустить необязательную технику",
     "up_to_era":       "До ранга",
