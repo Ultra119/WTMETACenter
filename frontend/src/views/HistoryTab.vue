@@ -19,16 +19,17 @@
         <div class="ctrl-divider" />
 
         <div>
-          <div class="ctrl-label">{{ t('common.nation') }}</div>
           <v-select
             :model-value="nation"
             :items="nationOptions"
             item-title="label"
             item-value="value"
+            :label="t('common.nation')"
+            prepend-inner-icon="mdi-flag"
             density="compact"
             variant="outlined"
             hide-details
-            style="min-width: 160px;"
+            style="max-width:220px"
             @update:model-value="v => nation = v"
           />
         </div>

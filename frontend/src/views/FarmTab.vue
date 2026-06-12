@@ -25,16 +25,17 @@
         <div class="ctrl-divider" />
 
         <div>
-          <div class="ctrl-label">{{ t('farm_tab.nation') }}</div>
           <v-select
             v-model="nation"
             :items="nationItems"
             item-title="title"
             item-value="value"
+            :label="t('farm_tab.nation')"
+            prepend-inner-icon="mdi-flag"
             density="compact"
             variant="outlined"
             hide-details
-            style="min-width:150px"
+            style="max-width:220px"
           />
         </div>
 
