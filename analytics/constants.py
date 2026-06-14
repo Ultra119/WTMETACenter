@@ -71,15 +71,15 @@ ROLE_WEIGHTS: dict = {
 }
 
 FARM_SCORING_PEER_GROUP: dict[str, str] = {
-    "medium_tank":        "TankCombat",
-    "light_tank":         "TankCombat",
-    "heavy_tank":         "TankCombat",
-    "tank_destroyer":     "tank_destroyer",
-    "spaa":               "spaa",
+    "medium_tank":        "Ground",
+    "light_tank":         "Ground",
+    "heavy_tank":         "Ground",
+    "tank_destroyer":     "Ground",
+    "spaa":               "Ground",
 
-    "fighter":            "fighter",
-    "bomber":             "bomber",
-    "assault":            "assault",
+    "fighter":            "Aviation",
+    "bomber":             "Aviation",
+    "assault":            "Aviation",
 
     "attack_helicopter":  "Helicopter",
     "utility_helicopter": "Helicopter",
