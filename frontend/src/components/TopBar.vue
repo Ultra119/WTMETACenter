@@ -110,8 +110,18 @@
       </v-btn>
     </div>
 
+    <button
+      class="about-toggle ml-2"
+      :title="t('about.btn_title')"
+      @click="aboutOpen = true"
+    >
+      <span class="mdi mdi-information-outline" />
+    </button>
+
     <div class="px-2" />
   </v-app-bar>
+
+  <AboutDialog v-model="aboutOpen" />
 </template>
 
 <script setup>
@@ -122,6 +132,7 @@ import { useDataStore } from '../stores/useDataStore.js'
 import { setLocale, SUPPORTED_LOCALES } from '../i18n/index.js'
 import { vehicleDisplayName, fmtBR, NATION_FLAG } from '../composables/useVehicleFormatting.js'
 import { TYPE_ICON } from '../composables/constants.js'
+import AboutDialog from './AboutDialog.vue'
 
 const { t, locale } = useI18n()
 const store         = useDataStore()
@@ -137,6 +148,7 @@ const isOpen     = ref(false)
 const activeIdx  = ref(-1)
 const inputRef   = ref(null)
 const wrapperRef = ref(null)
+const aboutOpen  = ref(false)
 
 const dropdownStyle = ref({})
 watch(query, q => { store.searchQuery = q.trim() })
@@ -321,6 +333,27 @@ function selectActive() { const v = hits.value[activeIdx.value]; if (v) pick(v) 
 
 .lang-switcher { display: flex; gap: 2px; }
 .lang-btn { font-size: 11px !important; min-width: 44px !important; }
+
+.about-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  color: #334155;
+  font-size: 17px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+.about-toggle:hover {
+  color: #38bdf8;
+  border-color: rgba(56, 189, 248, 0.3);
+  background: rgba(56, 189, 248, 0.06);
+}
 
 .dropdown-enter-active { transition: opacity 0.12s ease, transform 0.12s ease; }
 .dropdown-leave-active { transition: opacity 0.08s ease; }

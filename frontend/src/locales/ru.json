@@ -276,6 +276,27 @@
     "desc_history":     "Вся техника по группам обновлений — в каком патче появилась."
   },
 
+  "about": {
+    "title":                  "О WT META Center",
+    "btn_title":              "Об этом проекте",
+    "section_about":          "О нас",
+    "section_dataset":        "Текущий датасет",
+    "section_data":           "Источники данных",
+    "section_legal":          "Отказ от ответственности",
+    "project_desc":           "WT META Center — это независимый инструмент сообщества для анализа статистики War Thunder. Он предоставляет рейтинги META, анализ эффективности фарма, стоимость дерева прокачки и информацию о прогрессии, основанную на реальных данных игры.",
+    "dataset_date":           "Дата датасета",
+    "dataset_hash":           "Хеш датасета",
+    "periods_available":      "Доступные периоды",
+    "nations_count":          "Отслеживаемые нации",
+    "data_stats":             "Агрегированные данные игровой активности сообщества",
+    "data_vdb":               "Технические данные техники из War Thunder Datamine (Sgambe33/WT-Vehicle-Data-Extract)",
+    "data_scores":            "Оценки META и FARM — это оценки статистических моделей — а не официальные данные",
+    "link_github":            "Исходный код",
+    "link_datamine":          "WT Datamine",
+    "link_datamine_extract":  "WT-Vehicle-Data-Extract",
+    "link_issues":            "Сообщить о проблеме"
+  },
+
   "history_tab": {
     "vehicles":         "единиц техники",
     "patches":          "групп обновлений",

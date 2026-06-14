@@ -276,6 +276,27 @@
     "desc_history":     "Browse all vehicles grouped by the game update they were introduced in."
   },
 
+  "about": {
+    "title":                  "About WT META Center",
+    "btn_title":              "About this project",
+    "section_about":          "About us",
+    "section_dataset":        "Current Dataset",
+    "section_data":           "Data Sources",
+    "section_legal":          "Disclaimer",
+    "project_desc":           "WT META Center — an independent community tool for analyzing War Thunder statistics. It provides META rankings, farm efficiency analysis, tech tree costs, and progression information based on real gameplay data.",
+    "dataset_date":           "Dataset Date",
+    "dataset_hash":           "Dataset Hash",
+    "periods_available":      "Available Periods",
+    "nations_count":          "Tracked Nations",
+    "data_stats":             "Community-aggregated gameplay statistics",
+    "data_vdb":               "Vehicle technical data from War Thunder Datamine (Sgambe33/WT-Vehicle-Data-Extract)",
+    "data_scores":            "META and FARM scores — these are statistical model estimates — not official data",
+    "link_github":            "Source code on GitHub",
+    "link_datamine":          "WT Datamine on GitHub",
+    "link_datamine_extract":  "WT-Vehicle-Data-Extract on GitHub",
+    "link_issues":            "Report an issue"
+  },
+
   "history_tab": {
     "vehicles":         "vehicles",
     "patches":          "update groups",
