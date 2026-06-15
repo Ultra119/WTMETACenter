@@ -41,6 +41,10 @@
             <span class="mdi mdi-palette tip-icon" />
             <span>{{ t('cost_tab.tip_eras') }}</span>
           </div>
+          <div v-if="metric === 'meta_eff'" class="tip-row mt-2" style="border-top: 1px solid #1e3a5f; padding-top: 8px;">
+            <span class="mdi mdi-medal-outline tip-icon" style="color: #a78bfa;" />
+            <span><b style="color: #a78bfa;">RP/META</b> — {{ t('cost_tab.tip_meta_eff_info') }}</span>
+          </div>
         </InfoTip>
 
       </div>
@@ -108,10 +112,10 @@
                     <span class="tooltip-content">
                       <b>{{ t('cost_tab.era') }} {{ e }}</b><br/>
                       <template v-if="metric === 'meta_eff'">
-                        {{ fmtFull(Math.round(row.byEra[e] / row.countByEra[e])) }} RP/v<br/>
-                        Ø META: {{ row.sumMetaByEra?.[e] && row.countByEra[e]
+                        {{ t('cost_tab.tooltip_avg_rp_per_veh', { val: fmtFull(Math.round(row.byEra[e] / row.countByEra[e])) }) }}<br/>
+                        {{ t('cost_tab.tooltip_avg_meta', { val: row.sumMetaByEra?.[e] && row.countByEra[e]
                           ? (row.sumMetaByEra[e] / row.countByEra[e]).toFixed(1)
-                          : '—' }}<br/>
+                          : '—' }) }}<br/>
                       </template>
                       <template v-else>
                         {{ fmtFull(row.byEra[e]) }} {{ metricUnit }}<br/>
@@ -127,9 +131,9 @@
               <span
                 class="count-chip"
                 :class="{ 'count-chip--meta': metric === 'meta_eff' }"
-                :title="metric === 'meta_eff' ? 'Avg META score' : 'Vehicles'"
+                :title="metric === 'meta_eff' ? t('cost_tab.count_meta_hint') : t('cost_tab.count_veh_hint')"
               >
-                <template v-if="metric === 'meta_eff'">M:{{ row.avgMeta }}</template>
+                <template v-if="metric === 'meta_eff'">Ø{{ row.avgMeta }}</template>
                 <template v-else>{{ row.count }}</template>
               </span>
             </div>
@@ -369,7 +373,7 @@ function totalColorLocal(row, branchKey) {
 
 function fmtRowVal(row) {
   if (!row) return '—'
-  return metric.value === 'meta_eff' ? fmtM(row.metaAdjVal) + '/mv' : fmtM(row.total)
+  return metric.value === 'meta_eff' ? fmtM(row.metaAdjVal) + '/META' : fmtM(row.total)
 }
 
 function fmtM(n) {
@@ -445,7 +449,7 @@ function fmtFull(n) {
 }
 .branch-card__count {
   font-size: 10px;
-  color: #475569;
+  color: #e2e8f0;
   background: rgba(30, 58, 95, 0.5);
   border: 1px solid rgba(30, 58, 95, 0.9);
   border-radius: 4px;
@@ -484,7 +488,7 @@ function fmtFull(n) {
 
 .bar-row {
   display: grid;
-  grid-template-columns: 110px 1fr 36px 62px;
+  grid-template-columns: 110px 1fr 36px 80px;
   gap: 8px;
   align-items: center;
   padding: 5px 14px;
@@ -547,7 +551,7 @@ function fmtFull(n) {
   display: inline-block;
   font-size: 10px;
   font-family: 'JetBrains Mono', monospace;
-  color: #475569;
+  color: #e2e8f0;
   background: rgba(30, 58, 95, 0.4);
   border: 1px solid rgba(30, 58, 95, 0.75);
   border-radius: 4px;
