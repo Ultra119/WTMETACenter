@@ -123,6 +123,10 @@
               <span class="chip-label">{{ t(`vehicle_classes.${cls}`) }}</span>
             </button>
           </div>
+          <div v-if="!store.classes.length" class="mix-warn mt-2">
+            <span class="mdi mdi-alert-outline" style="font-size:12px;margin-right:4px;flex-shrink:0;" />
+            {{ t('sidebar.warn_no_classes') }}
+          </div>
         </div>
       </Transition>
 
