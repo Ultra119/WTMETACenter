@@ -41,6 +41,10 @@
             <span class="mdi mdi-palette tip-icon" />
             <span>{{ t('cost_tab.tip_eras') }}</span>
           </div>
+          <div v-if="isRpBasedMetric" class="tip-row mt-2" style="border-top: 1px solid #1e3a5f; padding-top: 8px;">
+            <span class="mdi mdi-flask-outline tip-icon" style="color: #6ee7b7;" />
+            <span>{{ t('cost_tab.tip_standard_only') }}</span>
+          </div>
           <div v-if="metric === 'meta_eff'" class="tip-row mt-2" style="border-top: 1px solid #1e3a5f; padding-top: 8px;">
             <span class="mdi mdi-medal-outline tip-icon" style="color: #a78bfa;" />
             <span><b style="color: #a78bfa;">RP/META</b> — {{ t('cost_tab.tip_meta_eff_info') }}</span>
@@ -212,12 +216,18 @@ const METRICS = [
 
 const metric          = ref('rp')
 const skipFolderDupes = ref(true)
+const isRpBasedMetric = computed(() => metric.value === 'rp' || metric.value === 'meta_eff')
 
 const metricUnit = computed(() => metric.value === 'sl' ? 'SL' : 'RP')
 
 const uniqueVehicles = shallowRef([])
 watchEffect(() => {
-  const source = store.allVehicles ?? store.filteredVehicles ?? []
+  // Intentionally raw/unfiltered: this tab ignores the sidebar's mode/BR/min-battles
+  // filters (see useTabFilters below) and applies its own era+type+class criteria
+  // further down. NOTE: previously this read `store.allVehicles ?? store.filteredVehicles ?? []`,
+  // but store.allVehicles is always an array (never null/undefined) so that fallback
+  // was dead code and never actually ran — removed for clarity, behavior unchanged.
+  const source = store.allVehicles
   nextTick(() => {
     const seen = new Set()
     const out  = []
@@ -259,6 +269,12 @@ watchEffect(() => {
       for (const v of vehicles) {
         const g = v.vdb_shop_group
         if (!g) continue
+        // Eligibility here must mirror the main loop below exactly — otherwise
+        // the "cheapest in folder" pick can be a vehicle that the main loop
+        // would itself discard (wrong class / zero value), silently dropping
+        // the whole group instead of falling back to the next eligible one.
+        if (!cls.includes(v.VehicleClass ?? 'Standard')) continue
+        if (isRpBased && (v.VehicleClass ?? 'Standard') !== 'Standard') continue
         const era = Number(v.vdb_era ?? 0)
         if (era < 1 || era > 8) continue
         let bKey = null
@@ -266,8 +282,8 @@ watchEffect(() => {
           if (BRANCH_TYPE_SET[b.key].has(v.Type)) { bKey = b.key; break }
         }
         if (!bKey) continue
-        if (isRpBased && (v.VehicleClass ?? 'Standard') !== 'Standard') continue
         const val = isRpBased ? Number(v.vdb_req_exp ?? 0) : Number(v.vdb_value ?? 0)
+        if (!val) continue
         const key = `${v.Nation}__${bKey}__${g}`
         const cur = groupMin.get(key)
         if (!cur || val < cur.val) groupMin.set(key, { v, val })
