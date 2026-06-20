@@ -46,7 +46,8 @@
     "fleet":          "Fleet",
     "large_fleet":    "Large Fleet (WIP)",
     "small_fleet":    "Small Fleet (WIP)",
-    "warn_none":      "No vehicle class selected",
+    "warn_none":      "No vehicle type selected",
+    "warn_no_classes": "No vehicle class selected",
     "warn_mix":       "Mixed: fleet + ground/aviation",
     "dataset_date":   "{date}",
     "filters_hidden": "{n} filter(s) hidden on this tab"
@@ -164,6 +165,7 @@
     "tip_desc":        "Total cost to research the full tech tree per nation and branch. Only Standard vehicles unless otherwise selected.",
     "tip_bars":        "Each bar = total RP or SL. Segments = individual ranks.",
     "tip_eras":        "Darker color = higher rank. Hover a segment for breakdown.",
+    "tip_standard_only": "RP and RP per META only count Standard (researchable) vehicles, regardless of the class filter.",
     "tip_meta_eff_info":      "total research cost normalized by average META score. Lower = more efficient: better vehicles for fewer Research Points.",
     "tooltip_avg_rp_per_veh": "Avg: {val} RP / vehicle",
     "tooltip_avg_meta":       "Avg META: {val}",

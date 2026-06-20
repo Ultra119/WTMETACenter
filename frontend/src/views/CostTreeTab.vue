@@ -54,7 +54,7 @@
       </div>
     </div>
 
-    <div class="branches-grid">
+    <div class="branches-grid" :style="{ '--count-col-w': metric === 'meta_eff' ? '64px' : '36px' }">
       <div
         v-for="branch in BRANCHES"
         :key="branch.key"
@@ -68,7 +68,7 @@
             {{ t(`cost_tab.branch_${branch.key.toLowerCase()}`) }}
           </span>
           <span class="branch-card__count">
-            {{ t('cost_tab.n_vehicles', { n: branchVehicleCount(branch.key) }) }}
+            {{ t('cost_tab.n_vehicles', { n: fmtFull(branchVehicleCount(branch.key)) }) }}
           </span>
           <template v-if="chartRows(branch.key).length >= 2">
             <div class="branch-card__summary ml-auto">
@@ -111,7 +111,9 @@
                           width: segPctLocal(row.byEra[e], row, branch.key) + '%',
                           background: ERA_COLORS[e],
                         }"
-                      />
+                      >
+                        <span class="bar-seg-label">{{ ROMAN[e] }}</span>
+                      </div>
                     </template>
                     <span class="tooltip-content">
                       <b>{{ t('cost_tab.era') }} {{ e }}</b><br/>
@@ -124,7 +126,7 @@
                       <template v-else>
                         {{ fmtFull(row.byEra[e]) }} {{ metricUnit }}<br/>
                       </template>
-                      {{ row.countByEra[e] }} {{ t('cost_tab.vehicles') }}
+                      {{ fmtFull(row.countByEra[e]) }} {{ t('cost_tab.vehicles') }}
                     </span>
                   </v-tooltip>
                 </template>
@@ -135,10 +137,12 @@
               <span
                 class="count-chip"
                 :class="{ 'count-chip--meta': metric === 'meta_eff' }"
-                :title="metric === 'meta_eff' ? t('cost_tab.count_meta_hint') : t('cost_tab.count_veh_hint')"
+                :title="metric === 'meta_eff'
+                  ? `${t('cost_tab.count_veh_hint')} / ${t('cost_tab.count_meta_hint')}`
+                  : t('cost_tab.count_veh_hint')"
               >
-                <template v-if="metric === 'meta_eff'">Ø{{ row.avgMeta }}</template>
-                <template v-else>{{ row.count }}</template>
+                <template v-if="metric === 'meta_eff'">{{ fmtFull(row.count) }} <span class="count-chip__sep">·</span>Ø{{ row.avgMeta }}</template>
+                <template v-else>{{ fmtFull(row.count) }}</template>
               </span>
             </div>
 
@@ -255,7 +259,7 @@ const chartData = shallowRef({})
 watchEffect(() => {
   const vehicles = uniqueVehicles.value
   const met      = metric.value
-  const cls      = store.classes
+  const cls      = [...store.classes]
   const skipDup  = skipFolderDupes.value
   const metaMap  = metaScoreMap.value
 
@@ -504,7 +508,7 @@ function fmtFull(n) {
 
 .bar-row {
   display: grid;
-  grid-template-columns: 110px 1fr 36px 80px;
+  grid-template-columns: 110px 1fr var(--count-col-w, 36px) 80px;
   gap: 8px;
   align-items: center;
   padding: 5px 14px;
@@ -551,6 +555,25 @@ function fmtFull(n) {
   margin-right: 1px;
   flex-shrink: 0;
   transition: filter .12s;
+  container-type: inline-size;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.bar-seg-label {
+  display: none;
+  font-size: 10px;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  color: rgba(15, 23, 42, 0.72);
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  pointer-events: none;
+  user-select: none;
+}
+@container (min-width: 24px) {
+  .bar-seg-label { display: block; }
 }
 .bar-seg:last-child { margin-right: 0; }
 .bar-seg:hover { filter: brightness(1.3); }
@@ -579,6 +602,10 @@ function fmtFull(n) {
   color: #a78bfa;
   background: rgba(167, 139, 250, 0.08);
   border-color: rgba(167, 139, 250, 0.3);
+}
+.count-chip__sep {
+  color: #475569;
+  margin: 0 2px;
 }
 
 .tooltip-content { font-size: 12px; line-height: 1.6; }
