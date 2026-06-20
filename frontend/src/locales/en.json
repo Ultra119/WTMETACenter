@@ -25,7 +25,6 @@
 
   "tabs": {
     "meta":        "META Rating",
-    "redbook":     "Red Book",
     "brackets":    "BR Grid",
     "farm":        "Lineup",
     "progression": "Tech Tree",
@@ -67,14 +66,6 @@
     "nation_label":   "Nation",
     "tip_click":      "Click any row to open the vehicle card.",
     "tip_colors":     "META colour scale:"
-  },
-
-  "redbook_tab": {
-    "title":          "Red Book",
-    "description":    "Vehicles with the fewest battles played — they are going extinct.",
-    "show_top":       "Show top-N",
-    "nation_label":   "Nation",
-    "tip_low":        "< 100 battles"
   },
 
   "brackets_tab": {
@@ -275,7 +266,6 @@
     "eyebrow":      "War Thunder Analytics",
     "subtitle":     "War Thunder analytics and statistics — all in one place.",
     "desc_meta":        "Full performance ranking of all vehicles — META score, K/D, and win rate, filterable by BR, mode, and class.",
-    "desc_redbook":     "Vehicles with the fewest battles played — endangered and rarely seen in matches.",
     "desc_brackets":    "Weighted META score per nation across every BR bracket. See who dominates each tier.",
     "desc_farm":        "Build the most efficient SL farming lineup for any BR. Find the best earners and hidden gems.",
     "desc_progression": "Tech tree verdicts for every vehicle: must-grind, skip, lineup filler, or premium fix.",

@@ -50,7 +50,6 @@ function onCardClick() {
 
 const cards = [
   { to: '/meta',        icon: 'mdi-trophy',                   color: '#a7f3d0', labelKey: 'tabs.meta',        descKey: 'home_tab.desc_meta'        },
-  { to: '/redbook',     icon: 'mdi-book-open',                color: '#f87171', labelKey: 'tabs.redbook',     descKey: 'home_tab.desc_redbook'     },
   { to: '/brackets',    icon: 'mdi-view-grid',                color: '#38bdf8', labelKey: 'tabs.brackets',    descKey: 'home_tab.desc_brackets'    },
   { to: '/farm',        icon: 'mdi-wrench',                   color: '#fbbf24', labelKey: 'tabs.farm',        descKey: 'home_tab.desc_farm'        },
   { to: '/progression', icon: 'mdi-chart-timeline-variant',   color: '#a78bfa', labelKey: 'tabs.progression', descKey: 'home_tab.desc_progression' },

@@ -2,7 +2,6 @@ import { createRouter, createWebHashHistory } from 'vue-router'
 
 const HomeTab        = () => import('../views/HomeTab.vue')
 const MetaTab        = () => import('../views/MetaTab.vue')
-const RedbookTab     = () => import('../views/RedbookTab.vue')
 const BracketsTab    = () => import('../views/BracketsTab.vue')
 const FarmTab        = () => import('../views/FarmTab.vue')
 const ProgressionTab = () => import('../views/ProgressionTab.vue')
@@ -12,7 +11,6 @@ const HistoryTab     = () => import('../views/HistoryTab.vue')
 const routes = [
   { path: '/',            component: HomeTab,         name: 'home'        },
   { path: '/meta',        component: MetaTab,         name: 'meta'        },
-  { path: '/redbook',     component: RedbookTab,      name: 'redbook'     },
   { path: '/brackets',    component: BracketsTab,     name: 'brackets'    },
   { path: '/farm',        component: FarmTab,         name: 'farm'        },
   { path: '/progression', component: ProgressionTab,  name: 'progression' },
