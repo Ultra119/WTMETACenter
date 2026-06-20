@@ -32,15 +32,17 @@
 
         <InfoTip align="right">
           <p><b>{{ t('cost_tab.tip_title') }}</b></p>
-          <p>{{ t('cost_tab.tip_desc') }}</p>
-          <div class="tip-row mt-2">
-            <span class="mdi mdi-chart-bar tip-icon" />
-            <span>{{ t('cost_tab.tip_bars') }}</span>
-          </div>
-          <div class="tip-row">
-            <span class="mdi mdi-palette tip-icon" />
-            <span>{{ t('cost_tab.tip_eras') }}</span>
-          </div>
+          <template v-if="metric !== 'meta_eff'">
+            <p>{{ t('cost_tab.tip_desc') }}</p>
+            <div class="tip-row mt-2">
+              <span class="mdi mdi-chart-bar tip-icon" />
+              <span>{{ t('cost_tab.tip_bars') }}</span>
+            </div>
+            <div class="tip-row">
+              <span class="mdi mdi-palette tip-icon" />
+              <span>{{ t('cost_tab.tip_eras') }}</span>
+            </div>
+          </template>
           <div v-if="isRpBasedMetric" class="tip-row mt-2" style="border-top: 1px solid #1e3a5f; padding-top: 8px;">
             <span class="mdi mdi-flask-outline tip-icon" style="color: #6ee7b7;" />
             <span>{{ t('cost_tab.tip_standard_only') }}</span>
