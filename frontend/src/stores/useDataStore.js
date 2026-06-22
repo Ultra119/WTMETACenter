@@ -124,6 +124,62 @@ export const useDataStore = defineStore('data', () => {
     }
   }
 
+  const _periodCache = new Map()
+
+  function _periodToDate(p) {
+    const parts = String(p).split('-')
+    if (parts.length !== 2) return 0
+    const t = new Date(parseInt(parts[1], 10), parseInt(parts[0], 10) - 1, 1).getTime()
+    return isNaN(t) ? 0 : t
+  }
+
+  async function _getPeriodVehicles(period) {
+    if (period === currentPeriod.value) return allVehicles.value
+    if (_periodCache.has(period)) return _periodCache.get(period)
+
+    const hash = metaInfo.value?.dataset_hash ?? ''
+    const qs   = hash ? `?v=${hash.slice(0, 8)}` : ''
+    const url  = `${_basePath.value}/data/mega_db_${period}.json${qs}`
+
+    const res = await fetch(url)
+    if (!res.ok) throw new Error(`mega_db_${period}.json: ${res.status}`)
+    const data = await res.json()
+    _periodCache.set(period, data)
+    return data
+  }
+
+  async function fetchVehicleHistory({ name, nation, type, mode }) {
+    const allPeriods = (metaInfo.value?.periods ?? []).filter(p => p !== 'All')
+    const points = []
+
+    for (const period of allPeriods) {
+      try {
+        const vehicles = await _getPeriodVehicles(period)
+        const entry = vehicles.find(e =>
+          e.Name === name && e.Nation === nation && e.Type === type && e.Mode === mode
+        )
+        if (entry) {
+          points.push({
+            period,
+            label:   formatPeriodLabel(period),
+            br:      entry.BR ?? null,
+            wr:      entry.WR ?? null,
+            kd:      entry.KD ?? null,
+            meta:    entry.META_SCORE ?? null,
+            farm:    entry.FARM_SCORE ?? null,
+            battles: entry['Сыграно игр'] ?? null,
+            netSl:   entry['Net SL за игру'] ?? null,
+          })
+        }
+      } catch (e) {
+        console.error('[DataStore] history fetch error:', period, e)
+      }
+    }
+
+    points.sort((a, b) => _periodToDate(a.period) - _periodToDate(b.period))
+    return points
+  }
+
   watch(currentPeriod, async () => {
     if (!metaInfo.value) return
     filtering.value = true
@@ -198,6 +254,7 @@ export const useDataStore = defineStore('data', () => {
     showGround, showAviation, showHelicopters, showLargeFleet, showSmallFleet,
     filteredVehicles, activeTypes, nations, filtering,
     loadData,
+    fetchVehicleHistory,
     tabFilterConfig, setTabFilters, clearTabFilters,
     BR_MIN, BR_MAX, WT_BR_STEPS,
     searchQuery,

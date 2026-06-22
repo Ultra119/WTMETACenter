@@ -1,6 +1,7 @@
 <template>
-  <v-dialog :model-value="modelValue" @update:model-value="$emit('update:modelValue', $event)" max-width="700" scrollable>
-    <v-card v-if="vehicle" color="#0f172a" style="border: 1px solid #1e3a5f;">
+  <v-dialog :model-value="modelValue" @update:model-value="$emit('update:modelValue', $event)" max-width="1100" scrollable>
+    <div class="card-shell">
+      <v-card v-if="vehicle" class="main-card" color="#0f172a" style="border: 1px solid #1e3a5f;">
 
       <v-card-title class="card-header">
         <span class="vehicle-name">{{ displayName }}</span>
@@ -8,10 +9,21 @@
           <span v-if="CLASS_PREFIX[vehicle.VehicleClass]" class="mdi" :class="CLASS_PREFIX[vehicle.VehicleClass]" style="font-size:9px; margin-right:2px;" />
           {{ t(`vehicle_classes.${vehicle.VehicleClass}`) }}
         </span>
-        <v-chip v-if="vehicle.vdb_shop_rank" color="teal" size="x-small" variant="tonal" class="ml-1" style="font-family:'JetBrains Mono',monospace;">
-          Rank {{ vehicle.vdb_shop_rank }}
-        </v-chip>
+        <span v-if="vehicle.vdb_shop_rank" class="rank-badge ml-1">
+          <span class="mdi mdi-medal-outline" style="font-size:10px; margin-right:3px;" />
+          {{ t('vehicle_card.era') }} {{ vehicle.vdb_shop_rank }}
+        </span>
         <v-spacer />
+
+        <button
+          type="button"
+          class="stats-toggle"
+          :class="{ 'stats-toggle--active': showStatsPanel }"
+          :title="t('vehicle_card.stats')"
+          @click="showStatsPanel = !showStatsPanel"
+        >
+          <span class="mdi mdi-chart-line" style="font-size:13px;" />
+        </button>
 
         <div class="br-modes">
           <span
@@ -184,7 +196,17 @@
 
         </div>
       </v-card-text>
-    </v-card>
+      </v-card>
+
+      <Transition name="panel-slide">
+        <VehicleStatsPanel
+          v-if="showStatsPanel"
+          :vehicle="veh"
+          :mode="activeMode"
+          class="stats-panel"
+        />
+      </Transition>
+    </div>
   </v-dialog>
 </template>
 
@@ -197,12 +219,15 @@ import {
   metaColor, farmColor, wrColor, CLASS_PREFIX, classChipStyle,
 } from '../composables/useVehicleFormatting.js'
 import VehicleImage from './VehicleImage.vue'
+import VehicleStatsPanel from './VehicleStatsPanel.vue'
 
 const { t } = useI18n()
 const store  = useDataStore()
 
 const props = defineProps({ modelValue: Boolean, vehicle: Object })
 defineEmits(['update:modelValue'])
+
+const showStatsPanel = ref(false)
 
 const BR_MODES = [
   { key: 'Arcade',    short: 'AB', titleKey: 'br_arcade'    },
@@ -234,6 +259,7 @@ const showHp           = computed(() => !isAir.value || !!veh.value?.vdb_engine_
 
 const activeMode = ref(props.vehicle?.Mode ?? 'Realistic')
 watch(veh, v => { if (v?.Mode) activeMode.value = v.Mode }, { immediate: true })
+watch(() => props.modelValue, v => { if (!v) showStatsPanel.value = false })
 
 const modeVehicle = computed(() => {
   const base = veh.value
@@ -323,8 +349,69 @@ function v(key) {
 </script>
 
 <style scoped>
+.card-shell {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 8px;
+}
+.main-card { width: 760px; max-width: 100%; flex-shrink: 0; }
+.stats-panel { width: 340px; flex-shrink: 0; }
+
+.panel-slide-enter-active,
+.panel-slide-leave-active {
+  transition: opacity .22s ease, transform .26s ease;
+}
+.panel-slide-enter-from,
+.panel-slide-leave-to {
+  opacity: 0;
+  transform: translateX(-18px);
+}
+
+.stats-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 24px;
+  margin-right: 4px;
+  border: 1px solid #1e3a5f;
+  border-radius: 5px;
+  background: transparent;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: border-color .15s, background .15s, color .15s;
+}
+.stats-toggle:hover {
+  border-color: rgba(56, 189, 248, 0.25);
+  background: rgba(56, 189, 248, 0.04);
+  color: #7dd3fc;
+}
+.stats-toggle--active {
+  border-color: rgba(56, 189, 248, 0.45);
+  background: rgba(56, 189, 248, 0.08);
+  color: #38bdf8;
+}
+
+
 .card-header { display: flex; align-items: center; padding: 12px 16px; gap: 8px; }
 .vehicle-name { font-size: 18px; font-weight: 700; color: #a7f3d0; letter-spacing: .06em; }
+
+.rank-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 7px;
+  border: 1px solid rgba(45, 212, 191, 0.35);
+  border-radius: 5px;
+  background: rgba(45, 212, 191, 0.08);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .05em;
+  color: #2dd4bf;
+  font-family: 'JetBrains Mono', monospace;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
 
 .br-modes {
   display: flex;
@@ -355,7 +442,7 @@ function v(key) {
   font-weight: 700;
   letter-spacing: .08em;
   text-transform: uppercase;
-  color: #475569;
+  color: #94a3b8;
 }
 .br-pill--active .br-pill__mode { color: #7dd3fc; }
 .br-pill__val {
@@ -398,27 +485,27 @@ function v(key) {
   font-size: 12px;
 }
 .meta-row:last-child { border-bottom: none; }
-.meta-lbl { font-size: 9px; font-weight: 700; letter-spacing: .1em; color: #475569; text-transform: uppercase; }
+.meta-lbl { font-size: 9px; font-weight: 700; letter-spacing: .1em; color: #94a3b8; text-transform: uppercase; }
 .meta-val { color: #e2e8f0; font-weight: 600; font-family: 'JetBrains Mono', monospace; }
 
 .card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
 .card-section { padding: 14px 16px; border-right: 1px solid #1e293b; border-bottom: 1px solid #1e293b; }
 .card-section:nth-child(even) { border-right: none; }
 .card-section:nth-last-child(-n+2) { border-bottom: none; }
-.section-title { font-size: 10px; font-weight: 700; letter-spacing: .12em; color: #475569; text-transform: uppercase; margin-bottom: 10px; }
+.section-title { font-size: 10px; font-weight: 700; letter-spacing: .12em; color: #94a3b8; text-transform: uppercase; margin-bottom: 10px; }
 .stat-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 12px; }
-.stat-label { color: #64748b; }
+.stat-label { color: #a8b3c4; }
 .stat-value { color: #e2e8f0; font-weight: 600; }
 .score-row { margin-bottom: 8px; }
-.score-label { font-size: 10px; color: #64748b; display: block; margin-bottom: 3px; letter-spacing: .06em; }
+.score-label { font-size: 10px; color: #a8b3c4; display: block; margin-bottom: 3px; letter-spacing: .06em; }
 .score-bar-wrap { display: flex; align-items: center; gap: 8px; background: #1e293b; border-radius: 4px; height: 18px; padding: 0 8px; }
 .score-val { font-size: 11px; font-weight: 700; font-family: 'JetBrains Mono', monospace; flex-shrink: 0; min-width: 26px; }
 .score-track { flex: 1; height: 4px; background: rgba(255,255,255,.06); border-radius: 2px; overflow: hidden; }
 .score-bar { height: 100%; border-radius: 2px; transition: width .3s, background .3s; }
 .armor-table { width: 100%; font-size: 11px; border-collapse: collapse; font-family: 'JetBrains Mono', monospace; }
-.armor-table th { color: #475569; font-weight: 600; text-align: center; padding: 2px 6px 5px; font-family: inherit; }
+.armor-table th { color: #94a3b8; font-weight: 600; text-align: center; padding: 2px 6px 5px; font-family: inherit; }
 .armor-table td { text-align: center; color: #e2e8f0; padding: 4px 6px; }
 .armor-table tbody tr + tr td { border-top: 1px solid #1e293b; }
-.armor-label { color: #64748b !important; text-align: left !important; }
+.armor-label { color: #a8b3c4 !important; text-align: left !important; }
 .chips-row { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
 </style>
