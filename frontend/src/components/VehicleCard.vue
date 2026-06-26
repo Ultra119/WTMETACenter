@@ -67,9 +67,9 @@
               <span class="meta-lbl">{{ t('vehicle_card.wr') }}</span>
               <span class="meta-val" :style="{ color: wrColor(modeVehicle.WR) }">{{ modeVehicle.WR?.toFixed(1) }}%</span>
             </div>
-            <div class="meta-row">
-              <span class="meta-lbl">{{ t('vehicle_card.kd') }}</span>
-              <span class="meta-val">{{ modeVehicle.KD?.toFixed(2) }}</span>
+            <div v-for="row in kdBreakdown" :key="row.key" class="meta-row">
+              <span class="meta-lbl">{{ t(row.labelKey) }}</span>
+              <span class="meta-val">{{ row.value.toFixed(2) }}</span>
             </div>
           </div>
         </div>
@@ -271,6 +271,20 @@ const modeVehicle = computed(() => {
       e.Type   === base.Type   &&
       e.Mode   === activeMode.value
   ) ?? base
+})
+
+const KD_BREAKDOWN_DEFS = [
+  { key: 'KD_GROUND', labelKey: 'vehicle_card.kd_ground' },
+  { key: 'KD_AIR',     labelKey: 'vehicle_card.kd_air'    },
+  { key: 'KD_NAVAL',   labelKey: 'vehicle_card.kd_naval'  },
+]
+
+const kdBreakdown = computed(() => {
+  const v = modeVehicle.value
+  if (!v) return []
+  return KD_BREAKDOWN_DEFS
+    .map(d => ({ ...d, value: v[d.key] }))
+    .filter(d => d.value != null && d.value > 0)
 })
 
 const activeModePill = computed(() =>
