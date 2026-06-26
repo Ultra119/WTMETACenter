@@ -25,7 +25,7 @@ from analytics.constants import WT_BR_STEPS
 
 _KEEP_COLS = [
     "Name", "Nation", "BR", "Type", "Mode", "VehicleClass",
-    "Сыграно игр", "WR", "KD",
+    "Сыграно игр", "WR", "KD", "KD_GROUND", "KD_AIR", "KD_NAVAL",
     "SL за игру", "RP за игру", "Net SL за игру",
     "META_SCORE", "FARM_SCORE",
     "vdb_hull_front",  "vdb_hull_side",  "vdb_hull_rear",

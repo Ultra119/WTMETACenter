@@ -49,6 +49,11 @@ def score(df: pd.DataFrame, settings: dict) -> pd.DataFrame:
     df["_surv_raw"] = (1.0 - (deaths / spawns)).clip(0.0, 1.0)
     df["_wr_raw"]   = (df["WR"] / 100.0).clip(0.0, 1.0)
 
+    deaths_for_kd      = df["Смерти"].clip(lower=1)
+    df["KD_GROUND"] = df["Наземные убийства"]  / deaths_for_kd
+    df["KD_AIR"]    = df["Воздушные убийства"] / deaths_for_kd
+    df["KD_NAVAL"]  = df["Морские убийства"]   / deaths_for_kd
+
     df["_total_kills"]      = (
         df["Наземные убийства"] +
         df["Воздушные убийства"] +
