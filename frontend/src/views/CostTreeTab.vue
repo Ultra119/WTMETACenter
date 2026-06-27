@@ -506,7 +506,11 @@ function fmtFull(n) {
   font-family: 'JetBrains Mono', monospace;
 }
 
-.branch-card__rows { padding: 3px 0; }
+.branch-card__rows {
+  padding: 3px 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
 
 .bar-row {
   display: grid;
@@ -517,6 +521,7 @@ function fmtFull(n) {
   border-top: 1px solid rgba(30, 58, 95, 0.35);
   transition: opacity .12s;
   cursor: default;
+  min-width: 460px;
 }
 .bar-row:first-child { border-top: none; }
 
@@ -611,4 +616,18 @@ function fmtFull(n) {
 }
 
 .tooltip-content { font-size: 12px; line-height: 1.6; }
+
+@media (max-width: 760px) {
+  .controls-row {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 2px;
+  }
+  .controls-row > * { flex-shrink: 0; }
+  .controls-row .ml-auto { margin-left: 0; }
+  .era-legend { flex-wrap: nowrap; }
+
+  .branches-grid { grid-template-columns: 1fr; }
+}
 </style>

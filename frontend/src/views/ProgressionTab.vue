@@ -901,7 +901,8 @@ lineupPrefs.value = defaultLineupPrefs(branch.value, DEFAULT_LINEUP_SLOTS, activ
 .legend-text { white-space: nowrap; }
 
 .prog-grid-wrap {
-  flex: 1; overflow-y: auto; overflow-x: hidden;
+  flex: 1; overflow: auto;
+  -webkit-overflow-scrolling: touch;
   max-height: calc(100vh - 260px); padding-bottom: 12px;
 }
 .prog-grid { display: grid; gap: 4px; align-items: start; width: 100%; }
@@ -939,4 +940,24 @@ lineupPrefs.value = defaultLineupPrefs(branch.value, DEFAULT_LINEUP_SLOTS, activ
 }
 .group-bracket :deep(.prog-card:not(:last-child))  { border-bottom-right-radius: 0; margin-bottom: 1px; }
 .group-bracket :deep(.prog-card:not(:first-child)) { border-top-right-radius: 0; }
+
+@media (max-width: 760px) {
+  .controls-row {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 2px;
+  }
+  .controls-row > * { flex-shrink: 0; }
+  .controls-row .stats-badges { margin-left: 0; }
+
+  .lineup-mix-row {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 2px;
+  }
+  .lineup-mix-row > * { flex-shrink: 0; }
+  .lineup-mix-types { flex-wrap: nowrap; }
+}
 </style>
