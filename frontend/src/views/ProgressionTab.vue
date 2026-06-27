@@ -553,17 +553,6 @@ watchEffect(() => {
     }
   }
 
-  const eraHasMust = {}
-  for (const v of stdVehicles) {
-    eraHasMust[v._era_int] ??= false
-    if (v.Verdict === VERDICT_MUST) eraHasMust[v._era_int] = true
-  }
-  const painEras = new Set(
-    Object.entries(eraHasMust)
-      .filter(([, has]) => !has)
-      .map(([e]) => +e)
-  )
-
   for (const [prefKey, want] of Object.entries(prefs)) {
     if (!want || want <= 0) continue
 
@@ -638,6 +627,17 @@ watchEffect(() => {
       }
     }
   }
+
+  const eraHasMust = {}
+  for (const v of stdVehicles) {
+    eraHasMust[v._era_int] ??= false
+    if (v.Verdict === VERDICT_MUST) eraHasMust[v._era_int] = true
+  }
+  const painEras = new Set(
+    Object.entries(eraHasMust)
+      .filter(([, has]) => !has)
+      .map(([e]) => +e)
+  )
 
   for (const v of premVehicles) {
     v.Verdict       = VERDICT_PREM
