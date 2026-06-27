@@ -172,6 +172,7 @@ import { useI18n } from 'vue-i18n'
 import { useTabFilters } from '../composables/useTabFilters.js'
 import { useDataStore } from '../stores/useDataStore.js'
 import InfoTip from '../components/InfoTip.vue'
+import { BR_ERA_THRESHOLDS } from '../composables/constants.js'
 
 const { t }   = useI18n()
 const store = useDataStore()
@@ -183,6 +184,18 @@ const ERA_COLORS = {
 }
 
 const ROMAN = { 1:'I', 2:'II', 3:'III', 4:'IV', 5:'V', 6:'VI', 7:'VII', 8:'VIII' }
+
+function brToEra(br) {
+  for (let i = 0; i < BR_ERA_THRESHOLDS.length; i++) {
+    if (br <= BR_ERA_THRESHOLDS[i]) return i + 1
+  }
+  return 8
+}
+
+function vehicleEra(v) {
+  const rawEra = Number(v.vdb_era ?? 0)
+  return Math.max(1, Math.min(8, rawEra > 0 ? rawEra : brToEra(Number(v.BR) || 0)))
+}
 
 const NATION_FLAG = {
   usa:'🇺🇸', germany:'🇩🇪', ussr:'🇷🇺', britain:'🇬🇧', japan:'🇯🇵',
@@ -228,11 +241,6 @@ const metricUnit = computed(() => metric.value === 'sl' ? 'SL' : 'RP')
 
 const uniqueVehicles = shallowRef([])
 watchEffect(() => {
-  // Intentionally raw/unfiltered: this tab ignores the sidebar's mode/BR/min-battles
-  // filters (see useTabFilters below) and applies its own era+type+class criteria
-  // further down. NOTE: previously this read `store.allVehicles ?? store.filteredVehicles ?? []`,
-  // but store.allVehicles is always an array (never null/undefined) so that fallback
-  // was dead code and never actually ran — removed for clarity, behavior unchanged.
   const source = store.allVehicles
   nextTick(() => {
     const seen = new Set()
@@ -275,14 +283,8 @@ watchEffect(() => {
       for (const v of vehicles) {
         const g = v.vdb_shop_group
         if (!g) continue
-        // Eligibility here must mirror the main loop below exactly — otherwise
-        // the "cheapest in folder" pick can be a vehicle that the main loop
-        // would itself discard (wrong class / zero value), silently dropping
-        // the whole group instead of falling back to the next eligible one.
         if (!cls.includes(v.VehicleClass ?? 'Standard')) continue
         if (isRpBased && (v.VehicleClass ?? 'Standard') !== 'Standard') continue
-        const era = Number(v.vdb_era ?? 0)
-        if (era < 1 || era > 8) continue
         let bKey = null
         for (const b of BRANCHES) {
           if (BRANCH_TYPE_SET[b.key].has(v.Type)) { bKey = b.key; break }
@@ -305,8 +307,7 @@ watchEffect(() => {
       if (!cls.includes(v.VehicleClass ?? 'Standard')) continue
       if (isRpBased && v.VehicleClass !== 'Standard') continue
 
-      const era = Number(v.vdb_era ?? 0)
-      if (era < 1 || era > 8) continue
+      const era = vehicleEra(v)
 
       const val = isRpBased ? Number(v.vdb_req_exp ?? 0) : Number(v.vdb_value ?? 0)
       if (!val) continue
