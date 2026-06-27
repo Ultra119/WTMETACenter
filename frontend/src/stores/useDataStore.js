@@ -100,6 +100,8 @@ export const useDataStore = defineStore('data', () => {
     allVehicles.value = await res.json()
   }
 
+  let _periodInitialized = false
+
   async function loadData(basePath = '') {
     _basePath.value  = basePath
     loading.value    = true
@@ -110,7 +112,12 @@ export const useDataStore = defineStore('data', () => {
       metaInfo.value = await metaRes.json()
 
       const available = metaInfo.value?.periods ?? ['All']
-      if (!available.includes(currentPeriod.value)) {
+
+      if (!_periodInitialized) {
+        _periodInitialized = true
+        const latestMonth = available.find(p => p !== 'All')
+        currentPeriod.value = latestMonth ?? available[0] ?? 'All'
+      } else if (!available.includes(currentPeriod.value)) {
         currentPeriod.value = available[0] ?? 'All'
       }
 
