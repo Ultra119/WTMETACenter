@@ -17,9 +17,18 @@ export function useTabFilters(config = {}) {
   const apply = () => store.setTabFilters(resolved)
   const reset = () => store.clearTabFilters()
 
-  onMounted(apply)
-  onUnmounted(reset)
+  let _justMounted = false
 
-  onActivated(apply)
+  onMounted(() => {
+    _justMounted = true
+    apply()
+  })
+
+  onActivated(() => {
+    if (_justMounted) { _justMounted = false; return }
+    apply()
+  })
+
   onDeactivated(reset)
+  onUnmounted(reset)
 }
