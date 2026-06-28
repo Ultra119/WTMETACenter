@@ -24,8 +24,8 @@ _DOWNLOAD_TIMEOUT: int = 20
 
 class UnitsCsvTranslator:
     def __init__(self, dataset_dir: str) -> None:
-        self._en_to_id: dict[str, str] = {}   # "t-34 (1940)"    → "ussr_t_34_1940"
-        self._id_to_en: dict[str, str] = {}   # "ussr_t_34_1940" → "T-34 (1940)"
+        self._en_to_id: dict[str, str] = {}
+        self._id_to_en: dict[str, str] = {}
         self.loaded: bool = False
 
         local_path = os.path.join(dataset_dir, UNITS_CSV_FILENAME)
@@ -120,7 +120,6 @@ class UnitsCsvTranslator:
                         count_skipped += 1
                         continue
 
-                    # «units/ussr_t_34_1940_shop» → «ussr_t_34_1940»
                     identifier = raw_id.split("/", 1)[-1] if "/" in raw_id else raw_id
                     base_id    = _SUFFIX_RE.sub("", identifier)
                     en_key     = english.lower()

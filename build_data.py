@@ -11,7 +11,6 @@ import pandas as pd
 
 PROJECT_DIR  = os.path.dirname(os.path.abspath(__file__))
 FRONTEND_PUB = os.path.join(PROJECT_DIR, "frontend", "public")
-# Per-period vehicle JSONs go into a dedicated subfolder
 DATA_DIR     = os.path.join(FRONTEND_PUB, "data")
 OUT_META     = os.path.join(FRONTEND_PUB, "meta_info.json")
 
@@ -58,7 +57,7 @@ _MODES = ["Realistic", "Arcade", "Simulator"]
 
 _WT_NATIONS = {
     "USA","Germany","USSR","Britain","Japan","Italy",
-    "France","Sweden","Israel","China","Finland","Netherlands","Hungary",
+    "France","Sweden","Israel","China",
 }
 
 _WT_NATIONS_LOWER = {n.lower() for n in _WT_NATIONS}
@@ -260,7 +259,7 @@ def main() -> None:
     meta_info = {
         "generated_at":    generated_at,
         "dataset_hash":    dataset_hash,
-        "periods":         all_period_labels,    # ["All", "10-2023", ...]
+        "periods":         all_period_labels,
         "nations":         nations_list,
         "types":           all_types,
         "br_steps":        WT_BR_STEPS,
