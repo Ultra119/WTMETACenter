@@ -6,7 +6,7 @@ import re
 import urllib.request
 from typing import Optional
 
-_SUFFIX_RE = re.compile(r"(_shop|_\d+)$")
+_SUFFIX_RE = re.compile(r"(_shop|_\d{1,2})$")
 
 _BADGE_PREFIX_RE = re.compile(r"^[^\w(\[{\"']+", re.UNICODE)
 
