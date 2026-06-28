@@ -261,17 +261,46 @@ const activeMode = ref(props.vehicle?.Mode ?? 'Realistic')
 watch(veh, v => { if (v?.Mode) activeMode.value = v.Mode }, { immediate: true })
 watch(() => props.modelValue, v => { if (!v) showStatsPanel.value = false })
 
-const modeVehicle = computed(() => {
+const vehicleByMode = computed(() => {
   const base = veh.value
-  if (!base?.Name) return base
-  return store.allVehicles.find(
-    e =>
-      e.Name   === base.Name   &&
-      e.Nation === base.Nation &&
-      e.Type   === base.Type   &&
-      e.Mode   === activeMode.value
-  ) ?? base
+  if (!base?.Name) return {}
+  const { Name: name, Nation: nation, Type: type } = base
+  const result  = {}
+  const maxModes = BR_MODES.length
+  for (const entry of store.allVehicles) {
+    if (
+      entry.Name   === name   &&
+      entry.Nation === nation &&
+      entry.Type   === type   &&
+      entry.Mode   != null
+    ) {
+      if (!(entry.Mode in result)) {
+        result[entry.Mode] = entry
+        if (Object.keys(result).length === maxModes) break
+      }
+    }
+  }
+  return result
 })
+
+const modeVehicle = computed(() =>
+  vehicleByMode.value[activeMode.value] ?? veh.value
+)
+
+const brByMode = computed(() =>
+  Object.fromEntries(
+    Object.entries(vehicleByMode.value)
+      .filter(([, e]) => e.BR != null)
+      .map(([mode, e]) => [mode, fmtBR(e.BR)])
+  )
+)
+
+const scoresByMode = computed(() =>
+  Object.fromEntries(
+    Object.entries(vehicleByMode.value)
+      .map(([mode, e]) => [mode, { meta: e.META_SCORE ?? null, farm: e.FARM_SCORE ?? null }])
+  )
+)
 
 const KD_BREAKDOWN_DEFS = [
   { key: 'KD_GROUND', labelKey: 'vehicle_card.kd_ground' },
@@ -290,62 +319,6 @@ const kdBreakdown = computed(() => {
 const activeModePill = computed(() =>
   BR_MODES.find(m => m.key === activeMode.value)?.short ?? ''
 )
-
-const brByMode = computed(() => {
-  const v = veh.value
-  if (!v?.Name) return {}
-
-  const name   = v.Name
-  const nation = v.Nation
-  const type   = v.Type
-
-  const result = {}
-  const totalModes = BR_MODES.length
-  for (const entry of store.allVehicles) {
-    if (
-      entry.Name   === name   &&
-      entry.Nation === nation &&
-      entry.Type   === type   &&
-      entry.Mode   != null    &&
-      entry.BR     != null
-    ) {
-      if (!(entry.Mode in result)) {
-        result[entry.Mode] = fmtBR(entry.BR)
-        if (Object.keys(result).length === totalModes) break
-      }
-    }
-  }
-  return result
-})
-
-const scoresByMode = computed(() => {
-  const v = veh.value
-  if (!v?.Name) return {}
-
-  const name   = v.Name
-  const nation = v.Nation
-  const type   = v.Type
-
-  const result = {}
-  const totalModes = BR_MODES.length
-  for (const entry of store.allVehicles) {
-    if (
-      entry.Name   === name   &&
-      entry.Nation === nation &&
-      entry.Type   === type   &&
-      entry.Mode   != null
-    ) {
-      if (!(entry.Mode in result)) {
-        result[entry.Mode] = {
-          meta: entry.META_SCORE ?? null,
-          farm: entry.FARM_SCORE ?? null,
-        }
-        if (Object.keys(result).length === totalModes) break
-      }
-    }
-  }
-  return result
-})
 
 const activeScores = computed(() => {
   const s = scoresByMode.value[activeMode.value]
