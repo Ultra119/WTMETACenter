@@ -112,12 +112,12 @@ export const LINEUP_PRIORITY = {
 
 export const BR_ERA_THRESHOLDS = [2.3, 3.7, 5.3, 6.7, 8.3, 9.7, 11.3]
 
-export const CROSS_THRESH       = 1.30  // hint если другая ветка на 30% сильнее
-export const CROSS_SKIP_THRESH  = 1.40  // SKIP если на 40% сильнее + ниже BR
-export const CROSS_BR_WINDOW    = 0.7   // смотреть вперёд (выше BR)
-export const CROSS_BR_LOOKBACK  = 1.0   // смотреть назад  (ниже BR)
+export const CROSS_THRESH       = 1.30
+export const CROSS_SKIP_THRESH  = 1.40
+export const CROSS_BR_WINDOW    = 0.7
+export const CROSS_BR_LOOKBACK  = 1.0
 export const NO_CROSS_TYPES     = new Set(['spaa'])
-export const FILL_MIN_SCORE     = 1.0   // минимальный META_SCORE для FILL-кандидата
+export const FILL_MIN_SCORE     = 1.0
 
 export const REDBOOK_LOW_BATTLES = 100
 
