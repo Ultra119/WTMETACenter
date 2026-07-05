@@ -30,56 +30,56 @@ function typeToFolder(vehicleType) {
 }
 
 
-export function vehicleImageUrl(vehicleName, vehicleType) {
-  if (!vehicleName || !vehicleType) return null
+export function vehicleImageUrl(identifier, vehicleType) {
+  if (!identifier || !vehicleType) return null
   const folder = typeToFolder(vehicleType)
   if (!folder) return null
-  const name = vehicleName.trim()
-  return `${CDN_BASE}/${folder}/${name}.png`
+  const id = identifier.trim().toLowerCase()
+  return `${CDN_BASE}/${folder}/${id}.png`
 }
 
 const _cache = new Map()
 
-export function useVehicleImage(nameRef, typeRef) {
+export function useVehicleImage(identifierRef, typeRef) {
   const src    = ref(null)
   const loaded = ref(false)
   const error  = ref(false)
 
   function probe() {
-    const name = nameRef.value?.trim() ?? ''
+    const identifier = identifierRef.value?.trim().toLowerCase() ?? ''
     const type = typeRef.value
 
     src.value    = null
     loaded.value = false
     error.value  = false
 
-    if (!name || !type) return
+    if (!identifier || !type) return
 
-    const url = vehicleImageUrl(name, type)
+    const url = vehicleImageUrl(identifier, type)
     if (!url) return
     src.value = url
 
-    const cached = _cache.get(name)
+    const cached = _cache.get(identifier)
     if (cached === 'ok')    { loaded.value = true;  return }
     if (cached === 'error') { error.value  = true; src.value = null; return }
 
     const img  = new Image()
     img.onload = () => {
-      _cache.set(name, 'ok')
+      _cache.set(identifier, 'ok')
       if (src.value === url) loaded.value = true
     }
     img.onerror = () => {
-      _cache.set(name, 'error')
+      _cache.set(identifier, 'error')
       if (src.value === url) { error.value = true; src.value = null }
     }
     img.src = url
   }
 
-  watch([nameRef, typeRef], probe, { immediate: true })
+  watch([identifierRef, typeRef], probe, { immediate: true })
 
   return { src, loaded, error }
 }
 
-export function vehicleImageCached(vehicleName) {
-  return vehicleName ? _cache.get(vehicleName.trim()) === 'ok' : false
+export function vehicleImageCached(identifier) {
+  return identifier ? _cache.get(identifier.trim().toLowerCase()) === 'ok' : false
 }

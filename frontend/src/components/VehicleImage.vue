@@ -30,6 +30,7 @@ import { useVehicleImage } from '../composables/useVehicleImage.js'
 
 const props = defineProps({
   name:         { type: String,  default: null  },
+  identifier:   { type: String,  default: null  },
   type:         { type: String,  default: null  },
   aspect:       { type: String,  default: '2/1' },
   fit:          { type: String,  default: 'cover' },
@@ -38,9 +39,9 @@ const props = defineProps({
 
 const emit = defineEmits(['loaded', 'error'])
 
-const nameRef = toRef(props, 'name')
-const typeRef = toRef(props, 'type')
-const { src, loaded, error: imgError } = useVehicleImage(nameRef, typeRef)
+const identifierRef = toRef(props, 'identifier')
+const typeRef       = toRef(props, 'type')
+const { src, loaded, error: imgError } = useVehicleImage(identifierRef, typeRef)
 
 watch(loaded,   v => { if (v) emit('loaded') })
 watch(imgError, v => { if (v) emit('error')  })

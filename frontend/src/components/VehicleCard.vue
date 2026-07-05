@@ -48,7 +48,7 @@
 
         <div class="info-band">
           <div class="img-pane">
-            <VehicleImage :name="vehicle.vdb_identifier" :type="vehicle.Type" aspect="2/1" fit="cover" />
+            <VehicleImage :name="displayName" :identifier="vehicle.vdb_identifier" :type="vehicle.Type" aspect="2/1" fit="cover" />
           </div>
           <div class="meta-pane">
             <div class="meta-row">
