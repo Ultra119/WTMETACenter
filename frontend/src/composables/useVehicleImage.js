@@ -2,7 +2,7 @@ import { ref, watch } from 'vue'
 
 const DATAMINE_OWNER = 'gszabi99'
 const DATAMINE_REPO  = 'War-Thunder-Datamine'
-const DATAMINE_REF   = 'refs/tags/2.55.1.80'
+const DATAMINE_REF   = 'refs/tags/2.57.0.42'
 const DATAMINE_ROOT  = 'tex.vromfs.bin_u'
 
 const CDN_BASE =
