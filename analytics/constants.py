@@ -48,11 +48,11 @@ VEHICLE_TYPE_CATEGORY: dict = {
 #   surv  — выживаемость (1 - смерти/возрождения)
 
 ROLE_WEIGHTS: dict = {
-    "medium_tank":        {"wr": 0.35, "ks_g": 0.35, "ks_a": 0.00, "kd": 0.20, "ks_n": 0.00, "surv": 0.10},
-    "light_tank":         {"wr": 0.45, "ks_g": 0.20, "ks_a": 0.00, "kd": 0.10, "ks_n": 0.00, "surv": 0.25},
-    "heavy_tank":         {"wr": 0.25, "ks_g": 0.30, "ks_a": 0.00, "kd": 0.35, "ks_n": 0.00, "surv": 0.10},
-    "tank_destroyer":     {"wr": 0.25, "ks_g": 0.45, "ks_a": 0.00, "kd": 0.20, "ks_n": 0.00, "surv": 0.10},
-    "spaa":               {"wr": 0.25, "ks_g": 0.05, "ks_a": 0.55, "kd": 0.10, "ks_n": 0.00, "surv": 0.05},
+    "medium_tank":        {"wr": 0.25, "ks_g": 0.40, "ks_a": 0.00, "kd": 0.25, "ks_n": 0.00, "surv": 0.10},
+    "light_tank":         {"wr": 0.35, "ks_g": 0.25, "ks_a": 0.00, "kd": 0.15, "ks_n": 0.00, "surv": 0.25},
+    "heavy_tank":         {"wr": 0.15, "ks_g": 0.35, "ks_a": 0.00, "kd": 0.40, "ks_n": 0.00, "surv": 0.10},
+    "tank_destroyer":     {"wr": 0.15, "ks_g": 0.50, "ks_a": 0.00, "kd": 0.25, "ks_n": 0.00, "surv": 0.10},
+    "spaa":               {"wr": 0.10, "ks_g": 0.05, "ks_a": 0.60, "kd": 0.20, "ks_n": 0.00, "surv": 0.05},
     "fighter":            {"wr": 0.30, "ks_g": 0.00, "ks_a": 0.50, "kd": 0.20, "ks_n": 0.00, "surv": 0.00},
     "bomber":             {"wr": 0.40, "ks_g": 0.30, "ks_a": 0.05, "kd": 0.15, "ks_n": 0.00, "surv": 0.10},
     "assault":            {"wr": 0.35, "ks_g": 0.35, "ks_a": 0.10, "kd": 0.15, "ks_n": 0.00, "surv": 0.05},
