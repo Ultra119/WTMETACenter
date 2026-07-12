@@ -117,7 +117,17 @@
     </div>
 
     <v-alert
-      v-if="!gridData"
+      v-if="store.loadError"
+      type="error"
+      variant="tonal"
+      density="compact"
+      class="mt-4"
+    >
+      {{ $t('progression_tab.load_error', { error: store.loadError }) }}
+    </v-alert>
+
+    <v-alert
+      v-else-if="!gridData"
       type="info"
       variant="tonal"
       density="compact"
@@ -176,12 +186,27 @@
           </div>
 
           <div class="prog-cell">
-            <ProgressionCard
-              v-for="v in gridData.getPremVehicles(era)"
-              :key="v._idx"
-              :vehicle="v"
-              @click="openVehicle?.(v)"
-            />
+            <template
+              v-for="item in groupedCells(gridData.getPremVehicles(era))"
+              :key="item.key"
+            >
+              <div v-if="item.isGroup" class="group-bracket">
+                <div class="group-label">📁 {{ item.groupLabel }}</div>
+                <ProgressionCard
+                  v-for="v in item.vehicles"
+                  :key="v._idx"
+                  :vehicle="v"
+                  :grouped="true"
+                  @click="openVehicle?.(v)"
+                />
+              </div>
+
+              <ProgressionCard
+                v-else
+                :vehicle="item.vehicle"
+                @click="openVehicle?.(item.vehicle)"
+              />
+            </template>
           </div>
 
         </template>
@@ -235,12 +260,33 @@ const prefDisplay = computed(() => ({
 }))
 
 
-const nation      = ref('')
-const branch      = ref('Ground')
-const activeTypes = shallowRef(new Set(BRANCH_TYPES.Ground))
-const showHidden  = ref(false)
+const _STORAGE_KEY = 'wt_progression_ui_state_v1'
 
-const lineupPrefs = ref({})
+function _loadPersistedState() {
+  try {
+    const raw = localStorage.getItem(_STORAGE_KEY)
+    return raw ? JSON.parse(raw) : null
+  } catch {
+    return null
+  }
+}
+
+function _savePersistedState(state) {
+  try {
+    localStorage.setItem(_STORAGE_KEY, JSON.stringify(state))
+  } catch {
+  }
+}
+
+const _persisted = _loadPersistedState()
+
+const nation      = ref(_persisted?.nation ?? '')
+const branch      = ref(_persisted?.branch ?? 'Ground')
+const activeTypes = shallowRef(new Set(BRANCH_TYPES[branch.value] ?? BRANCH_TYPES.Ground))
+const showHidden  = ref(_persisted?.showHidden ?? false)
+
+const lineupPrefsByBranch = ref(_persisted?.lineupPrefsByBranch ?? {})
+const lineupPrefs         = ref(lineupPrefsByBranch.value[branch.value] ?? {})
 
 const nationOptions = computed(() =>
   (store.nations ?? [])
@@ -249,13 +295,33 @@ const nationOptions = computed(() =>
 )
 
 watch(nationOptions, (opts) => {
-  if (!nation.value && opts.length) nation.value = opts[0].value
+  if (!opts.length) return
+  if (!nation.value || !opts.some(o => o.value === nation.value)) {
+    nation.value = opts[0].value
+  }
 }, { immediate: true })
 
 watch(branch, (newBranch) => {
   activeTypes.value = new Set(BRANCH_TYPES[newBranch] ?? [])
-  lineupPrefs.value = defaultLineupPrefs(newBranch, DEFAULT_LINEUP_SLOTS, activeTypes.value)
+  const saved = lineupPrefsByBranch.value[newBranch]
+  lineupPrefs.value = (saved && Object.keys(saved).length)
+    ? saved
+    : defaultLineupPrefs(newBranch, DEFAULT_LINEUP_SLOTS, activeTypes.value)
 })
+
+watch(
+  [nation, branch, showHidden, lineupPrefs],
+  () => {
+    lineupPrefsByBranch.value = { ...lineupPrefsByBranch.value, [branch.value]: lineupPrefs.value }
+    _savePersistedState({
+      nation:              nation.value,
+      branch:              branch.value,
+      showHidden:          showHidden.value,
+      lineupPrefsByBranch: lineupPrefsByBranch.value,
+    })
+  },
+  { deep: true },
+)
 
 
 function toPrefKey(type) {
@@ -403,6 +469,7 @@ watchEffect(() => {
   const _branch     = branch.value
   const _prefs      = lineupPrefs.value
   const _showHidden = showHidden.value
+  const _search     = (store.searchQuery ?? '').trim().toLowerCase()
 
   const version = ++_progVersion
   nextTick(() => {
@@ -419,7 +486,8 @@ watchEffect(() => {
     v.Mode   === selectedMode  &&
     (v.VehicleClass !== STD_CLASS || (v.vdb_shop_rank ?? 0) > 0) &&
     brTypes.includes(v.Type)   &&
-    (_showHidden || !v.vdb_shop_is_research_only)
+    (_showHidden || !v.vdb_shop_is_research_only) &&
+    (!_search || (v.Name ?? '').toLowerCase().includes(_search))
   )
 
   const seen = new Map()
@@ -448,6 +516,8 @@ watchEffect(() => {
       Cross_Alt:     '',
       Prem_Boost:    0,
       Prem_Pain_Fix: false,
+      _excludedFromLineup: false,
+      _excluded_hint:      '',
     }
   })
 
@@ -462,28 +532,23 @@ watchEffect(() => {
     enriched.map(v => v._localScore)
   )
 
-  const eraJunk = {}
-  {
-    const byEra = {}
-    for (const v of stdVehicles) {
-      ;(byEra[v._era_int] ??= []).push(v._localScore)
-    }
-    for (const [e, scores] of Object.entries(byEra)) {
-      eraJunk[+e] = computeDynamicThresholds(scores)[0]
-    }
-  }
-
   const mustMinMeta = yellowThresh
   const skipMaxMeta = junkThresh
 
-  const byBranch = {}
+  const byEraBranch    = {}
+  const localJunkByKey = {}
+
   for (const v of stdVehicles) {
-    ;(byBranch[v._branch] ??= []).push(v)
+    const key = `${v._era_int}::${v._branch}`
+    ;(byEraBranch[key] ??= []).push(v)
   }
 
-  for (const grp of Object.values(byBranch)) {
+  for (const [key, grp] of Object.entries(byEraBranch)) {
     grp.sort((a, b) => a.BR !== b.BR ? a.BR - b.BR : b._localScore - a._localScore)
-    const p60 = quantile(grp.map(v => v._localScore), 0.60)
+    const scores       = grp.map(v => v._localScore)
+    const [localJunk]  = computeDynamicThresholds(scores)
+    const p60          = quantile(scores, 0.60)
+    localJunkByKey[key] = Math.max(localJunk, skipMaxMeta)
 
     for (let pos = 0; pos < grp.length; pos++) {
       const v      = grp[pos]
@@ -498,6 +563,10 @@ watchEffect(() => {
         let bestEff = 0, bestName = ''
         for (const prev of grp.slice(0, pos)) {
           if (ourGrp && prev.vdb_shop_group === ourGrp) continue
+          const prevCol = prev.vdb_shop_column ?? null
+          const vCol    = v.vdb_shop_column ?? null
+          if (prevCol !== null && vCol !== null && prevCol !== vCol) continue
+
           const eff = prev._localScore *
             combinedPenalty(prev._era_int, prev.BR, era, v.BR)
           if (eff > bestEff) { bestEff = eff; bestName = prev.Name }
@@ -511,9 +580,9 @@ watchEffect(() => {
 
       if (shouldSkip) {
         v.Verdict = VERDICT_SKIP; v.Skip_Reason = reason; v.Alt_Vehicle = altName
-      } else if (!noData && locS < (eraJunk[era] ?? skipMaxMeta)) {
+      } else if (!noData && locS < localJunkByKey[key]) {
         v.Verdict     = VERDICT_SKIP
-        v.Skip_Reason = t('progression_tab.reason_weak_vehicle', { score: locS.toFixed(0), thresh: (eraJunk[era] ?? skipMaxMeta).toFixed(0) })
+        v.Skip_Reason = t('progression_tab.reason_weak_vehicle', { score: locS.toFixed(0), thresh: localJunkByKey[key].toFixed(0) })
       } else {
         v.Verdict = (!noData && locS >= p60 && locS >= mustMinMeta)
           ? VERDICT_MUST
@@ -598,9 +667,8 @@ watchEffect(() => {
     const pk   = toPrefKey(v._branch)
     const want = prefs[pk] ?? 0
     if (want === 0) {
-      v.Verdict     = VERDICT_SKIP
-      v.Skip_Reason = t('progression_tab.reason_not_in_lineup')
-      v.Alt_Vehicle = ''
+      v._excludedFromLineup = true
+      v._excluded_hint       = t('progression_tab.reason_not_in_lineup')
     }
   }
 
@@ -677,7 +745,7 @@ watchEffect(() => {
     if (skipNames.has(v.Alt_Vehicle)) {
       v.Skip_Reason = ''
       v.Alt_Vehicle = ''
-      const ownJunk = eraJunk[v._era_int] ?? skipMaxMeta
+      const ownJunk = localJunkByKey[`${v._era_int}::${v._branch}`] ?? skipMaxMeta
       if (v._localScore >= ownJunk) {
         v.Verdict = VERDICT_PASS
       }
@@ -785,7 +853,9 @@ function groupedCells(cellVehicles) {
 function countByVerdict(verdict) {
   return progressionData.value.filter(v => v.Verdict === verdict).length
 }
-lineupPrefs.value = defaultLineupPrefs(branch.value, DEFAULT_LINEUP_SLOTS, activeTypes.value)
+if (!Object.keys(lineupPrefs.value).length) {
+  lineupPrefs.value = defaultLineupPrefs(branch.value, DEFAULT_LINEUP_SLOTS, activeTypes.value)
+}
 </script>
 
 <style scoped>
@@ -913,13 +983,19 @@ lineupPrefs.value = defaultLineupPrefs(branch.value, DEFAULT_LINEUP_SLOTS, activ
   letter-spacing: 0.1em; text-transform: uppercase;
   min-height: 32px; display: flex; align-items: center; justify-content: center;
 }
-.grid-hdr--rank { color: #475569; }
+.grid-hdr--rank {
+  color: #475569;
+  position: sticky; left: 0; z-index: 2;
+  box-shadow: 4px 0 6px -4px rgba(0, 0, 0, 0.5);
+}
 .grid-hdr--prem { color: #a78bfa; }
 
 .rank-cell {
   background: #162032; border-radius: 4px; padding: 10px 4px;
   text-align: center; display: flex; align-items: flex-start;
   justify-content: center; min-height: 64px;
+  position: sticky; left: 0; z-index: 1;
+  box-shadow: 4px 0 6px -4px rgba(0, 0, 0, 0.5);
 }
 .rank-roman {
   font-size: 24px; font-weight: 800; color: #a7f3d0; line-height: 1;

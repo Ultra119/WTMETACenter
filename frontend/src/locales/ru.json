@@ -132,7 +132,13 @@
     "reason_weak_vehicle":  "Слабая машина (META {score} < {thresh})",
     "hint_cross_better":    "Лучше использовать \"{name}\" ({br}) — сильнее в соседней ветке",
     "reason_cross_skip":    "Лучше прокачивать \"{name}\" ({br}) из соседней ветки",
-    "reason_not_in_lineup": "Не входит в сет"
+    "reason_not_in_lineup": "Не входит в сет",
+    "prem_pain_fix_boost":  "Помогает обойти болезненный ранг",
+    "prem_pain_fix_only":   "На этом ранге нет MUST в дереве — по сути единственный вариант",
+    "prem_fallback":        "★ Прем",
+    "prem_boost_grind":     "⚡ Фарм ×{val} бесплатной техники",
+    "prem_boost_parity":    "≈ Паритет ×{val}",
+    "prem_boost_weaker":    "↓ Слабее ×{val}"
   },
 
   "cost_tab": {

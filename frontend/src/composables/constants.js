@@ -5,11 +5,11 @@ export const VERDICT_PREM = 'PREM'
 export const VERDICT_FILL = 'FILL'
 
 export const VERDICT_COLORS = {
-  MUST: { border: '#10b981', bg: 'rgba(16,185,129,0.08)',  icon: 'mdi-circle',  label: 'Must Play'      },
-  FILL: { border: '#38bdf8', bg: 'rgba(56,189,248,0.07)',  icon: 'mdi-circle',  label: 'Lineup Filler'  },
-  PASS: { border: '#fbbf24', bg: 'rgba(251,191,36,0.06)',  icon: 'mdi-circle',  label: 'Passable'       },
-  SKIP: { border: '#f87171', bg: 'rgba(248,113,113,0.08)', icon: 'mdi-circle',  label: 'Hard Skip'      },
-  PREM: { border: '#a78bfa', bg: 'rgba(167,139,250,0.09)', icon: 'mdi-crown',   label: 'Premium Fix'    },
+  MUST: { border: '#10b981', bg: 'rgba(16,185,129,0.08)',  icon: 'mdi-check-circle',  label: 'Must Play'      },
+  FILL: { border: '#38bdf8', bg: 'rgba(56,189,248,0.07)',  icon: 'mdi-plus-circle',   label: 'Lineup Filler'  },
+  PASS: { border: '#fbbf24', bg: 'rgba(251,191,36,0.06)',  icon: 'mdi-minus-circle',  label: 'Passable'       },
+  SKIP: { border: '#f87171', bg: 'rgba(248,113,113,0.08)', icon: 'mdi-close-circle',  label: 'Hard Skip'      },
+  PREM: { border: '#a78bfa', bg: 'rgba(167,139,250,0.09)', icon: 'mdi-crown',         label: 'Premium Fix'    },
 }
 
 export const BRANCH_TYPES = {

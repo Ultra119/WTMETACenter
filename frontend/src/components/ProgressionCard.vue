@@ -1,7 +1,10 @@
 <template>
   <div
     class="prog-card"
-    :class="{ 'prog-card--grouped': grouped }"
+    :class="{
+      'prog-card--grouped':  grouped,
+      'prog-card--excluded': vehicle._excludedFromLineup,
+    }"
     :style="cardStyle"
     @click="$emit('click')"
   >
@@ -30,9 +33,18 @@
       {{ vehicle.Skip_Reason }}
     </div>
 
+    <div
+      v-if="vehicle._excludedFromLineup"
+      class="pc-hint pc-hint--excluded"
+    >
+      🚫 {{ vehicle._excluded_hint }}
+    </div>
+
     <template v-if="vehicle.Verdict === 'PREM'">
-      <div v-if="vehicle.Prem_Pain_Fix && (vehicle.Prem_Boost ?? 0) >= 1.05" class="pc-hint pc-hint--prem">
-        👑 Helps bypass painful rank
+      <div v-if="vehicle.Prem_Pain_Fix" class="pc-hint pc-hint--prem">
+        👑 {{ (vehicle.Prem_Boost ?? 0) >= 1.05
+          ? t('progression_tab.prem_pain_fix_boost')
+          : t('progression_tab.prem_pain_fix_only') }}
       </div>
       <div
         v-if="boostLabel"
@@ -41,8 +53,8 @@
       >
         {{ boostLabel.text }}
       </div>
-      <div v-if="!(vehicle.Prem_Pain_Fix && (vehicle.Prem_Boost ?? 0) >= 1.05) && !boostLabel" class="pc-hint pc-hint--prem">
-        ★ Premium
+      <div v-if="!vehicle.Prem_Pain_Fix && !boostLabel" class="pc-hint pc-hint--prem">
+        {{ t('progression_tab.prem_fallback') }}
       </div>
     </template>
   </div>
@@ -50,12 +62,15 @@
 
 <script setup>
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import {
   VERDICT_COLORS,
   TYPE_ICON,
   CLASS_PREFIX,
   CLASS_BR_COLOR,
 } from '../composables/constants.js'
+
+const { t } = useI18n()
 
 const props = defineProps({
   vehicle: { type: Object,  required: true },
@@ -79,9 +94,10 @@ const nameColor = computed(() => brColor.value === '#64748b' ? '#e2e8f0' : brCol
 const boostLabel = computed(() => {
   const b = props.vehicle.Prem_Boost
   if (!b || b < 0.01) return null
-  if (b >= 1.05) return { text: `⚡ Grind ×${b.toFixed(1)} vs free`, color: '#34d399' }
-  if (b >= 0.95) return { text: `≈ Parity ×${b.toFixed(1)}`,          color: '#94a3b8' }
-  return               { text: `↓ Weaker ×${b.toFixed(1)}`,            color: '#f87171' }
+  const val = b.toFixed(1)
+  if (b >= 1.05) return { text: t('progression_tab.prem_boost_grind',  { val }), color: '#34d399' }
+  if (b >= 0.95) return { text: t('progression_tab.prem_boost_parity', { val }), color: '#94a3b8' }
+  return               { text: t('progression_tab.prem_boost_weaker', { val }), color: '#f87171' }
 })
 
 const cardStyle = computed(() => ({
@@ -112,6 +128,14 @@ const cardStyle = computed(() => ({
 }
 .prog-card--grouped {
   margin-bottom: 0;
+}
+.prog-card--excluded {
+  opacity: 0.5;
+  filter: grayscale(0.4);
+}
+.prog-card--excluded:hover {
+  opacity: 0.85;
+  filter: grayscale(0.15);
 }
 
 .pc-header {
@@ -150,7 +174,6 @@ const cardStyle = computed(() => ({
   flex-shrink: 0;
 }
 
-/* Stats */
 .pc-stats {
   display: flex;
   gap: 8px;
@@ -166,7 +189,6 @@ const cardStyle = computed(() => ({
   margin-right: 2px;
 }
 
-/* Hints */
 .pc-hint {
   font-size: 10px;
   margin-top: 5px;
@@ -184,6 +206,10 @@ const cardStyle = computed(() => ({
 .pc-hint--prem {
   color: #c4b5fd;
   border-top: 1px solid rgba(167, 139, 250, 0.25);
+}
+.pc-hint--excluded {
+  color: #64748b;
+  border-top: 1px solid rgba(100, 116, 139, 0.25);
 }
 .pc-hint--boost {
   font-family: 'JetBrains Mono', monospace;

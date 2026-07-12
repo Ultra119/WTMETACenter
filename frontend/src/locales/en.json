@@ -132,7 +132,13 @@
     "reason_weak_vehicle":  "Weak vehicle (META {score} < {thresh})",
     "hint_cross_better":    "Better to use \"{name}\" ({br}) — stronger in adjacent branch",
     "reason_cross_skip":    "Better to grind \"{name}\" ({br}) from adjacent branch",
-    "reason_not_in_lineup": "Not in lineup"
+    "reason_not_in_lineup": "Not in lineup",
+    "prem_pain_fix_boost":  "Helps bypass painful rank",
+    "prem_pain_fix_only":   "No MUST in the tree here — this is your only real option",
+    "prem_fallback":        "★ Premium",
+    "prem_boost_grind":     "⚡ Grind ×{val} vs free",
+    "prem_boost_parity":    "≈ Parity ×{val}",
+    "prem_boost_weaker":    "↓ Weaker ×{val}"
   },
 
   "cost_tab": {
