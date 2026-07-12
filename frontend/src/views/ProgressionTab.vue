@@ -711,31 +711,19 @@ watchEffect(() => {
     v.Verdict       = VERDICT_PREM
     v.Prem_Pain_Fix = painEras.has(v._era_int)
 
-    const premFarm = parseFloat(v.FARM_SCORE) || v._localScore
+    const premNetSl = parseFloat(v['Net SL за игру']) || 0
 
-    let candidates = stdVehicles.filter(s =>
-      s._branch  === v._branch &&
-      s._era_int === v._era_int &&
-      Math.abs(s.BR - v.BR) <= MM_WINDOW
-    )
-    if (!candidates.length) {
-      candidates = stdVehicles.filter(s =>
-        s._branch === v._branch &&
-        Math.abs(s._era_int - v._era_int) <= 1 &&
-        Math.abs(s.BR - v.BR) <= MM_WINDOW
-      )
-    }
+    const candidates = stdVehicles.filter(s => s._era_int === v._era_int)
 
-    let bestFree = 0
+    let bestNetSl = 0
     for (const s of candidates) {
-      const farmS = parseFloat(s.FARM_SCORE) || s._localScore
-      const eff = farmS * brDecay(s.BR, v.BR)
-      if (eff > bestFree) bestFree = eff
+      const netSl = parseFloat(s['Net SL за игру']) || 0
+      if (netSl > bestNetSl) bestNetSl = netSl
     }
 
-    v.Prem_Boost = bestFree < 1e-3
+    v.Prem_Boost = bestNetSl < 1e-3
       ? 1.0
-      : Math.round((premFarm / bestFree) * 100) / 100
+      : Math.round((premNetSl / bestNetSl) * 100) / 100
   }
 
   const skipNames = new Set(
