@@ -29,6 +29,19 @@ def _weighted_avg(values: pd.Series, weights: pd.Series) -> float:
         return float(values.mean())
     return float((values * w).sum() / total)
 
+
+_SHIFT_WIDTH_FACTOR = 0.4
+
+
+def _shift_intensity(raw_val: float, z_val: float, thr: float, z_clip: float) -> float:
+    magnitude = max(0.0, min(1.0, z_val / z_clip)) if z_clip > 1e-9 else 0.0
+    if magnitude <= 0.0:
+        return 0.0
+
+    width = max(thr * _SHIFT_WIDTH_FACTOR, 1e-6)
+    gate  = 1.0 / (1.0 + np.exp(-(raw_val - thr) / width))
+    return magnitude * gate
+
 def score(df: pd.DataFrame, settings: dict) -> pd.DataFrame:
     df = df.copy()
 
@@ -235,40 +248,44 @@ def score(df: pd.DataFrame, settings: dict) -> pd.DataFrame:
         weights = ROLE_WEIGHTS.get(vtype, ROLE_WEIGHTS["_default"]).copy()
 
         if vtype == "spaa":
-            z_g      = float(row.get("z_ks_g", 0.0))
-            raw_ks_g = float(row.get("_ks_g_raw", 0.0))
-            thr      = ROLE_SHIFT_RAW_THRESHOLDS.get(("spaa", "_ks_g_raw"), 0.0)
-            t        = (max(0.0, min(1.0, z_g / z_clip)) if z_clip > 1e-9 else 0.0) \
-                       if raw_ks_g >= thr else 0.0
-            w_alt    = ROLE_WEIGHTS["tank_destroyer"]
-            weights  = {k: weights[k] * (1.0 - t) + w_alt[k] * t for k in weights}
+            t = _shift_intensity(
+                raw_val=float(row.get("_ks_g_raw", 0.0)),
+                z_val=float(row.get("z_ks_g", 0.0)),
+                thr=ROLE_SHIFT_RAW_THRESHOLDS.get(("spaa", "_ks_g_raw"), 0.0),
+                z_clip=z_clip,
+            )
+            w_alt   = ROLE_WEIGHTS["tank_destroyer"]
+            weights = {k: weights[k] * (1.0 - t) + w_alt[k] * t for k in weights}
 
         elif vtype in ("tank_destroyer", "light_tank", "medium_tank"):
-            z_a      = float(row.get("z_ks_a", 0.0))
-            raw_ks_a = float(row.get("_ks_a_raw", 0.0))
-            thr      = ROLE_SHIFT_RAW_THRESHOLDS.get((vtype, "_ks_a_raw"), 0.0)
-            t        = (max(0.0, min(1.0, z_a / z_clip)) if z_clip > 1e-9 else 0.0) \
-                       if raw_ks_a >= thr else 0.0
-            w_alt    = ROLE_WEIGHTS["spaa"]
-            weights  = {k: weights[k] * (1.0 - t) + w_alt[k] * t for k in weights}
+            t = _shift_intensity(
+                raw_val=float(row.get("_ks_a_raw", 0.0)),
+                z_val=float(row.get("z_ks_a", 0.0)),
+                thr=ROLE_SHIFT_RAW_THRESHOLDS.get((vtype, "_ks_a_raw"), 0.0),
+                z_clip=z_clip,
+            )
+            w_alt   = ROLE_WEIGHTS["spaa"]
+            weights = {k: weights[k] * (1.0 - t) + w_alt[k] * t for k in weights}
 
         elif vtype == "fighter":
-            z_g      = float(row.get("z_ks_g", 0.0))
-            raw_ks_g = float(row.get("_ks_g_raw", 0.0))
-            thr      = ROLE_SHIFT_RAW_THRESHOLDS.get(("fighter", "_ks_g_raw"), 0.0)
-            t        = (max(0.0, min(1.0, z_g / z_clip)) if z_clip > 1e-9 else 0.0) \
-                       if raw_ks_g >= thr else 0.0
-            w_alt    = ROLE_WEIGHTS["assault"]
-            weights  = {k: weights[k] * (1.0 - t) + w_alt[k] * t for k in weights}
+            t = _shift_intensity(
+                raw_val=float(row.get("_ks_g_raw", 0.0)),
+                z_val=float(row.get("z_ks_g", 0.0)),
+                thr=ROLE_SHIFT_RAW_THRESHOLDS.get(("fighter", "_ks_g_raw"), 0.0),
+                z_clip=z_clip,
+            )
+            w_alt   = ROLE_WEIGHTS["assault"]
+            weights = {k: weights[k] * (1.0 - t) + w_alt[k] * t for k in weights}
 
         elif vtype in ("assault", "bomber"):
-            z_a      = float(row.get("z_ks_a", 0.0))
-            raw_ks_a = float(row.get("_ks_a_raw", 0.0))
-            thr      = ROLE_SHIFT_RAW_THRESHOLDS.get((vtype, "_ks_a_raw"), 0.0)
-            t        = (max(0.0, min(1.0, z_a / z_clip)) if z_clip > 1e-9 else 0.0) \
-                       if raw_ks_a >= thr else 0.0
-            w_alt    = ROLE_WEIGHTS["fighter"]
-            weights  = {k: weights[k] * (1.0 - t) + w_alt[k] * t for k in weights}
+            t = _shift_intensity(
+                raw_val=float(row.get("_ks_a_raw", 0.0)),
+                z_val=float(row.get("z_ks_a", 0.0)),
+                thr=ROLE_SHIFT_RAW_THRESHOLDS.get((vtype, "_ks_a_raw"), 0.0),
+                z_clip=z_clip,
+            )
+            w_alt   = ROLE_WEIGHTS["fighter"]
+            weights = {k: weights[k] * (1.0 - t) + w_alt[k] * t for k in weights}
 
         w_sum = sum(weights.values())
         if w_sum > 1e-9:
