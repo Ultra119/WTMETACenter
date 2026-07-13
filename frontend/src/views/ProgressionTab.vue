@@ -123,7 +123,7 @@
       density="compact"
       class="mt-4"
     >
-      {{ $t('progression_tab.load_error', { error: store.loadError }) }}
+      {{ $t('common.error_load', { msg: store.loadError }) }}
     </v-alert>
 
     <v-alert
@@ -239,7 +239,7 @@ import {
 const store = useDataStore()
 useTabFilters({ brRange: false, minBattles: false, classes: false, types: false })
 const openVehicle = inject('openVehicle', null)
-const { t }       = useI18n()
+const { t, locale } = useI18n()
 
 const BRANCH_OPTIONS = [
   { value: 'Ground',      icon: 'mdi-tank',       labelKey: 'sidebar.ground'      },
@@ -470,6 +470,7 @@ watchEffect(() => {
   const _prefs      = lineupPrefs.value
   const _showHidden = showHidden.value
   const _search     = (store.searchQuery ?? '').trim().toLowerCase()
+  const _locale     = locale.value
 
   const version = ++_progVersion
   nextTick(() => {
