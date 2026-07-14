@@ -4,20 +4,6 @@
     <div class="controls-bar mb-4">
       <div class="controls-row">
 
-        <div class="history-search-wrap">
-          <span class="mdi mdi-magnify search-icon" />
-          <input
-            v-model="search"
-            class="history-search"
-            :placeholder="t('topbar.search_hint')"
-          />
-          <button v-if="search" class="search-clear" @click="search = ''">
-            <span class="mdi mdi-close" />
-          </button>
-        </div>
-
-        <div class="ctrl-divider" />
-
         <div>
           <v-select
             :model-value="nation"
@@ -280,7 +266,7 @@
 </template>
 
 <script setup>
-import { ref, computed, inject, watch } from 'vue'
+import { ref, computed, inject, watch, onMounted, onBeforeUnmount, onActivated, onDeactivated } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useDataStore } from '../stores/useDataStore.js'
 import { useTabFilters } from '../composables/useTabFilters.js'
@@ -294,9 +280,13 @@ const openVehicle = inject('openVehicle')
 
 useTabFilters({ period: false, mode: false, brRange: false, minBattles: false, classes: true, types: true })
 
+onMounted(()     => { store.historyTabActive = true  })
+onBeforeUnmount(()  => { store.historyTabActive = false })
+onActivated(()   => { store.historyTabActive = true  })
+onDeactivated(() => { store.historyTabActive = false })
+
 const MONTH_PREVIEW = 6
 
-const search = ref('')
 const nation = ref('All')
 
 const CATEGORY_ICON = {
@@ -366,7 +356,7 @@ const filtered = computed(() => {
     list = list.filter(v => v.Nation === nation.value)
   }
 
-  const q = search.value.trim().toLowerCase()
+  const q = store.searchQuery.trim().toLowerCase()
   if (q) {
     list = list.filter(v => (v.Name ?? '').toLowerCase().includes(q))
   }
@@ -508,7 +498,7 @@ function collapseMonth(key) {
   monthExpanded.value = next
 }
 
-watch(search, q => {
+watch(() => store.searchQuery, q => {
   if (q.trim()) {
     const nextCollapsed = new Set()
     const nextOpened    = new Set(yearGroups.value.map(yw => yw.year))
@@ -542,7 +532,7 @@ function escapeHtml(s) {
 }
 
 function highlightName(name) {
-  const q    = search.value.trim()
+  const q    = store.searchQuery.trim()
   const safe = escapeHtml(name ?? '')
   if (!q) return safe
   const esc = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
@@ -555,50 +545,6 @@ function highlightName(name) {
   width: 100%;
 }
 
-
-.history-search-wrap {
-  position: relative;
-  display: flex;
-  align-items: center;
-  flex: 1;
-  min-width: 180px;
-  max-width: 300px;
-}
-.search-icon {
-  position: absolute;
-  left: 10px;
-  color: #475569;
-  font-size: 15px;
-  pointer-events: none;
-}
-.history-search {
-  width: 100%;
-  height: 36px;
-  padding: 0 32px 0 32px;
-  background: rgba(10, 22, 40, 0.8);
-  border: 1px solid #1e3a5f;
-  border-radius: 8px;
-  outline: none;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 12px;
-  color: #e2e8f0;
-  transition: border-color 0.15s;
-}
-.history-search::placeholder { color: #475569; }
-.history-search:focus { border-color: rgba(56, 189, 248, 0.5); }
-.search-clear {
-  position: absolute;
-  right: 8px;
-  background: transparent;
-  border: none;
-  color: #475569;
-  cursor: pointer;
-  font-size: 13px;
-  padding: 0;
-  display: flex;
-  align-items: center;
-}
-.search-clear:hover { color: #94a3b8; }
 
 .stats-row {
   display: flex;

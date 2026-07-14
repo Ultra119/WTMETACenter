@@ -83,6 +83,7 @@ export const useDataStore = defineStore('data', () => {
 
   const searchQuery = ref('')
   const metaTabActive = ref(false)
+  const historyTabActive = ref(false)
 
   let _vehicleAC = null
 
@@ -266,5 +267,6 @@ export const useDataStore = defineStore('data', () => {
     BR_MIN, BR_MAX, WT_BR_STEPS,
     searchQuery,
     metaTabActive,
+    historyTabActive,
   }
 })

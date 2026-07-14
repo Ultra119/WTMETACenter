@@ -35,7 +35,7 @@
 
     <div class="search-wrapper" ref="wrapperRef">
 
-      <div class="search-field" :class="{ 'search-field--active': isOpen || (store.metaTabActive && query.trim().length >= 2) }">
+      <div class="search-field" :class="{ 'search-field--active': isOpen || (tabOwnsSearch && query.trim().length >= 2) }">
         <span class="mdi mdi-magnify search-icon" />
         <input
           ref="inputRef"
@@ -59,7 +59,7 @@
       <Teleport to="body">
         <Transition name="dropdown">
           <div
-            v-if="isOpen && !store.metaTabActive"
+            v-if="isOpen && !tabOwnsSearch"
             class="search-dropdown"
             :style="dropdownStyle"
           >
@@ -143,6 +143,8 @@ const sidebarOpen   = inject('sidebarOpen', null)
 
 const isHomePage = computed(() => route.path === '/')
 
+const tabOwnsSearch = computed(() => store.metaTabActive || store.historyTabActive)
+
 const query      = ref('')
 const isOpen     = ref(false)
 const activeIdx  = ref(-1)
@@ -201,13 +203,13 @@ function nationFlag(nation) { return NATION_FLAG[nation?.toLowerCase()] ?? '🏴
 
 function onInput() {
   activeIdx.value = -1
-  const show = query.value.trim().length >= 2 && !store.metaTabActive
+  const show = query.value.trim().length >= 2 && !tabOwnsSearch.value
   if (show) updateDropdownPos()
   isOpen.value = show
 }
 
 function onFocus() {
-  if (query.value.trim().length >= 2 && !store.metaTabActive) {
+  if (query.value.trim().length >= 2 && !tabOwnsSearch.value) {
     updateDropdownPos()
     isOpen.value = true
   }
