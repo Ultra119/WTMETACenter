@@ -186,10 +186,16 @@
                 <span class="stat-value">{{ v('vdb_main_gun_speed') > 0 ? v('vdb_main_gun_speed') + ' ' + t('vehicle_card.speed_unit_ms') : t('vehicle_card.no_vdb') }}</span>
               </div>
               <div class="chips-row">
-                <v-chip v-if="showThermal && vehicle.vdb_has_thermal" color="info"      size="x-small">{{ t('vehicle_card.thermal') }}</v-chip>
-                <v-chip v-if="showAtgm   && vehicle.vdb_has_atgm"    color="error"     size="x-small">{{ t('vehicle_card.atgm')    }}</v-chip>
-                <v-chip v-if="showHeat   && vehicle.vdb_has_heat"    color="warning"   size="x-small">{{ t('vehicle_card.heat')    }}</v-chip>
-                <v-chip v-if="showAphe   && vehicle.vdb_has_aphe"    color="secondary" size="x-small">{{ t('vehicle_card.aphe')    }}</v-chip>
+                <v-chip v-if="showThermal && vehicle.vdb_has_thermal" color="info" size="x-small">{{ t('vehicle_card.thermal') }}</v-chip>
+                <v-chip
+                  v-for="cat in ammoCategories"
+                  :key="cat"
+                  :color="AMMO_CATEGORY_META[cat]?.color"
+                  size="x-small"
+                >
+                  <span v-if="AMMO_CATEGORY_META[cat]?.icon" class="mdi" :class="AMMO_CATEGORY_META[cat].icon" style="font-size:11px; margin-right:3px;" />
+                  {{ ammoCategoryLabel(cat) }}
+                </v-chip>
               </div>
             </div>
           </template>
@@ -218,6 +224,9 @@ import {
   vehicleDisplayName, fmtType, fmtNation, fmtBR, fmtSL,
   metaColor, farmColor, wrColor, CLASS_PREFIX, classChipStyle,
 } from '../composables/useVehicleFormatting.js'
+import {
+  getVehicleAmmoCategories, AMMO_CATEGORY_META, useAmmoCategoryLabel,
+} from '../composables/useAmmoTypes.js'
 import VehicleImage from './VehicleImage.vue'
 import VehicleStatsPanel from './VehicleStatsPanel.vue'
 
@@ -252,10 +261,10 @@ const isFlying = computed(() => isAir.value || isHeli.value)
 const showReverseSpeed = computed(() => !isFlying.value)
 const showArmor        = computed(() => isGround.value)
 const showThermal      = computed(() => !isAir.value)
-const showAtgm         = computed(() => true)
-const showHeat         = computed(() => isGround.value)
-const showAphe         = computed(() => isGround.value)
 const showHp           = computed(() => !isAir.value || !!veh.value?.vdb_engine_hp_rb)
+
+const ammoCategories  = computed(() => getVehicleAmmoCategories(veh.value))
+const ammoCategoryLabel = useAmmoCategoryLabel()
 
 const activeMode = ref(props.vehicle?.Mode ?? 'Realistic')
 watch(veh, v => { if (v?.Mode) activeMode.value = v.Mode }, { immediate: true })
