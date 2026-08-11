@@ -43,31 +43,30 @@ VEHICLE_TYPE_CATEGORY: dict = {
 #   wr    — процент побед
 #   ks_g  — наземные убийства / возрождение
 #   ks_a  — воздушные убийства / возрождение
-#   kd    — K/D ratio
 #   ks_n  — морские убийства / возрождение
-#   surv  — выживаемость (1 - смерти/возрождения)
+#   act — активность/темп
 
 ROLE_WEIGHTS: dict = {
-    "medium_tank":        {"wr": 0.20, "ks_g": 0.35, "ks_a": 0.00, "kd": 0.30, "ks_n": 0.00, "surv": 0.15},
-    "light_tank":         {"wr": 0.25, "ks_g": 0.50, "ks_a": 0.00, "kd": 0.15, "ks_n": 0.00, "surv": 0.10},
-    "heavy_tank":         {"wr": 0.15, "ks_g": 0.30, "ks_a": 0.00, "kd": 0.35, "ks_n": 0.00, "surv": 0.20},
-    "tank_destroyer":     {"wr": 0.15, "ks_g": 0.50, "ks_a": 0.00, "kd": 0.25, "ks_n": 0.00, "surv": 0.10},
-    "spaa":               {"wr": 0.10, "ks_g": 0.05, "ks_a": 0.60, "kd": 0.20, "ks_n": 0.00, "surv": 0.05},
-    "fighter":            {"wr": 0.30, "ks_g": 0.00, "ks_a": 0.50, "kd": 0.20, "ks_n": 0.00, "surv": 0.00},
-    "bomber":             {"wr": 0.40, "ks_g": 0.30, "ks_a": 0.05, "kd": 0.15, "ks_n": 0.00, "surv": 0.10},
-    "assault":            {"wr": 0.35, "ks_g": 0.35, "ks_a": 0.10, "kd": 0.15, "ks_n": 0.00, "surv": 0.05},
-    "attack_helicopter":  {"wr": 0.30, "ks_g": 0.45, "ks_a": 0.05, "kd": 0.15, "ks_n": 0.00, "surv": 0.05},
-    "utility_helicopter": {"wr": 0.40, "ks_g": 0.15, "ks_a": 0.20, "kd": 0.15, "ks_n": 0.00, "surv": 0.10},
-    "destroyer":          {"wr": 0.35, "ks_g": 0.00, "ks_a": 0.10, "kd": 0.20, "ks_n": 0.35, "surv": 0.00},
-    "heavy_cruiser":      {"wr": 0.35, "ks_g": 0.00, "ks_a": 0.10, "kd": 0.25, "ks_n": 0.30, "surv": 0.00},
-    "light_cruiser":      {"wr": 0.35, "ks_g": 0.00, "ks_a": 0.15, "kd": 0.20, "ks_n": 0.30, "surv": 0.00},
-    "battleship":         {"wr": 0.30, "ks_g": 0.00, "ks_a": 0.05, "kd": 0.35, "ks_n": 0.30, "surv": 0.00},
-    "battlecruiser":      {"wr": 0.30, "ks_g": 0.00, "ks_a": 0.10, "kd": 0.30, "ks_n": 0.30, "surv": 0.00},
-    "boat":               {"wr": 0.35, "ks_g": 0.00, "ks_a": 0.15, "kd": 0.15, "ks_n": 0.35, "surv": 0.00},
-    "heavy_boat":         {"wr": 0.35, "ks_g": 0.00, "ks_a": 0.10, "kd": 0.20, "ks_n": 0.35, "surv": 0.00},
-    "frigate":            {"wr": 0.35, "ks_g": 0.00, "ks_a": 0.15, "kd": 0.20, "ks_n": 0.30, "surv": 0.00},
-    "barge":              {"wr": 0.30, "ks_g": 0.00, "ks_a": 0.10, "kd": 0.20, "ks_n": 0.40, "surv": 0.00},
-    "_default":           {"wr": 0.35, "ks_g": 0.20, "ks_a": 0.10, "kd": 0.20, "ks_n": 0.05, "surv": 0.10},
+    "medium_tank":        {"wr": 0.20, "ks_g": 0.35, "ks_a": 0.00, "ks_n": 0.00, "act": 0.45},
+    "light_tank":         {"wr": 0.25, "ks_g": 0.50, "ks_a": 0.00, "ks_n": 0.00, "act": 0.25},
+    "heavy_tank":         {"wr": 0.15, "ks_g": 0.30, "ks_a": 0.00, "ks_n": 0.00, "act": 0.55},
+    "tank_destroyer":     {"wr": 0.15, "ks_g": 0.50, "ks_a": 0.00, "ks_n": 0.00, "act": 0.35},
+    "spaa":               {"wr": 0.10, "ks_g": 0.05, "ks_a": 0.60, "ks_n": 0.00, "act": 0.25},
+    "fighter":            {"wr": 0.30, "ks_g": 0.00, "ks_a": 0.50, "ks_n": 0.00, "act": 0.20},
+    "bomber":             {"wr": 0.40, "ks_g": 0.30, "ks_a": 0.05, "ks_n": 0.00, "act": 0.25},
+    "assault":            {"wr": 0.35, "ks_g": 0.35, "ks_a": 0.10, "ks_n": 0.00, "act": 0.20},
+    "attack_helicopter":  {"wr": 0.30, "ks_g": 0.45, "ks_a": 0.05, "ks_n": 0.00, "act": 0.20},
+    "utility_helicopter": {"wr": 0.40, "ks_g": 0.15, "ks_a": 0.20, "ks_n": 0.00, "act": 0.25},
+    "destroyer":          {"wr": 0.35, "ks_g": 0.00, "ks_a": 0.10, "ks_n": 0.35, "act": 0.20},
+    "heavy_cruiser":      {"wr": 0.35, "ks_g": 0.00, "ks_a": 0.10, "ks_n": 0.30, "act": 0.25},
+    "light_cruiser":      {"wr": 0.35, "ks_g": 0.00, "ks_a": 0.15, "ks_n": 0.30, "act": 0.20},
+    "battleship":         {"wr": 0.30, "ks_g": 0.00, "ks_a": 0.05, "ks_n": 0.30, "act": 0.35},
+    "battlecruiser":      {"wr": 0.30, "ks_g": 0.00, "ks_a": 0.10, "ks_n": 0.30, "act": 0.30},
+    "boat":               {"wr": 0.35, "ks_g": 0.00, "ks_a": 0.15, "ks_n": 0.35, "act": 0.15},
+    "heavy_boat":         {"wr": 0.35, "ks_g": 0.00, "ks_a": 0.10, "ks_n": 0.35, "act": 0.20},
+    "frigate":            {"wr": 0.35, "ks_g": 0.00, "ks_a": 0.15, "ks_n": 0.30, "act": 0.20},
+    "barge":              {"wr": 0.30, "ks_g": 0.00, "ks_a": 0.10, "ks_n": 0.40, "act": 0.20},
+    "_default":           {"wr": 0.35, "ks_g": 0.20, "ks_a": 0.10, "ks_n": 0.05, "act": 0.30},
 }
 
 FARM_SCORING_PEER_GROUP: dict[str, str] = {

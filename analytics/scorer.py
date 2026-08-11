@@ -12,16 +12,6 @@ from analytics.constants import (
 
 
 
-def _wilson_lower(wr_pct: pd.Series, n_games: pd.Series, z: float) -> pd.Series:
-    p  = (wr_pct / 100.0).clip(0.0, 1.0)
-    n  = n_games.clip(lower=1.0)
-    z2 = z ** 2
-    denom  = 1.0 + z2 / n
-    center = (p + z2 / (2.0 * n)) / denom
-    margin = (z * np.sqrt(p * (1.0 - p) / n + z2 / (4.0 * n ** 2))) / denom
-    return (center - margin).clip(0.0, 1.0)
-
-
 def _weighted_avg(values: pd.Series, weights: pd.Series) -> float:
     w = weights.clip(lower=0)
     total = w.sum()
@@ -42,6 +32,56 @@ def _shift_intensity(raw_val: float, z_val: float, thr: float, z_clip: float) ->
     gate  = 1.0 / (1.0 + np.exp(-(raw_val - thr) / width))
     return magnitude * gate
 
+
+_REPAIR_COL_BY_MODE: dict[str, str] = {
+    "Realistic":  "vdb_repair_cost_realistic",
+    "Arcade":     "vdb_repair_cost_arcade",
+    "Simulator":  "vdb_repair_cost_simulator",
+}
+
+_SL_MUL_COL_BY_MODE: dict[str, str] = {
+    "Realistic":  "vdb_sl_mul_realistic",
+    "Arcade":     "vdb_sl_mul_arcade",
+    "Simulator":  "vdb_sl_mul_simulator",
+}
+
+_MIN_SL_MUL = 0.3
+
+
+def _compute_net_and_activity(df: pd.DataFrame) -> tuple[pd.Series, pd.Series]:
+    has_vdb = df.get("vdb_match_score", pd.Series(0.0, index=df.index)) > 0
+
+    repair = pd.Series(0.0, index=df.index)
+    sl_mul = pd.Series(1.0, index=df.index)
+
+    if "Mode" in df.columns:
+        for mode_name, col_name in _REPAIR_COL_BY_MODE.items():
+            if col_name in df.columns:
+                mask = df["Mode"] == mode_name
+                repair = repair.where(~mask, df[col_name].fillna(0).astype(float))
+        for mode_name, col_name in _SL_MUL_COL_BY_MODE.items():
+            if col_name in df.columns:
+                mask = df["Mode"] == mode_name
+                sl_mul = sl_mul.where(~mask, df[col_name].fillna(0).astype(float))
+    else:
+        if "vdb_repair_cost_realistic" in df.columns:
+            repair = df["vdb_repair_cost_realistic"].fillna(0).astype(float)
+        if "vdb_sl_mul_realistic" in df.columns:
+            sl_mul = df["vdb_sl_mul_realistic"].fillna(0).astype(float)
+
+    repair = repair.where(has_vdb, 0.0)
+    sl_mul = sl_mul.where(has_vdb, 1.0)
+    sl_mul = sl_mul.clip(lower=_MIN_SL_MUL)
+
+    deaths_per_game = df["Смерти"] / df["Сыграно игр"].clip(lower=1)
+    repair_per_game = repair * deaths_per_game
+
+    sl_eff = df["SL за игру"].where(~has_vdb, df["SL за игру"] - repair_per_game)
+    act_raw = sl_eff / sl_mul
+
+    return sl_eff, act_raw
+
+
 def score(df: pd.DataFrame, settings: dict) -> pd.DataFrame:
     df = df.copy()
 
@@ -50,16 +90,12 @@ def score(df: pd.DataFrame, settings: dict) -> pd.DataFrame:
     z_clip    = float(settings.get("z_clip",         3.0))
     C_battles = float(settings.get("c_battles", 5000.0))
     C_spawns  = float(settings.get("c_spawns",  7500.0))
-    C_deaths  = float(settings.get("c_deaths",  3000.0))
 
     spawns = df["Возрождения"].clip(lower=1)
-    deaths = df["Смерти"].clip(lower=0)
 
     df["_ks_g_raw"] = df["Наземные убийства"]  / spawns
     df["_ks_a_raw"] = df["Воздушные убийства"] / spawns
     df["_ks_n_raw"] = df["Морские убийства"]   / spawns
-    df["_kd_raw"]   = df["KD"]
-    df["_surv_raw"] = (1.0 - (deaths / spawns)).clip(0.0, 1.0)
     df["_wr_raw"]   = (df["WR"] / 100.0).clip(0.0, 1.0)
 
     deaths_for_kd      = df["Смерти"].clip(lower=1)
@@ -67,18 +103,13 @@ def score(df: pd.DataFrame, settings: dict) -> pd.DataFrame:
     df["KD_AIR"]    = df["Воздушные убийства"] / deaths_for_kd
     df["KD_NAVAL"]  = df["Морские убийства"]   / deaths_for_kd
 
-    df["_total_kills"]      = (
-        df["Наземные убийства"] +
-        df["Воздушные убийства"] +
-        df["Морские убийства"]
-    )
-    df["_survival_events"]  = (spawns - deaths).clip(lower=0)
+    df["_sl_eff"], df["_act_raw"] = _compute_net_and_activity(df)
 
     df["_type_group"] = df["Type"].map(VEHICLE_TYPE_CATEGORY).fillna("_other")
     df["_peer_group"] = df["Type"].map(SCORING_PEER_GROUP).fillna(df["Type"])
     df["_farm_peer_group"] = df["Type"].map(FARM_SCORING_PEER_GROUP).fillna(df["Type"])
 
-    metric_keys  = ["_wr", "_kd", "_ks_g", "_ks_a", "_ks_n", "_surv"]
+    metric_keys  = ["_wr", "_ks_g", "_ks_a", "_ks_n", "_act"]
     unique_brs   = df["BR"].unique()
     type_groups  = df["_peer_group"].dropna().unique()
     unique_modes = df["Mode"].unique() if "Mode" in df.columns else [None]
@@ -92,11 +123,10 @@ def score(df: pd.DataFrame, settings: dict) -> pd.DataFrame:
                 continue
             _global_avg[(_tg, _mode)] = {
                 "avg_wr":   _weighted_avg(_g["_wr_raw"],   _g["Сыграно игр"]),
-                "avg_kd":   _weighted_avg(_g["_kd_raw"],   _g["Смерти"].clip(lower=1)),
                 "avg_ks_g": _weighted_avg(_g["_ks_g_raw"], _g["Возрождения"]),
                 "avg_ks_a": _weighted_avg(_g["_ks_a_raw"], _g["Возрождения"]),
                 "avg_ks_n": _weighted_avg(_g["_ks_n_raw"], _g["Возрождения"]),
-                "avg_surv": _weighted_avg(_g["_surv_raw"], _g["Возрождения"]),
+                "avg_act":  _weighted_avg(_g["_act_raw"],  _g["Сыграно игр"]),
             }
 
     for k in metric_keys:
@@ -122,32 +152,24 @@ def score(df: pd.DataFrame, settings: dict) -> pd.DataFrame:
                 if peers_ext.empty:
                     g_avg    = _global_avg.get((tg, mode), {})
                     avg_wr   = g_avg.get("avg_wr",   0.5)
-                    avg_kd   = g_avg.get("avg_kd",   1.0)
                     avg_ks_g = g_avg.get("avg_ks_g", 0.5)
                     avg_ks_a = g_avg.get("avg_ks_a", 0.1)
                     avg_ks_n = g_avg.get("avg_ks_n", 0.0)
-                    avg_surv = g_avg.get("avg_surv", 0.5)
+                    avg_act  = g_avg.get("avg_act",  0.0)
                 else:
                     avg_wr   = _weighted_avg(peers_ext["_wr_raw"],   peers_ext["Сыграно игр"])
-                    avg_kd   = _weighted_avg(peers_ext["_kd_raw"],   peers_ext["Смерти"].clip(lower=1))
                     avg_ks_g = _weighted_avg(peers_ext["_ks_g_raw"], peers_ext["Возрождения"])
                     avg_ks_a = _weighted_avg(peers_ext["_ks_a_raw"], peers_ext["Возрождения"])
                     avg_ks_n = _weighted_avg(peers_ext["_ks_n_raw"], peers_ext["Возрождения"])
-                    avg_surv = _weighted_avg(peers_ext["_surv_raw"], peers_ext["Возрождения"])
+                    avg_act  = _weighted_avg(peers_ext["_act_raw"],  peers_ext["Сыграно игр"])
 
                 row_slice = df.loc[mask_self]
                 n_g = row_slice["Сыграно игр"]
                 n_s = row_slice["Возрождения"]
-                n_d = row_slice["Смерти"].clip(lower=0)
 
                 df.loc[mask_self, "_wr"] = (
                     (row_slice["_wr_raw"] * n_g + avg_wr * C_battles)
                     / (n_g + C_battles)
-                )
-
-                df.loc[mask_self, "_kd"] = (
-                    (row_slice["_total_kills"] + avg_kd * C_deaths)
-                    / (n_d + C_deaths)
                 )
 
                 df.loc[mask_self, "_ks_g"] = (
@@ -162,18 +184,17 @@ def score(df: pd.DataFrame, settings: dict) -> pd.DataFrame:
                     (row_slice["Морские убийства"] + avg_ks_n * C_spawns)
                     / (n_s + C_spawns)
                 )
-                df.loc[mask_self, "_surv"] = (
-                    (row_slice["_survival_events"] + avg_surv * C_spawns)
-                    / (n_s + C_spawns)
+                df.loc[mask_self, "_act"] = (
+                    (row_slice["_act_raw"] * n_g + avg_act * C_battles)
+                    / (n_g + C_battles)
                 )
 
     _RAW_COL: dict[str, str] = {
         "_wr":   "_wr_raw",
-        "_kd":   "_kd_raw",
         "_ks_g": "_ks_g_raw",
         "_ks_a": "_ks_a_raw",
         "_ks_n": "_ks_n_raw",
-        "_surv": "_surv_raw",
+        "_act":  "_act_raw",
     }
 
     _global_sigma: dict[tuple, dict[str, float]] = {}
@@ -235,11 +256,10 @@ def score(df: pd.DataFrame, settings: dict) -> pd.DataFrame:
         return ((raw - lo) / (hi - lo) * 100.0).clip(0.0, 100.0)
 
     s_wr   = _sigmoid("z_wr")
-    s_kd   = _sigmoid("z_kd")
     s_ks_g = _sigmoid("z_ks_g")
     s_ks_a = _sigmoid("z_ks_a")
     s_ks_n = _sigmoid("z_ks_n")
-    s_surv = _sigmoid("z_surv")
+    s_act  = _sigmoid("z_act")
 
     df["META_SCORE"] = 0.0
 
@@ -294,50 +314,16 @@ def score(df: pd.DataFrame, settings: dict) -> pd.DataFrame:
 
         base_score = (
             weights.get("wr",   0) * s_wr[idx]   +
-            weights.get("kd",   0) * s_kd[idx]   +
             weights.get("ks_g", 0) * s_ks_g[idx] +
             weights.get("ks_a", 0) * s_ks_a[idx] +
             weights.get("ks_n", 0) * s_ks_n[idx] +
-            weights.get("surv", 0) * s_surv[idx]
+            weights.get("act",  0) * s_act[idx]
         )
 
         df.at[idx, "META_SCORE"] = base_score
 
     df["META_SCORE"] = df["META_SCORE"].clip(0.0, 100.0)
-
-    _REPAIR_COL_BY_MODE: dict[str, str] = {
-        "Realistic":  "vdb_repair_cost_realistic",
-        "Arcade":     "vdb_repair_cost_arcade",
-        "Simulator":  "vdb_repair_cost_simulator",
-    }
-
-    _any_repair_col = any(c in df.columns for c in _REPAIR_COL_BY_MODE.values())
-    if _any_repair_col:
-        has_vdb = df.get("vdb_match_score", pd.Series(0.0, index=df.index)) > 0
-
-        repair = pd.Series(0.0, index=df.index)
-        if "Mode" in df.columns:
-            for mode_name, col_name in _REPAIR_COL_BY_MODE.items():
-                if col_name in df.columns:
-                    mask = df["Mode"] == mode_name
-                    repair = repair.where(
-                        ~mask,
-                        df[col_name].fillna(0).astype(float),
-                    )
-        else:
-            fallback_col = "vdb_repair_cost_realistic"
-            if fallback_col in df.columns:
-                repair = df[fallback_col].fillna(0).astype(float)
-
-        deaths_per_game = df["Смерти"] / df["Сыграно игр"].clip(lower=1)
-        repair_per_game = repair * deaths_per_game
-
-        net_sl = df["SL за игру"].where(~has_vdb, df["SL за игру"] - repair_per_game)
-    else:
-        net_sl = df["SL за игру"]
-
-    df["_sl_eff"]        = net_sl
-    df["Net SL за игру"] = net_sl.round(0).astype(int)
+    df["Net SL за игру"] = df["_sl_eff"].round(0).astype(int)
 
     farm_type_groups = df["_farm_peer_group"].dropna().unique()
     df["_farm_pct"] = 0.0
