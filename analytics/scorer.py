@@ -77,7 +77,7 @@ def _compute_net_and_activity(df: pd.DataFrame) -> tuple[pd.Series, pd.Series]:
     repair_per_game = repair * deaths_per_game
 
     sl_eff = df["SL за игру"].where(~has_vdb, df["SL за игру"] - repair_per_game)
-    act_raw = sl_eff / sl_mul
+    act_raw = df["SL за игру"] / sl_mul
 
     return sl_eff, act_raw
 
