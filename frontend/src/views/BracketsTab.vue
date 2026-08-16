@@ -2,6 +2,21 @@
   <div>
     <div class="controls-bar mb-3">
       <div class="controls-row">
+        <div>
+          <div class="seg-ctrl">
+            <button
+              v-for="m in heatModes"
+              :key="m.value"
+              class="seg-btn"
+              :class="{ 'seg-btn--active': heatMode === m.value }"
+              @click="heatMode = m.value"
+            >
+              <v-icon size="13" class="seg-btn-icon">{{ m.icon }}</v-icon>
+              {{ t(m.label) }}
+            </button>
+          </div>
+        </div>
+        <div class="ctrl-divider" />
         <v-select
           v-model="stepsPerBracket"
           :items="stepOptions"
@@ -14,6 +29,7 @@
           style="width:130px"
         />
         <v-select
+          v-if="heatMode === 'strength'"
           v-model="topN"
           :items="topNOptions"
           item-title="label"
@@ -63,22 +79,26 @@
           </template>
         </v-select>
         <InfoTip align="right" class="ml-auto">
-          <p><b>{{ t('brackets_tab.description') }}</b></p>
-          <p>{{ t('brackets_tab.tip_desc') }}</p>
+          <p><b>{{ t(heatMode === 'popularity' ? 'brackets_tab.description_popularity' : 'brackets_tab.description_strength') }}</b></p>
+          <p>{{ t(heatMode === 'popularity' ? 'brackets_tab.tip_desc_popularity' : 'brackets_tab.tip_desc_strength') }}</p>
           <p style="margin-top:8px">
             <span
-              style="
-                display:inline-block; width:140px; height:10px; border-radius:4px; vertical-align:middle;
-                background: linear-gradient(to right,
-                  #780f0f 0%, #fb242a 30%,
-                  #fbbf24 45%, #34d34a 75%, #05780f 100%
-                );
-              "
+              :style="{
+                display: 'inline-block', width: '140px', height: '10px', borderRadius: '4px', verticalAlign: 'middle',
+                background: legendGradient,
+              }"
             ></span>
             &nbsp;
-            <span style="color:#fb242a">{{ t('brackets_tab.tip_weak') }}</span> →
-            <span style="color:#fbbf24">{{ t('brackets_tab.tip_average') }}</span> →
-            <span style="color:#34d34a">{{ t('brackets_tab.tip_strong') }}</span>
+            <template v-if="heatMode === 'popularity'">
+              <span style="color:#64748b">{{ t('brackets_tab.tip_rare') }}</span> →
+              <span style="color:#38bdf8">{{ t('brackets_tab.tip_avg_pop') }}</span> →
+              <span style="color:#fb923c">{{ t('brackets_tab.tip_dominant') }}</span>
+            </template>
+            <template v-else>
+              <span style="color:#fb242a">{{ t('brackets_tab.tip_weak') }}</span> →
+              <span style="color:#fbbf24">{{ t('brackets_tab.tip_average') }}</span> →
+              <span style="color:#34d34a">{{ t('brackets_tab.tip_strong') }}</span>
+            </template>
           </p>
         </InfoTip>
       </div>
@@ -95,8 +115,8 @@
         <tbody>
           <tr v-for="row in pivot.rows" :key="row.bracket">
             <td class="br-cell">{{ row.bracket }}</td>
-            <td v-for="nat in pivot.nations" :key="nat" class="score-cell" :style="{ color: scoreColor(row[nat]) }">
-              {{ row[nat] > 0 ? row[nat].toFixed(1) : '—' }}
+            <td v-for="nat in pivot.nations" :key="nat" class="score-cell" :style="{ color: scoreColor(row[nat], pivot.mode) }">
+              {{ formatCell(row[nat]) }}
             </td>
           </tr>
         </tbody>
@@ -125,6 +145,12 @@ useTabFilters()
 const stepsPerBracket = ref(3)
 const topN            = ref(5)
 const excludeTypes    = ref([])
+const heatMode        = ref('strength')
+
+const heatModes = [
+  { value: 'strength',   icon: 'mdi-trophy-outline', label: 'brackets_tab.mode_strength'   },
+  { value: 'popularity', icon: 'mdi-fire',            label: 'brackets_tab.mode_popularity' },
+]
 
 const stepOptions = computed(() =>
   [1, 2, 3, 4, 6].map(n => ({
@@ -223,18 +249,31 @@ function weightedMeta(pool) {
   return pool.reduce((s, v) => s + v.META_SCORE * (v['Сыграно игр'] ?? 0), 0) / total
 }
 
-const pivot = shallowRef({ rows: [], nations: [] })
+function bracketPopularity(inBracket, nations) {
+  const totalBattles = inBracket.reduce((s, v) => s + (v['Сыграно игр'] ?? 0), 0)
+  const row = {}
+  for (const nat of nations) {
+    const natBattles = inBracket
+      .filter(v => v.Nation === nat)
+      .reduce((s, v) => s + (v['Сыграно игр'] ?? 0), 0)
+    row[nat] = totalBattles > 0 ? Math.round((natBattles / totalBattles) * 1000) / 10 : 0
+  }
+  return row
+}
+
+const pivot = shallowRef({ rows: [], nations: [], mode: 'strength' })
 watchEffect(() => {
   const excluded      = new Set(excludeTypes.value)
   const allFiltered   = store.filteredVehicles
   const steps         = stepsPerBracket.value
   const n             = topN.value || null
+  const mode          = heatMode.value
 
   nextTick(() => {
     const vehicles = excluded.size
       ? allFiltered.filter(v => !excluded.has(v.Type))
       : allFiltered
-    if (!vehicles.length) { pivot.value = { rows: [], nations: [] }; return }
+    if (!vehicles.length) { pivot.value = { rows: [], nations: [], mode }; return }
 
     const brackets = buildWtBrackets(steps)
     const nations  = [...new Set(vehicles.map(v => v.Nation))].sort()
@@ -243,6 +282,11 @@ watchEffect(() => {
       const inBracket = vehicles.filter(v =>
         v.BR >= b.min && (b.inclusive ? v.BR <= b.max : v.BR < b.max)
       )
+
+      if (mode === 'popularity') {
+        return { bracket: b.label, ...bracketPopularity(inBracket, nations) }
+      }
+
       const row = { bracket: b.label }
       for (const nat of nations) {
         const pool = n
@@ -253,13 +297,51 @@ watchEffect(() => {
       return row
     })
 
-    pivot.value = { rows: rows.filter(r => nations.some(nat => r[nat] > 0)), nations }
+    pivot.value = { rows: rows.filter(r => nations.some(nat => r[nat] > 0)), nations, mode }
   })
 })
 
-function scoreColor(score) {
+const popHotThreshold = computed(() => {
+  const nCount = pivot.value.nations.length || 1
+  return Math.min(80, Math.max(20, (300 / nCount)))
+})
+
+const POP_STOPS = [
+  { t: 0,    c: [51, 65, 85]   },
+  { t: 0.45, c: [56, 189, 248] },
+  { t: 1,    c: [251, 146, 60] },
+]
+
+function popularityColor(pct) {
+  if (!pct) return '#334155'
+  const t = Math.min(1, Math.max(0, pct / popHotThreshold.value))
+  for (let i = 0; i < POP_STOPS.length - 1; i++) {
+    const a = POP_STOPS[i], b = POP_STOPS[i + 1]
+    if (t >= a.t && t <= b.t) {
+      const lt = (t - a.t) / (b.t - a.t || 1)
+      const r  = Math.round(a.c[0] + (b.c[0] - a.c[0]) * lt)
+      const g  = Math.round(a.c[1] + (b.c[1] - a.c[1]) * lt)
+      const bl = Math.round(a.c[2] + (b.c[2] - a.c[2]) * lt)
+      return `rgb(${r},${g},${bl})`
+    }
+  }
+  const last = POP_STOPS[POP_STOPS.length - 1].c
+  return `rgb(${last[0]},${last[1]},${last[2]})`
+}
+
+const legendGradient = computed(() => heatMode.value === 'popularity'
+  ? 'linear-gradient(to right, #334155 0%, #38bdf8 45%, #fb923c 100%)'
+  : 'linear-gradient(to right, #780f0f 0%, #fb242a 30%, #fbbf24 45%, #34d34a 75%, #05780f 100%)'
+)
+
+function scoreColor(score, mode) {
   if (!score) return '#334155'
-  return metaColor(score)
+  return mode === 'popularity' ? popularityColor(score) : metaColor(score)
+}
+
+function formatCell(val) {
+  if (!val) return '—'
+  return pivot.value.mode === 'popularity' ? `${val.toFixed(1)}%` : val.toFixed(1)
 }
 </script>
 

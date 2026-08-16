@@ -25,7 +25,7 @@
 
   "tabs": {
     "meta":        "META Rating",
-    "brackets":    "BR Grid",
+    "brackets":    "BR Heatmap",
     "farm":        "Lineup",
     "progression": "Tech Tree",
     "cost":        "Tree Cost",
@@ -72,12 +72,19 @@
     "br_step":        "BR step",
     "top_n":          "Top-N vehicles",
     "excl_types":     "Exclude types",
-    "description":    "Weighted META SCORE by nation and BR bracket",
     "no_data":        "No data for the selected filters.",
-    "tip_desc":       "Weighted average META SCORE per nation and BR bracket. Higher = stronger nation at that BR range.",
+    "mode_strength":   "Strength",
+    "mode_popularity": "Popularity",
+    "description_strength":    "Weighted META SCORE by nation and BR bracket",
+    "tip_desc_strength":       "Weighted average META SCORE per nation and BR bracket. Higher = stronger nation at that BR range.",
+    "description_popularity":  "Share of tracked battles by nation at each BR bracket",
+    "tip_desc_popularity":     "Percentage share of recorded battles played by each nation within a BR bracket, based on the current dataset sample. Higher = more of the tracked games at this BR belong to that nation — useful for spotting over- or under-represented nations in matchmaking.",
     "tip_strong":     "Strong",
     "tip_average":    "Average",
-    "tip_weak":       "Weak"
+    "tip_weak":       "Weak",
+    "tip_rare":       "Rare",
+    "tip_avg_pop":    "Common",
+    "tip_dominant":   "Dominant"
   },
 
   "farm_tab": {
