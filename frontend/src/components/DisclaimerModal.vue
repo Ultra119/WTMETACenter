@@ -6,14 +6,14 @@
     :close-on-back="false"
     :close-on-content-click="false"
   >
-    <v-card color="#0f172a" style="border: 1px solid #1e3a5f;">
+    <v-card color="surface" variant="flat" border>
 
-      <v-card-title class="d-flex align-center gap-2 px-5 pt-5 pb-0">
-        <span class="disclaimer-icon">⚠️</span>
+      <v-card-title class="d-flex align-center ga-3 px-5 pt-5 pb-0">
+        <span class="mdi mdi-alert-outline disclaimer-icon" />
         <span class="disclaimer-title">{{ t('disclaimer.title') }}</span>
       </v-card-title>
 
-      <v-divider color="#1e3a5f" class="mt-3" />
+      <v-divider class="mt-3" />
 
       <v-card-text class="px-5 py-4">
         <p class="disclaimer-body">{{ t('disclaimer.body_1') }}</p>
@@ -32,12 +32,12 @@
         <p class="disclaimer-note mt-3">{{ t('disclaimer.note') }}</p>
       </v-card-text>
 
-      <v-divider color="#1e3a5f" />
+      <v-divider />
 
       <v-card-actions class="px-5 py-4 justify-end">
         <v-btn
           color="primary"
-          variant="elevated"
+          variant="outlined"
           size="large"
           prepend-icon="mdi-check-circle-outline"
           @click="$emit('accept')"
@@ -60,24 +60,24 @@ defineEmits(['update:modelValue', 'accept'])
 </script>
 
 <style scoped>
-.disclaimer-icon  { font-size: 22px; line-height: 1; }
+.disclaimer-icon  { font-size: 22px; line-height: 1; color: var(--amber); }
 .disclaimer-title {
-  font-size: 20px;
-  font-weight: 700;
-  color: #fbbf24;
-  letter-spacing: .06em;
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--amber);
 }
 .disclaimer-body {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 12px;
-  color: #cbd5e1;
-  line-height: 1.7;
   margin: 0;
+  font-size: 14px;
+  line-height: 1.65;
+  color: rgba(231, 233, 238, 0.8);
 }
 .disclaimer-note {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
-  color: #475569;
   margin: 0;
+  font-size: 12px;
+  color: var(--ink-faint);
 }
 </style>
