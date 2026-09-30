@@ -58,17 +58,11 @@
           </template>
         </v-select>
 
-        <div class="heat-legend ml-auto" :title="legendTitle">
-          <span class="eyebrow eyebrow--xs">{{ legendLow }}</span>
-          <span class="heat-bar" :style="{ background: legendGradient }" />
-          <span class="eyebrow eyebrow--xs">{{ legendHigh }}</span>
-        </div>
-
-        <InfoTip align="right">
+        <InfoTip align="right" class="ml-auto">
           <p><b>{{ t(heatMode === 'popularity' ? 'brackets_tab.description_popularity' : 'brackets_tab.description_strength') }}</b></p>
           <p>{{ t(heatMode === 'popularity' ? 'brackets_tab.tip_desc_popularity' : 'brackets_tab.tip_desc_strength') }}</p>
           <p style="margin-top:8px">
-            <span class="heat-bar heat-bar--tip" :style="{ background: legendGradient }" />
+            <span class="heat-bar" :style="{ background: legendGradient }" />
             &nbsp;
             <template v-if="heatMode === 'popularity'">
               <span style="color:var(--ink-faint)">{{ t('brackets_tab.tip_rare') }}</span> →
@@ -86,7 +80,11 @@
     </div>
 
     <div v-if="pivot.rows.length" class="table-wrap pivot-wrap">
-      <table class="pivot-table">
+      <table class="pivot-table" :style="{ minWidth: (BR_COL_W + pivot.nations.length * NAT_COL_MIN) + 'px' }">
+        <colgroup>
+          <col :style="{ width: BR_COL_W + 'px' }" />
+          <col v-for="nat in pivot.nations" :key="nat" />
+        </colgroup>
         <thead>
           <tr>
             <th class="br-col">{{ t('common.br') }}</th>
@@ -124,9 +122,12 @@ import { BRANCH_TYPES, TYPE_LABELS, TYPE_ICON, LARGE_FLEET_TYPES, SMALL_FLEET_TY
 import InfoTip from '../components/InfoTip.vue'
 import SegControl from '../components/ui/SegControl.vue'
 
-const { t }  = useI18n()
+const { t } = useI18n()
 const store = useDataStore()
 useTabFilters()
+
+const BR_COL_W    = 100
+const NAT_COL_MIN = 92
 
 const stepsPerBracket = ref(3)
 const topN            = ref(5)
@@ -319,9 +320,6 @@ const legendGradient = computed(() => heatMode.value === 'popularity'
   ? 'linear-gradient(to right, rgb(120,128,145) 0%, var(--c-info) 45%, var(--c-warn) 100%)'
   : 'linear-gradient(to right, var(--c-bad) 0%, var(--c-warn) 50%, var(--c-ok) 100%)'
 )
-const legendLow  = computed(() => t(heatMode.value === 'popularity' ? 'brackets_tab.tip_rare'     : 'brackets_tab.tip_weak'))
-const legendHigh = computed(() => t(heatMode.value === 'popularity' ? 'brackets_tab.tip_dominant' : 'brackets_tab.tip_strong'))
-const legendTitle = computed(() => `${legendLow.value} → ${legendHigh.value}`)
 
 function formatCell(val) {
   if (!val) return '—'
@@ -338,10 +336,7 @@ function formatCell(val) {
 .excl-x     { font-size: 11px; opacity: 0.6; }
 .excl-more  { flex-shrink: 0; padding: 1px 6px; font-size: 10px; color: var(--ink-faint); }
 
-.heat-legend { display: inline-flex; align-items: center; gap: 8px; }
-.heat-bar    { display: inline-block; width: 120px; height: 6px; }
-.heat-bar--tip { width: 140px; height: 8px; vertical-align: middle; }
-@media (max-width: 960px) { .heat-legend { display: none; } }
+.heat-bar { display: inline-block; width: 140px; height: 8px; vertical-align: middle; }
 
 .pivot-wrap {
   max-height: calc(100vh - 254px);
@@ -349,6 +344,7 @@ function formatCell(val) {
 }
 .pivot-table {
   width: 100%;
+  table-layout: fixed;
   border-collapse: separate;
   border-spacing: 0;
   background: var(--surface);
@@ -357,7 +353,9 @@ function formatCell(val) {
 }
 .pivot-table th,
 .pivot-table td {
-  padding: 6px 12px;
+  padding: 6px 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
   text-align: center;
   white-space: nowrap;
   border-bottom: 1px solid var(--hairline);
@@ -378,7 +376,6 @@ function formatCell(val) {
 .br-cell {
   position: sticky;
   left: 0;
-  min-width: 100px;
   padding-left: 14px !important;
   text-align: left !important;
   background: var(--surface);
