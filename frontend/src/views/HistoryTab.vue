@@ -4,262 +4,93 @@
     <div class="controls-bar mb-4">
       <div class="controls-row">
 
-        <div>
-          <v-select
-            :model-value="nation"
-            :items="nationOptions"
-            item-title="label"
-            item-value="value"
-            :label="t('common.nation')"
-            prepend-inner-icon="mdi-flag"
-            density="compact"
-            variant="outlined"
-            hide-details
-            style="max-width:220px"
-            @update:model-value="v => nation = v"
-          />
+        <v-select
+          v-model="nation"
+          :items="nationOptions"
+          item-title="label"
+          item-value="value"
+          :label="t('common.nation')"
+          prepend-inner-icon="mdi-flag"
+          style="max-width:220px"
+        />
+
+        <div class="stats-row ml-auto">
+          <span class="tag stat">
+            <v-icon size="13" class="stat-icon">mdi-rocket-launch-outline</v-icon>
+            <b class="stat-val">{{ filteredTotal.toLocaleString() }}</b>
+            <span class="eyebrow eyebrow--xs">{{ t('history_tab.vehicles') }}</span>
+          </span>
+          <span class="tag stat">
+            <v-icon size="13" class="stat-icon">mdi-calendar-multiple</v-icon>
+            <b class="stat-val">{{ datedGroupCount }}</b>
+            <span class="eyebrow eyebrow--xs">{{ t('history_tab.patches') }}</span>
+          </span>
+          <span class="tag stat stat--muted">
+            <v-icon size="13" class="stat-icon">mdi-calendar-question</v-icon>
+            <b class="stat-val">{{ launchCount.toLocaleString() }}</b>
+            <span class="eyebrow eyebrow--xs">{{ t('history_tab.founding') }}</span>
+          </span>
         </div>
 
-        <div class="ml-auto stats-row" style="display:flex;align-items:center;gap:8px;">
-          <div class="stat-pill">
-            <span class="mdi mdi-rocket-launch-outline stat-icon" />
-            <span class="stat-val">{{ filteredTotal.toLocaleString() }}</span>
-            <span class="stat-lbl">{{ t('history_tab.vehicles') }}</span>
+        <InfoTip align="right">
+          <b>{{ t('history_tab.info', { n: filteredTotal, groups: datedGroupCount, launch: launchCount }) }}</b>
+          <p>{{ t('history_tab.tip_sort') }}</p>
+          <div class="tip-row" style="margin-top:8px">
+            <v-icon class="tip-icon" style="color:var(--c-warn)">mdi-circle</v-icon>
+            <span>{{ t('history_tab.tip_limited') }}</span>
           </div>
-          <div class="stat-pill">
-            <span class="mdi mdi-calendar-multiple stat-icon" />
-            <span class="stat-val">{{ datedGroupCount }}</span>
-            <span class="stat-lbl">{{ t('history_tab.patches') }}</span>
-          </div>
-          <div class="stat-pill stat-pill--muted">
-            <span class="mdi mdi-calendar-question stat-icon" />
-            <span class="stat-val">{{ launchCount.toLocaleString() }}</span>
-            <span class="stat-lbl">{{ t('history_tab.founding') }}</span>
-          </div>
-
-          <InfoTip align="right" class="ml-auto">
-            <b>{{ t('history_tab.info', { n: filteredTotal, groups: datedGroupCount, launch: launchCount }) }}</b>
-            <p>{{ t('history_tab.tip_sort') }}</p>
-            <div class="tip-row" style="margin-top:8px">
-              <span class="mdi mdi-circle tip-icon" style="color:#fb923c" />
-              <span>{{ t('history_tab.tip_limited') }}</span>
-            </div>
-          </InfoTip>
-        </div>
+        </InfoTip>
 
       </div>
     </div>
 
-    <div v-if="!groups.length" class="no-data">
+    <div v-if="!groups.length" class="panel no-data">
       {{ t('history_tab.search_empty') }}
     </div>
 
     <div v-else class="timeline">
-      <div
-        v-for="yw in yearGroups"
-        :key="yw.year"
-        class="tl-year-wrap"
-      >
-        <div
-          class="tl-year-header"
-          :class="{ 'tl-year-header--open': !collapsedYears.has(yw.year) }"
+      <section v-for="yw in yearGroups" :key="yw.year" class="tl-year-wrap">
+        <button
+          type="button"
+          class="tl-year"
+          :class="{ 'tl-year--open': isOpen(yw.year) }"
+          :aria-expanded="isOpen(yw.year)"
           @click="toggleYear(yw.year)"
         >
-          <span class="tl-year-text">{{ yw.year }}</span>
-          <span class="tl-year-meta">
+          <span class="tl-year__text">{{ yw.year }}</span>
+          <span class="tl-year__meta">
             {{ yw.groups.length }}&thinsp;{{ t('history_tab.patches').toLowerCase() }}
             &nbsp;·&nbsp;
             {{ yw.totalVehicles.toLocaleString() }}&thinsp;{{ t('history_tab.vehicles').toLowerCase() }}
           </span>
-          <span class="mdi mdi-chevron-right tl-year-chevron" />
-        </div>
+          <v-icon size="16" class="tl-year__chevron">mdi-chevron-right</v-icon>
+        </button>
 
-        <div
-          class="tl-year-body-outer"
-          :class="{ 'tl-year-body-outer--open': !collapsedYears.has(yw.year) }"
-        >
-          <div v-if="everOpenedYears.has(yw.year)" class="tl-year-body">
-
-            <div
+        <div class="tl-body-outer" :class="{ 'tl-body-outer--open': isOpen(yw.year) }">
+          <div v-if="everOpenedYears.has(yw.year)" class="tl-body">
+            <HistoryGroup
               v-for="group in yw.groups"
               :key="group.key"
-              class="month-section"
-            >
-              <!-- Month label row: date | type pills | line | count -->
-              <div class="month-header">
-                <span class="month-header__date">{{ group.monthLabel }}</span>
-                <div class="month-header__types">
-                  <span
-                    v-for="item in groupTypeSummary(group.vehicles)"
-                    :key="item.cat"
-                    class="tl-type-pill"
-                  >
-                    <span
-                      class="mdi"
-                      :class="CATEGORY_ICON[item.cat]"
-                      :style="{ color: CATEGORY_COLOR[item.cat] }"
-                    />
-                    <span class="tl-type-count">{{ item.count }}</span>
-                  </span>
-                </div>
-                <div class="month-header__line" />
-                <span class="month-header__count">{{ group.vehicles.length }}</span>
-              </div>
-
-              <div
-                class="veh-grid-outer"
-                :class="{ 'veh-grid-outer--collapsed': needsPreview(group) && !monthExpanded.has(group.key) }"
-              >
-                <div class="veh-grid-inner">
-                <div class="veh-grid">
-                  <div
-                    v-for="v in group.vehicles"
-                    :key="v._dedup_key"
-                    class="veh-row"
-                    :class="{ 'veh-row--limited': isLimited(v) }"
-                    @click="open(v)"
-                  >
-                    <span class="veh-flag" :title="v.Nation">
-                      {{ NATION_FLAG[v.Nation?.toLowerCase()] ?? '🏴' }}
-                    </span>
-                    <span
-                      class="mdi veh-type-icon"
-                      :class="TYPE_ICON[v.Type] ?? 'mdi-help-circle-outline'"
-                      :style="{ color: typeIconColor(v.Type) }"
-                      :title="fmtType(v.Type)"
-                    />
-                    <span class="veh-name" v-html="highlightName(v.Name)" />
-                    <div class="veh-right">
-                      <span
-                        v-if="v.VehicleClass !== 'Standard'"
-                        class="class-chip"
-                        :style="classChipStyle(v.VehicleClass)"
-                      >
-                        <span
-                          v-if="CLASS_PREFIX[v.VehicleClass]"
-                          class="mdi"
-                          :class="CLASS_PREFIX[v.VehicleClass]"
-                          style="font-size: 9px; margin-right: 2px;"
-                        />{{ t(`vehicle_classes.${v.VehicleClass}`) }}
-                      </span>
-                      <span class="veh-br">{{ displayBR(v) }}</span>
-                    </div>
-                  </div>
-                </div>
-                </div>
-              </div>
-
-              <div v-if="needsPreview(group)" class="show-more-row">
-                <button
-                  v-if="!monthExpanded.has(group.key)"
-                  class="show-more-btn"
-                  @click="expandMonth(group.key)"
-                >
-                  <span class="mdi mdi-chevron-double-down" style="margin-right: 4px;" />
-                  {{ t('history_tab.show_all', { n: group.vehicles.length }) }}
-                </button>
-                <button
-                  v-else
-                  class="show-more-btn show-more-btn--collapse"
-                  @click="collapseMonth(group.key)"
-                >
-                  <span class="mdi mdi-chevron-double-up" style="margin-right: 4px;" />
-                  {{ t('history_tab.collapse') }}
-                </button>
-              </div>
-            </div>
-
+              :group="group"
+              :expanded="monthExpanded.has(group.key)"
+              :query="store.searchQuery"
+              :preview="MONTH_PREVIEW"
+              @toggle="toggleMonth(group.key)"
+              @open="open"
+            />
           </div>
         </div>
-      </div>
+      </section>
 
-      <div v-if="launchGroup" class="month-section month-section--launch">
-        <div class="month-header">
-          <span class="month-header__date month-header__date--launch">{{ launchGroup.label }}</span>
-          <span v-if="launchGroup.subtitle" class="tl-subtitle" style="margin-left:4px">
-            {{ launchGroup.subtitle }}
-          </span>
-          <div class="month-header__types">
-            <span
-              v-for="item in groupTypeSummary(launchGroup.vehicles)"
-              :key="item.cat"
-              class="tl-type-pill"
-            >
-              <span
-                class="mdi"
-                :class="CATEGORY_ICON[item.cat]"
-                :style="{ color: CATEGORY_COLOR[item.cat] }"
-              />
-              <span class="tl-type-count">{{ item.count }}</span>
-            </span>
-          </div>
-          <div class="month-header__line month-header__line--launch" />
-          <span class="month-header__count">{{ launchGroup.vehicles.length }}</span>
-        </div>
-
-        <div
-          class="veh-grid-outer"
-          :class="{ 'veh-grid-outer--collapsed': !monthExpanded.has(launchGroup.key) }"
-        >
-          <div class="veh-grid-inner">
-          <div class="veh-grid">
-            <div
-              v-for="v in launchGroup.vehicles"
-              :key="v._dedup_key"
-              class="veh-row"
-              :class="{ 'veh-row--limited': isLimited(v) }"
-              @click="open(v)"
-            >
-              <span class="veh-flag" :title="v.Nation">
-                {{ NATION_FLAG[v.Nation?.toLowerCase()] ?? '🏴' }}
-              </span>
-              <span
-                class="mdi veh-type-icon"
-                :class="TYPE_ICON[v.Type] ?? 'mdi-help-circle-outline'"
-                :style="{ color: typeIconColor(v.Type) }"
-                :title="fmtType(v.Type)"
-              />
-              <span class="veh-name" v-html="highlightName(v.Name)" />
-              <div class="veh-right">
-                <span
-                  v-if="v.VehicleClass !== 'Standard'"
-                  class="class-chip"
-                  :style="classChipStyle(v.VehicleClass)"
-                >
-                  <span
-                    v-if="CLASS_PREFIX[v.VehicleClass]"
-                    class="mdi"
-                    :class="CLASS_PREFIX[v.VehicleClass]"
-                    style="font-size: 9px; margin-right: 2px;"
-                  />{{ t(`vehicle_classes.${v.VehicleClass}`) }}
-                </span>
-                <span class="veh-br">{{ displayBR(v) }}</span>
-              </div>
-            </div>
-          </div>
-          </div>
-        </div>
-
-        <div class="show-more-row">
-          <button
-            v-if="!monthExpanded.has(launchGroup.key)"
-            class="show-more-btn"
-            @click="expandMonth(launchGroup.key)"
-          >
-            <span class="mdi mdi-chevron-double-down" style="margin-right: 4px;" />
-            {{ t('history_tab.show_all', { n: launchGroup.vehicles.length }) }}
-          </button>
-          <button
-            v-else
-            class="show-more-btn show-more-btn--collapse"
-            @click="collapseMonth(launchGroup.key)"
-          >
-            <span class="mdi mdi-chevron-double-up" style="margin-right: 4px;" />
-            {{ t('history_tab.collapse') }}
-          </button>
-        </div>
-      </div>
-
+      <HistoryGroup
+        v-if="launchGroup"
+        launch
+        :group="launchGroup"
+        :expanded="monthExpanded.has(launchGroup.key)"
+        :query="store.searchQuery"
+        @toggle="toggleMonth(launchGroup.key)"
+        @open="open"
+      />
     </div>
 
   </div>
@@ -270,9 +101,9 @@ import { ref, computed, inject, watch, onMounted, onBeforeUnmount, onActivated, 
 import { useI18n } from 'vue-i18n'
 import { useDataStore } from '../stores/useDataStore.js'
 import { useTabFilters } from '../composables/useTabFilters.js'
-import { NATION_FLAG, fmtType, fmtBR, CLASS_PREFIX, classChipStyle } from '../composables/useVehicleFormatting.js'
-import { TYPE_ICON, TYPE_BRANCH_COLOR } from '../composables/constants.js'
+import { NATION_FLAG } from '../composables/useVehicleFormatting.js'
 import InfoTip from '../components/InfoTip.vue'
+import HistoryGroup from '../components/HistoryGroup.vue'
 
 const { t }       = useI18n()
 const store       = useDataStore()
@@ -288,38 +119,6 @@ onDeactivated(() => { store.historyTabActive = false })
 const MONTH_PREVIEW = 6
 
 const nation = ref('All')
-
-const CATEGORY_ICON = {
-  Ground:     'mdi-tank',
-  Aviation:   'mdi-airplane',
-  Helicopters:'mdi-helicopter',
-  Fleet:      'mdi-ferry',
-}
-const CATEGORY_COLOR = {
-  Ground:     '#84cc16',
-  Aviation:   '#38bdf8',
-  Helicopters:'#a78bfa',
-  Fleet:      '#2dd4bf',
-}
-const TYPE_TO_CAT = {
-  medium_tank: 'Ground', light_tank: 'Ground', heavy_tank: 'Ground',
-  tank_destroyer: 'Ground', spaa: 'Ground',
-  fighter: 'Aviation', bomber: 'Aviation', assault: 'Aviation',
-  attack_helicopter: 'Helicopters', utility_helicopter: 'Helicopters',
-  destroyer: 'Fleet', heavy_cruiser: 'Fleet', light_cruiser: 'Fleet',
-  battleship: 'Fleet', battlecruiser: 'Fleet',
-  boat: 'Fleet', heavy_boat: 'Fleet', frigate: 'Fleet', barge: 'Fleet',
-}
-const CAT_ORDER = ['Ground', 'Aviation', 'Helicopters', 'Fleet']
-
-function groupTypeSummary(vehicles) {
-  const counts = {}
-  for (const v of vehicles) {
-    const cat = TYPE_TO_CAT[v.Type]
-    if (cat) counts[cat] = (counts[cat] ?? 0) + 1
-  }
-  return CAT_ORDER.filter(c => counts[c]).map(c => ({ cat: c, count: counts[c] }))
-}
 
 const nationOptions = computed(() => [
   { value: 'All', label: t('common.all') },
@@ -484,17 +283,9 @@ function toggleYear(year) {
 
 const monthExpanded = ref(new Set())
 
-function needsPreview(group) {
-  return group.vehicles.length > MONTH_PREVIEW
-}
-function expandMonth(key) {
+function toggleMonth(key) {
   const next = new Set(monthExpanded.value)
-  next.add(key)
-  monthExpanded.value = next
-}
-function collapseMonth(key) {
-  const next = new Set(monthExpanded.value)
-  next.delete(key)
+  next.has(key) ? next.delete(key) : next.add(key)
   monthExpanded.value = next
 }
 
@@ -511,355 +302,71 @@ watch(() => store.searchQuery, q => {
   }
 })
 
-function isLimited(v) {
-  return v.vdb_shop_is_event || v.vdb_shop_is_gift
-}
-
-function displayBR(v) {
-  return fmtBR(v.vdb_realistic_br ?? v.BR)
-}
-
-function typeIconColor(type) {
-  return TYPE_BRANCH_COLOR[type] ?? '#475569'
-}
+const isOpen = year => !collapsedYears.value.has(year)
 
 function open(v) {
   openVehicle?.(v)
 }
-
-function escapeHtml(s) {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-}
-
-function highlightName(name) {
-  const q    = store.searchQuery.trim()
-  const safe = escapeHtml(name ?? '')
-  if (!q) return safe
-  const esc = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-  return safe.replace(new RegExp(`(${esc})`, 'gi'), '<mark class="hl">$1</mark>')
-}
 </script>
 
 <style scoped>
-.history-root {
-  width: 100%;
-}
+.history-root { width: 100%; }
 
+.stats-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.stat      { gap: 6px; padding: 4px 10px; }
+.stat-icon { color: var(--primary); }
+.stat-val  { font: 600 13px var(--font-display); font-variant-numeric: tabular-nums; color: var(--ink); }
+.stat .eyebrow { font-size: 9px; letter-spacing: 0.1em; }
+.stat--muted   { opacity: 0.7; }
 
-.stats-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-.stat-pill {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 5px 10px;
-  background: rgba(10, 22, 40, 0.8);
-  border: 1px solid #1e3a5f;
-  border-radius: 8px;
-  white-space: nowrap;
-}
-.stat-pill--muted { opacity: 0.7; }
-.stat-icon { font-size: 13px; color: #38bdf8; flex-shrink: 0; }
-.stat-val {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 13px;
-  font-weight: 700;
-  color: #a7f3d0;
-}
-.stat-lbl {
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-  color: #475569;
-}
-
-.timeline {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
+.timeline { display: flex; flex-direction: column; gap: 6px; }
 
 .tl-year-wrap {
   display: flex;
   flex-direction: column;
-  gap: 3px;
   content-visibility: auto;
-  contain-intrinsic-size: 0 48px;
+  contain-intrinsic-size: 0 44px;
 }
 
-.tl-year-header {
+.tl-year {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
+  width: 100%;
   padding: 9px 14px;
-  background: rgba(10, 22, 40, 0.75);
-  border: 1px solid #1e3a5f;
-  border-radius: 8px;
+  border: 1px solid var(--hairline);
+  background: var(--surface);
+  color: inherit;
+  text-align: left;
   cursor: pointer;
   user-select: none;
-  transition: background 0.12s, border-color 0.15s;
+  transition: border-color 0.15s, background 0.15s;
 }
-.tl-year-header:hover {
-  background: rgba(30, 58, 95, 0.22);
-  border-color: rgba(56, 189, 248, 0.18);
-}
-.tl-year-header--open {
-  background: linear-gradient(90deg, rgba(30, 58, 95, 0.30) 0%, rgba(15, 23, 42, 0.85) 100%);
-  border-color: rgba(56, 189, 248, 0.22);
-}
-
-.tl-year-text {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 14px;
-  font-weight: 700;
-  color: #7dd3fc;
+.tl-year:hover       { border-color: var(--hairline-strong); }
+.tl-year--open       { border-color: var(--primary-line); background: var(--primary-soft); }
+.tl-year__text {
+  flex-shrink: 0;
+  font: 600 14px var(--font-display);
   letter-spacing: 0.08em;
-  flex-shrink: 0;
+  color: var(--ink);
 }
-.tl-year-meta {
-  font-size: 11px;
-  color: #334155;
-  letter-spacing: 0.03em;
-}
+.tl-year--open .tl-year__text { color: var(--primary); }
+.tl-year__meta    { font-size: 11px; color: var(--ink-faint); }
+.tl-year__chevron { margin-left: auto; flex-shrink: 0; color: var(--ink-dim); transition: transform 0.26s cubic-bezier(0.4, 0, 0.2, 1), color 0.15s; }
+.tl-year:hover .tl-year__chevron { color: var(--ink-muted); }
+.tl-year--open .tl-year__chevron { transform: rotate(90deg); color: var(--primary); }
 
-.tl-year-chevron {
-  font-size: 15px;
-  color: #334155;
-  margin-left: auto;
-  flex-shrink: 0;
-  transition: transform 0.26s cubic-bezier(0.4, 0, 0.2, 1), color 0.15s;
-}
-.tl-year-header:hover .tl-year-chevron { color: #475569; }
-.tl-year-header--open .tl-year-chevron {
-  transform: rotate(90deg);
-  color: #38bdf8;
-}
-
-.tl-year-body-outer {
-  display: grid;
-  grid-template-rows: 0fr;
-  transition: grid-template-rows 0.30s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.tl-year-body-outer--open {
-  grid-template-rows: 1fr;
-}
-
-.tl-year-body {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  padding-left: 18px;
-  overflow: hidden;
+.tl-body-outer { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+.tl-body-outer--open { grid-template-rows: 1fr; }
+.tl-body {
   min-height: 0;
-}
-
-.month-section {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  padding: 2px 0 8px;
-}
-.month-section--launch {
-  margin-top: 8px;
-  padding-top: 4px;
-  border-top: 1px solid rgba(251, 191, 36, 0.15);
-}
-
-.month-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 4px 2px 4px;
-  user-select: none;
-}
-.month-header__date {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
-  font-weight: 700;
-  color: #475569;
-  letter-spacing: 0.07em;
-  flex-shrink: 0;
-}
-.month-header__date--launch { color: #fbbf24; }
-
-.month-header__types {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-}
-.month-header__line {
-  flex: 1;
-  height: 1px;
-  background: #1e293b;
-  margin: 0 2px;
-}
-.month-header__line--launch {
-  background: rgba(251, 191, 36, 0.12);
-}
-.month-header__count {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
-  font-weight: 700;
-  color: #334155;
-  flex-shrink: 0;
-}
-
-.veh-grid-outer {
-  display: grid;
-  grid-template-rows: 1fr;
-  transition: grid-template-rows 0.30s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.veh-grid-outer--collapsed {
-  grid-template-rows: 0fr;
-}
-.veh-grid-inner {
+  margin-left: 8px;
+  padding: 6px 0 0 16px;
   overflow: hidden;
-  min-height: 0;
+  border-left: 1px solid var(--hairline);
 }
 
-.veh-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 3px;
-  padding: 0 0 2px;
-}
-
-.tl-subtitle {
-  font-size: 10px;
-  color: #475569;
-  font-style: italic;
-  letter-spacing: 0.03em;
-}
-.tl-badge {
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  padding: 2px 6px;
-  border-radius: 4px;
-}
-
-.tl-type-pill {
-  display: flex;
-  align-items: center;
-  gap: 3px;
-}
-.tl-type-pill .mdi {
-  font-size: 12px;
-  opacity: 0.9;
-}
-.tl-type-count {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
-  font-weight: 700;
-  color: #475569;
-  line-height: 1;
-}
-
-.veh-row {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  padding: 5px 8px;
-  border-radius: 5px;
-  border: 1px solid rgba(30, 58, 95, 0.6);
-  cursor: pointer;
-  transition: background 0.1s, border-color 0.1s;
-  min-width: 0;
-  background: transparent;
-  contain: layout style;
-}
-.veh-row:hover {
-  background: rgba(56, 189, 248, 0.06);
-  border-color: rgba(56, 189, 248, 0.28);
-}
-
-.veh-row--limited {
-  border-color: rgba(251, 146, 60, 0.28);
-  background: transparent;
-}
-.veh-row--limited:hover {
-  background: rgba(251, 146, 60, 0.07);
-  border-color: rgba(251, 146, 60, 0.45);
-}
-
-.veh-flag {
-  font-size: 14px;
-  flex-shrink: 0;
-  line-height: 1;
-}
-.veh-type-icon {
-  font-size: 13px;
-  flex-shrink: 0;
-  opacity: 0.85;
-}
-.veh-name {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 12px;
-  font-weight: 600;
-  color: #cbd5e1;
-}
-.veh-row:hover .veh-name { color: #e2e8f0; }
-
-.veh-right {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  flex-shrink: 0;
-}
-.veh-br {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
-  font-weight: 700;
-  color: #475569;
-  min-width: 28px;
-  text-align: right;
-}
-
-.show-more-row {
-  display: flex;
-  justify-content: flex-start;
-  padding: 4px 0 2px;
-}
-.show-more-btn {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 12px;
-  border: 1px solid #1e3a5f;
-  border-radius: 6px;
-  background: transparent;
-  color: #475569;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: border-color 0.15s, color 0.15s, background 0.15s;
-}
-.show-more-btn:hover {
-  border-color: rgba(56, 189, 248, 0.4);
-  color: #38bdf8;
-  background: rgba(56, 189, 248, 0.06);
-}
-.show-more-btn--collapse { border-color: rgba(56, 189, 248, 0.2); color: #334155; }
-.show-more-btn--collapse:hover { color: #94a3b8; border-color: #334155; background: transparent; }
-
-
-:deep(.hl) {
-  background: rgba(251, 191, 36, 0.25);
-  color: #fde68a;
-  border-radius: 2px;
-  font-style: normal;
+@media (max-width: 720px) {
+  .stats-row { display: none; }
 }
 </style>
