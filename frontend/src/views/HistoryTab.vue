@@ -68,6 +68,7 @@
 
         <div class="tl-body-outer" :class="{ 'tl-body-outer--open': isOpen(yw.year) }">
           <div v-if="everOpenedYears.has(yw.year)" class="tl-body">
+            <div class="tl-body-in">
             <HistoryGroup
               v-for="group in yw.groups"
               :key="group.key"
@@ -78,6 +79,7 @@
               @toggle="toggleMonth(group.key)"
               @open="open"
             />
+            </div>
           </div>
         </div>
       </section>
@@ -358,11 +360,10 @@ function open(v) {
 
 .tl-body-outer { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
 .tl-body-outer--open { grid-template-rows: 1fr; }
-.tl-body {
-  min-height: 0;
+.tl-body { min-height: 0; overflow: hidden; }
+.tl-body-in {
   margin-left: 8px;
   padding: 6px 0 0 16px;
-  overflow: hidden;
   border-left: 1px solid var(--hairline);
 }
 
