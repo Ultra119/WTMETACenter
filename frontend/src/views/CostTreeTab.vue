@@ -3,22 +3,12 @@
     <div class="controls-bar mb-4">
       <div class="controls-row">
 
-        <div class="seg-ctrl">
-          <button
-            v-for="m in METRICS"
-            :key="m.key"
-            :class="['seg-btn', metric === m.key && 'seg-btn--active']"
-            @click="metric = m.key"
-          >
-            <span class="mdi seg-btn-icon" :class="m.icon" />
-            {{ t(`cost_tab.metric_${m.key}`) }}
-          </button>
-        </div>
+        <SegControl v-model="metric" :options="metricOptions" />
 
         <label class="folder-toggle">
           <input type="checkbox" v-model="skipFolderDupes" class="folder-toggle__input" />
           <span class="folder-toggle__box">
-            <span class="mdi mdi-folder-multiple-outline folder-toggle__icon" />
+            <v-icon class="folder-toggle__icon">mdi-folder-multiple-outline</v-icon>
           </span>
           <span class="folder-toggle__label">{{ t('cost_tab.skip_folder') }}</span>
         </label>
@@ -35,64 +25,61 @@
           <template v-if="metric !== 'meta_eff'">
             <p>{{ t('cost_tab.tip_desc') }}</p>
             <div class="tip-row mt-2">
-              <span class="mdi mdi-chart-bar tip-icon" />
+              <v-icon class="tip-icon">mdi-chart-bar</v-icon>
               <span>{{ t('cost_tab.tip_bars') }}</span>
             </div>
             <div class="tip-row">
-              <span class="mdi mdi-palette tip-icon" />
+              <v-icon class="tip-icon">mdi-palette</v-icon>
               <span>{{ t('cost_tab.tip_eras') }}</span>
             </div>
           </template>
-          <div v-if="isRpBasedMetric" class="tip-row mt-2" style="border-top: 1px solid #1e3a5f; padding-top: 8px;">
-            <span class="mdi mdi-flask-outline tip-icon" style="color: #6ee7b7;" />
+          <div v-if="isRpBasedMetric" class="tip-row hairline-t mt-2" style="padding-top:8px">
+            <v-icon class="tip-icon" style="color:var(--primary)">mdi-flask-outline</v-icon>
             <span>{{ t('cost_tab.tip_standard_only') }}</span>
           </div>
-          <div v-if="metric === 'meta_eff'" class="tip-row mt-2" style="border-top: 1px solid #1e3a5f; padding-top: 8px;">
-            <span class="mdi mdi-medal-outline tip-icon" style="color: #a78bfa;" />
-            <span><b style="color: #a78bfa;">RP/META</b> — {{ t('cost_tab.tip_meta_eff_info') }}</span>
+          <div v-if="metric === 'meta_eff'" class="tip-row hairline-t mt-2" style="padding-top:8px">
+            <v-icon class="tip-icon" style="color:var(--c-violet)">mdi-medal-outline</v-icon>
+            <span><b style="color:var(--c-violet)">RP/META</b> — {{ t('cost_tab.tip_meta_eff_info') }}</span>
           </div>
         </InfoTip>
 
       </div>
     </div>
 
-    <div class="branches-grid" :style="{ '--count-col-w': metric === 'meta_eff' ? '64px' : '36px' }">
-      <div
-        v-for="branch in BRANCHES"
-        :key="branch.key"
-        class="branch-card"
-        :style="{ '--accent': branch.accent }"
+    <div class="branches-grid" :style="{ '--count-col-w': metric === 'meta_eff' ? '72px' : '40px' }">
+      <section
+        v-for="bv in branchViews"
+        :key="bv.branch.key"
+        class="panel branch-card"
+        :style="{ '--accent': bv.branch.accent }"
       >
 
-        <div class="branch-card__hdr">
-          <span class="mdi branch-card__icon" :class="branch.icon" />
-          <span class="branch-card__title">
-            {{ t(`cost_tab.branch_${branch.key.toLowerCase()}`) }}
+        <header class="branch-card__hdr">
+          <v-icon class="branch-card__icon" size="18">{{ bv.branch.icon }}</v-icon>
+          <span class="eyebrow branch-card__title">
+            {{ t(`cost_tab.branch_${bv.branch.key.toLowerCase()}`) }}
           </span>
-          <span class="branch-card__count">
-            {{ t('cost_tab.n_vehicles', { n: fmtFull(branchVehicleCount(branch.key)) }) }}
-          </span>
-          <template v-if="chartRows(branch.key).length >= 2">
-            <div class="branch-card__summary ml-auto">
-              <span class="card-stat card-stat--cheap">
-                <span class="card-stat__dot" />
-                {{ nationFlag(chartRows(branch.key).at(-1)?.nation) }}
-                <b>{{ fmtNationName(chartRows(branch.key).at(-1)?.nation) }}</b>
-                <span class="card-stat__val">{{ fmtRowVal(chartRows(branch.key).at(-1)) }}</span>
-              </span>
-              <span class="card-stat card-stat--exp">
-                <span class="card-stat__dot" />
-                {{ nationFlag(chartRows(branch.key)[0]?.nation) }}
-                <b>{{ fmtNationName(chartRows(branch.key)[0]?.nation) }}</b>
-                <span class="card-stat__val">{{ fmtRowVal(chartRows(branch.key)[0]) }}</span>
-              </span>
-            </div>
-          </template>
-        </div>
+          <span class="tag">{{ t('cost_tab.n_vehicles', { n: fmtFull(bv.count) }) }}</span>
+
+          <div v-if="bv.cheap && bv.exp" class="branch-card__summary ml-auto">
+            <span class="card-stat" style="--c: var(--c-ok)">
+              <span class="card-stat__dot" />
+              {{ nationFlag(bv.cheap.nation) }}
+              <b>{{ fmtNationName(bv.cheap.nation) }}</b>
+              <span class="card-stat__val">{{ fmtRowVal(bv.cheap) }}</span>
+            </span>
+            <span class="card-stat" style="--c: var(--c-bad)">
+              <span class="card-stat__dot" />
+              {{ nationFlag(bv.exp.nation) }}
+              <b>{{ fmtNationName(bv.exp.nation) }}</b>
+              <span class="card-stat__val">{{ fmtRowVal(bv.exp) }}</span>
+            </span>
+          </div>
+        </header>
 
         <div class="branch-card__rows">
           <div
-            v-for="row in chartRows(branch.key)"
+            v-for="row in bv.rows"
             :key="row.nation"
             class="bar-row"
           >
@@ -110,7 +97,7 @@
                         v-bind="props"
                         class="bar-seg"
                         :style="{
-                          width: segPctLocal(row.byEra[e], row, branch.key) + '%',
+                          width: segPctLocal(row.byEra[e], row, bv.branch.key) + '%',
                           background: ERA_COLORS[e],
                         }"
                       >
@@ -137,30 +124,30 @@
 
             <div class="count-col">
               <span
-                class="count-chip"
-                :class="{ 'count-chip--meta': metric === 'meta_eff' }"
+                class="tag count-chip"
+                :class="{ 'tint tint--violet': metric === 'meta_eff' }"
                 :title="metric === 'meta_eff'
                   ? `${t('cost_tab.count_veh_hint')} / ${t('cost_tab.count_meta_hint')}`
                   : t('cost_tab.count_veh_hint')"
               >
-                <template v-if="metric === 'meta_eff'">{{ fmtFull(row.count) }} <span class="count-chip__sep">·</span>Ø{{ row.avgMeta }}</template>
+                <template v-if="metric === 'meta_eff'">{{ fmtFull(row.count) }}<span class="count-chip__sep">·</span>Ø{{ row.avgMeta }}</template>
                 <template v-else>{{ fmtFull(row.count) }}</template>
               </span>
             </div>
 
             <div class="total-col">
-              <span class="total-label" :style="{ color: totalColorLocal(row, branch.key) }">
+              <span class="total-label" :style="{ color: totalColorLocal(row, bv.branch.key) }">
                 {{ fmtRowVal(row) }}
               </span>
             </div>
           </div>
 
-          <div v-if="!chartRows(branch.key).length" class="no-data">
+          <div v-if="!bv.rows.length" class="no-data">
             {{ t('common.no_data') }}
           </div>
         </div>
 
-      </div>
+      </section>
     </div>
 
   </div>
@@ -172,6 +159,7 @@ import { useI18n } from 'vue-i18n'
 import { useTabFilters } from '../composables/useTabFilters.js'
 import { useDataStore } from '../stores/useDataStore.js'
 import InfoTip from '../components/InfoTip.vue'
+import SegControl from '../components/ui/SegControl.vue'
 import { BR_ERA_THRESHOLDS } from '../composables/constants.js'
 
 const { t }   = useI18n()
@@ -179,8 +167,8 @@ const store = useDataStore()
 useTabFilters({ period: false, mode: false, brRange: false, minBattles: false, classes: true, types: false })
 
 const ERA_COLORS = {
-  1: '#6ee7b7', 2: '#4ade80', 3: '#a3e635', 4: '#facc15',
-  5: '#fb923c', 6: '#f87171', 7: '#c084fc', 8: '#818cf8',
+  1: '#5EEAD4', 2: '#8BE0A0', 3: '#C2E37A', 4: '#F2D35C',
+  5: '#F5A623', 6: '#EE8A5A', 7: '#E8607B', 8: '#A99BE0',
 }
 
 const ROMAN = { 1:'I', 2:'II', 3:'III', 4:'IV', 5:'V', 6:'VI', 7:'VII', 8:'VIII' }
@@ -218,20 +206,25 @@ function nationFlag(n) {
 }
 
 const BRANCHES = [
-  { key: 'Ground',      icon: 'mdi-tank',       accent: '#a7f3d0', types: ['medium_tank','light_tank','heavy_tank','tank_destroyer','spaa'] },
-  { key: 'Aviation',    icon: 'mdi-airplane',    accent: '#38bdf8', types: ['fighter','bomber','assault'] },
-  { key: 'Helicopters', icon: 'mdi-helicopter',  accent: '#a78bfa', types: ['attack_helicopter','utility_helicopter'] },
-  { key: 'Fleet',       icon: 'mdi-anchor',      accent: '#60a5fa', types: ['destroyer','heavy_cruiser','light_cruiser','battleship','battlecruiser','boat','heavy_boat','frigate','barge'] },
+  { key: 'Ground',      icon: 'mdi-tank',       accent: 'var(--primary)', types: ['medium_tank','light_tank','heavy_tank','tank_destroyer','spaa'] },
+  { key: 'Aviation',    icon: 'mdi-airplane',    accent: 'var(--c-info)', types: ['fighter','bomber','assault'] },
+  { key: 'Helicopters', icon: 'mdi-helicopter',  accent: 'var(--c-violet)', types: ['attack_helicopter','utility_helicopter'] },
+  { key: 'Fleet',       icon: 'mdi-anchor',      accent: 'var(--c-warn)', types: ['destroyer','heavy_cruiser','light_cruiser','battleship','battlecruiser','boat','heavy_boat','frigate','barge'] },
 ]
-const BRANCH_TYPE_SET = Object.fromEntries(
-  BRANCHES.map(b => [b.key, new Set(b.types)])
-)
+const TYPE_TO_BRANCH = {}
+for (const b of BRANCHES) for (const ty of b.types) TYPE_TO_BRANCH[ty] ??= b.key
 
 const METRICS = [
   { key: 'rp',       icon: 'mdi-flask'         },
   { key: 'sl',       icon: 'mdi-cash'          },
   { key: 'meta_eff', icon: 'mdi-medal-outline' },
 ]
+
+const metricOptions = computed(() => METRICS.map(m => ({
+  value: m.key,
+  icon:  m.icon,
+  label: t(`cost_tab.metric_${m.key}`),
+})))
 
 const metric          = ref('rp')
 const skipFolderDupes = ref(true)
@@ -285,10 +278,7 @@ watchEffect(() => {
         if (!g) continue
         if (!cls.includes(v.VehicleClass ?? 'Standard')) continue
         if (isRpBased && (v.VehicleClass ?? 'Standard') !== 'Standard') continue
-        let bKey = null
-        for (const b of BRANCHES) {
-          if (BRANCH_TYPE_SET[b.key].has(v.Type)) { bKey = b.key; break }
-        }
+        const bKey = TYPE_TO_BRANCH[v.Type]
         if (!bKey) continue
         const val = isRpBased ? Number(v.vdb_req_exp ?? 0) : Number(v.vdb_value ?? 0)
         if (!val) continue
@@ -312,11 +302,7 @@ watchEffect(() => {
       const val = isRpBased ? Number(v.vdb_req_exp ?? 0) : Number(v.vdb_value ?? 0)
       if (!val) continue
 
-      const vType = v.Type
-      let bKey = null
-      for (const b of BRANCHES) {
-        if (BRANCH_TYPE_SET[b.key].has(vType)) { bKey = b.key; break }
-      }
+      const bKey = TYPE_TO_BRANCH[v.Type]
       if (!bKey) continue
 
       const nat = v.Nation
@@ -367,6 +353,17 @@ function branchVehicleCount(branchKey) {
   return chartData.value[branchKey]?.vehicleCount ?? 0
 }
 
+const branchViews = computed(() => BRANCHES.map(branch => {
+  const rows = chartRows(branch.key)
+  return {
+    branch,
+    rows,
+    count: branchVehicleCount(branch.key),
+    cheap: rows.length >= 2 ? rows[rows.length - 1] : null,
+    exp:   rows.length >= 2 ? rows[0] : null,
+  }
+}))
+
 const branchMaxes = computed(() => {
   const out = {}
   for (const b of BRANCHES) {
@@ -388,10 +385,10 @@ function segPctLocal(eraVal, row, branchKey) {
 function totalColorLocal(row, branchKey) {
   const val = metric.value === 'meta_eff' ? (row.metaAdjVal ?? 0) : (row.total ?? 0)
   const p   = val / (branchMaxes.value[branchKey] ?? 1)
-  if (p > 0.85) return '#f87171'
-  if (p > 0.60) return '#fb923c'
-  if (p < 0.25) return '#4ade80'
-  return '#e2e8f0'
+  if (p > 0.85) return 'var(--c-bad)'
+  if (p > 0.60) return 'var(--c-warn)'
+  if (p < 0.25) return 'var(--c-ok)'
+  return 'var(--ink)'
 }
 
 function fmtRowVal(row) {
@@ -413,222 +410,117 @@ function fmtFull(n) {
 </script>
 
 <style scoped>
-.era-legend {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  align-items: center;
-}
+.era-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
 .era-pip {
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 10px;
-  color: #64748b;
-  font-family: 'JetBrains Mono', monospace;
-  letter-spacing: .03em;
+  font: 500 10px var(--font-display);
+  letter-spacing: 0.04em;
+  color: var(--ink-faint);
 }
-.era-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 2px;
-  flex-shrink: 0;
-}
+.era-dot { width: 9px; height: 9px; flex-shrink: 0; }
 
-.branches-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
-}
+.branches-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 
 .branch-card {
-  background: rgba(12, 20, 38, 0.65);
-  border: 1px solid #1e3a5f;
-  border-left: 3px solid var(--accent, #a7f3d0);
-  border-radius: 10px;
-  overflow: hidden;
+  min-width: 0;
+  border-left: 2px solid var(--accent, var(--primary));
 }
-
 .branch-card__hdr {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
-  padding: 9px 14px;
-  background: rgba(7, 14, 28, 0.6);
-  border-bottom: 1px solid #1e3a5f;
-  flex-wrap: wrap;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--hairline);
 }
-.branch-card__icon {
-  font-size: 18px;
-  color: var(--accent, #a7f3d0);
-  flex-shrink: 0;
-}
-.branch-card__title {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--accent, #a7f3d0);
-  text-transform: uppercase;
-  letter-spacing: .1em;
-}
-.branch-card__count {
-  font-size: 10px;
-  color: #e2e8f0;
-  background: rgba(30, 58, 95, 0.5);
-  border: 1px solid rgba(30, 58, 95, 0.9);
-  border-radius: 4px;
-  padding: 1px 7px;
-  font-family: 'JetBrains Mono', monospace;
-}
-.branch-card__summary {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-}
+.branch-card__icon  { flex-shrink: 0; color: var(--accent, var(--primary)); }
+.branch-card__title { font-size: 12px; color: var(--accent, var(--primary)); }
+.branch-card__summary { display: flex; flex-wrap: wrap; gap: 12px; }
 
 .card-stat {
+  --c: var(--ink-muted);
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 10px;
-  color: #64748b;
+  font-size: 11px;
+  color: var(--ink-faint);
 }
-.card-stat__dot {
-  width: 5px;
-  height: 5px;
-  border-radius: 1px;
-  flex-shrink: 0;
-}
-.card-stat--cheap .card-stat__dot { background: #4ade80; }
-.card-stat--exp   .card-stat__dot { background: #f87171; }
-.card-stat--cheap b { color: #4ade80; }
-.card-stat--exp   b { color: #f87171; }
-.card-stat__val {
-  color: #475569;
-  font-family: 'JetBrains Mono', monospace;
-}
+.card-stat__dot { width: 5px; height: 5px; flex-shrink: 0; background: var(--c); }
+.card-stat b    { color: var(--c); font-weight: 600; }
+.card-stat__val { font-family: var(--font-display); color: var(--ink-muted); }
 
-.branch-card__rows {
-  padding: 3px 0;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-}
+.branch-card__rows { padding: 2px 0; overflow-x: auto; -webkit-overflow-scrolling: touch; }
 
 .bar-row {
   display: grid;
-  grid-template-columns: 110px 1fr var(--count-col-w, 36px) 80px;
-  gap: 8px;
+  grid-template-columns: 110px 1fr var(--count-col-w, 40px) 84px;
   align-items: center;
+  gap: 8px;
+  min-width: 470px;
   padding: 5px 14px;
-  border-top: 1px solid rgba(30, 58, 95, 0.35);
-  transition: opacity .12s;
-  cursor: default;
-  min-width: 460px;
+  border-top: 1px solid var(--hairline);
+  transition: opacity 0.12s;
 }
 .bar-row:first-child { border-top: none; }
+.branch-card__rows:has(.bar-row:hover) .bar-row:not(:hover) { opacity: 0.25; }
 
-.branch-card__rows:has(.bar-row:hover) .bar-row:not(:hover) {
-  opacity: 0.18;
-}
-
-.nation-col {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 0;
-}
-.nation-flag { font-size: 14px; line-height: 1; flex-shrink: 0; }
+.nation-col  { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.nation-flag { flex-shrink: 0; font-size: 14px; line-height: 1; }
 .nation-name {
-  font-size: 11px;
-  font-weight: 700;
-  color: #cbd5e1;
-  white-space: nowrap;
   overflow: hidden;
+  font: 500 11px var(--font-display);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   text-overflow: ellipsis;
-  letter-spacing: .04em;
+  white-space: nowrap;
+  color: var(--ink-muted);
 }
 
-.bar-col { min-width: 0; }
-
-.bar-track {
-  display: flex;
-  height: 24px;
-  border-radius: 3px;
-  overflow: hidden;
-  background: rgba(30, 58, 95, 0.3);
-  width: 100%;
-}
+.bar-col   { min-width: 0; }
+.bar-track { display: flex; width: 100%; height: 22px; overflow: hidden; background: var(--surface-2); }
 .bar-seg {
-  height: 100%;
-  min-width: 2px;
-  margin-right: 1px;
-  flex-shrink: 0;
-  transition: filter .12s;
-  container-type: inline-size;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
+  min-width: 2px;
+  height: 100%;
+  margin-right: 1px;
   overflow: hidden;
+  container-type: inline-size;
+  transition: filter 0.12s;
 }
+.bar-seg:last-child { margin-right: 0; }
+.bar-seg:hover      { filter: brightness(1.2); }
 .bar-seg-label {
   display: none;
-  font-size: 10px;
-  font-weight: 700;
-  font-family: 'JetBrains Mono', monospace;
-  color: rgba(15, 23, 42, 0.72);
+  font: 600 10px var(--font-display);
   letter-spacing: -0.02em;
   white-space: nowrap;
+  color: var(--bg);
+  opacity: 0.75;
   pointer-events: none;
   user-select: none;
 }
-@container (min-width: 24px) {
-  .bar-seg-label { display: block; }
-}
-.bar-seg:last-child { margin-right: 0; }
-.bar-seg:hover { filter: brightness(1.3); }
+@container (min-width: 24px) { .bar-seg-label { display: block; } }
 
-.total-col { text-align: right; }
-.total-label {
-  font-size: 12px;
-  font-weight: 700;
-  font-family: 'JetBrains Mono', monospace;
-}
+.count-col  { text-align: right; }
+.count-chip { padding: 1px 6px; font-size: 10px; font-weight: 500; color: var(--ink-muted); }
+.count-chip.tint { color: var(--c); }
+.count-chip__sep { margin: 0 3px; opacity: 0.5; }
 
-.count-col { text-align: right; }
-.count-chip {
-  display: inline-block;
-  font-size: 10px;
-  font-family: 'JetBrains Mono', monospace;
-  color: #e2e8f0;
-  background: rgba(30, 58, 95, 0.4);
-  border: 1px solid rgba(30, 58, 95, 0.75);
-  border-radius: 4px;
-  padding: 1px 5px;
-  white-space: nowrap;
-  line-height: 1.6;
-}
-.count-chip--meta {
-  color: #a78bfa;
-  background: rgba(167, 139, 250, 0.08);
-  border-color: rgba(167, 139, 250, 0.3);
-}
-.count-chip__sep {
-  color: #475569;
-  margin: 0 2px;
-}
+.total-col   { text-align: right; }
+.total-label { font: 600 12px var(--font-display); font-variant-numeric: tabular-nums; }
 
 .tooltip-content { font-size: 12px; line-height: 1.6; }
 
 @media (max-width: 760px) {
-  .controls-row {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    padding-bottom: 2px;
-  }
+  .controls-row { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 2px; }
   .controls-row > * { flex-shrink: 0; }
   .controls-row .ml-auto { margin-left: 0; }
-  .era-legend { flex-wrap: nowrap; }
-
+  .era-legend    { flex-wrap: nowrap; }
   .branches-grid { grid-template-columns: 1fr; }
 }
 </style>
