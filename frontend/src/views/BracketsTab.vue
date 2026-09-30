@@ -2,30 +2,15 @@
   <div>
     <div class="controls-bar mb-3">
       <div class="controls-row">
-        <div>
-          <div class="seg-ctrl">
-            <button
-              v-for="m in heatModes"
-              :key="m.value"
-              class="seg-btn"
-              :class="{ 'seg-btn--active': heatMode === m.value }"
-              @click="heatMode = m.value"
-            >
-              <v-icon size="13" class="seg-btn-icon">{{ m.icon }}</v-icon>
-              {{ t(m.label) }}
-            </button>
-          </div>
-        </div>
+        <SegControl v-model="heatMode" :options="heatModeOptions" />
         <div class="ctrl-divider" />
+
         <v-select
           v-model="stepsPerBracket"
           :items="stepOptions"
           item-title="title"
           item-value="value"
           :label="t('brackets_tab.br_step')"
-          density="compact"
-          variant="outlined"
-          hide-details
           style="width:130px"
         />
         <v-select
@@ -35,9 +20,6 @@
           item-title="label"
           item-value="value"
           :label="t('brackets_tab.top_n')"
-          density="compact"
-          variant="outlined"
-          hide-details
           style="width:150px"
         />
         <v-select
@@ -46,9 +28,6 @@
           item-title="label"
           item-value="value"
           :label="t('brackets_tab.excl_types')"
-          density="compact"
-          variant="outlined"
-          hide-details
           multiple
           style="min-width:180px; max-width:300px"
         >
@@ -61,50 +40,52 @@
           </template>
 
           <template #selection="{ index }">
-            <div v-if="index === 0" class="excl-chips-row">
+            <div v-if="index === 0" class="excl-row">
               <span
                 v-for="type in excludeTypes.slice(0, 3)"
                 :key="type"
-                class="excl-chip"
+                class="tag tint excl-chip"
                 @click.stop="removeExcludeType(type)"
               >
                 <v-icon size="11">{{ getTypeIcon(type) }}</v-icon>
                 {{ getShortLabel(type) }}
-                <span class="excl-chip-x">×</span>
+                <span class="excl-x">×</span>
               </span>
-              <span v-if="excludeTypes.length > 3" class="excl-overflow">
+              <span v-if="excludeTypes.length > 3" class="tag excl-more">
                 +{{ excludeTypes.length - 3 }}
               </span>
             </div>
           </template>
         </v-select>
-        <InfoTip align="right" class="ml-auto">
+
+        <div class="heat-legend ml-auto" :title="legendTitle">
+          <span class="eyebrow eyebrow--xs">{{ legendLow }}</span>
+          <span class="heat-bar" :style="{ background: legendGradient }" />
+          <span class="eyebrow eyebrow--xs">{{ legendHigh }}</span>
+        </div>
+
+        <InfoTip align="right">
           <p><b>{{ t(heatMode === 'popularity' ? 'brackets_tab.description_popularity' : 'brackets_tab.description_strength') }}</b></p>
           <p>{{ t(heatMode === 'popularity' ? 'brackets_tab.tip_desc_popularity' : 'brackets_tab.tip_desc_strength') }}</p>
           <p style="margin-top:8px">
-            <span
-              :style="{
-                display: 'inline-block', width: '140px', height: '10px', borderRadius: '4px', verticalAlign: 'middle',
-                background: legendGradient,
-              }"
-            ></span>
+            <span class="heat-bar heat-bar--tip" :style="{ background: legendGradient }" />
             &nbsp;
             <template v-if="heatMode === 'popularity'">
-              <span style="color:#64748b">{{ t('brackets_tab.tip_rare') }}</span> →
-              <span style="color:#38bdf8">{{ t('brackets_tab.tip_avg_pop') }}</span> →
-              <span style="color:#fb923c">{{ t('brackets_tab.tip_dominant') }}</span>
+              <span style="color:var(--ink-faint)">{{ t('brackets_tab.tip_rare') }}</span> →
+              <span style="color:var(--c-info)">{{ t('brackets_tab.tip_avg_pop') }}</span> →
+              <span style="color:var(--c-warn)">{{ t('brackets_tab.tip_dominant') }}</span>
             </template>
             <template v-else>
-              <span style="color:#fb242a">{{ t('brackets_tab.tip_weak') }}</span> →
-              <span style="color:#fbbf24">{{ t('brackets_tab.tip_average') }}</span> →
-              <span style="color:#34d34a">{{ t('brackets_tab.tip_strong') }}</span>
+              <span style="color:var(--c-bad)">{{ t('brackets_tab.tip_weak') }}</span> →
+              <span style="color:var(--c-warn)">{{ t('brackets_tab.tip_average') }}</span> →
+              <span style="color:var(--c-ok)">{{ t('brackets_tab.tip_strong') }}</span>
             </template>
           </p>
         </InfoTip>
       </div>
     </div>
 
-    <div v-if="pivot.rows.length" class="pivot-wrapper">
+    <div v-if="pivot.rows.length" class="table-wrap pivot-wrap">
       <table class="pivot-table">
         <thead>
           <tr>
@@ -115,17 +96,21 @@
         <tbody>
           <tr v-for="row in pivot.rows" :key="row.bracket">
             <td class="br-cell">{{ row.bracket }}</td>
-            <td v-for="nat in pivot.nations" :key="nat" class="score-cell" :style="{ color: scoreColor(row[nat], pivot.mode) }">
-              {{ formatCell(row[nat]) }}
-            </td>
+            <td
+              v-for="nat in pivot.nations"
+              :key="nat"
+              class="score-cell"
+              :class="{ 'is-empty': !row[nat] }"
+              :style="{ '--c': scoreColor(row[nat], pivot.mode) }"
+            >{{ formatCell(row[nat]) }}</td>
           </tr>
         </tbody>
       </table>
     </div>
 
-    <v-alert v-else type="info" variant="tonal" density="compact">
+    <div v-else class="panel no-data">
       {{ t('brackets_tab.no_data') }}
-    </v-alert>
+    </div>
   </div>
 </template>
 
@@ -137,6 +122,7 @@ import { useDataStore, WT_BR_STEPS } from '../stores/useDataStore.js'
 import { metaColor, fmtNation } from '../composables/useVehicleFormatting.js'
 import { BRANCH_TYPES, TYPE_LABELS, TYPE_ICON, LARGE_FLEET_TYPES, SMALL_FLEET_TYPES } from '../composables/constants.js'
 import InfoTip from '../components/InfoTip.vue'
+import SegControl from '../components/ui/SegControl.vue'
 
 const { t }  = useI18n()
 const store = useDataStore()
@@ -147,10 +133,10 @@ const topN            = ref(5)
 const excludeTypes    = ref([])
 const heatMode        = ref('strength')
 
-const heatModes = [
-  { value: 'strength',   icon: 'mdi-trophy-outline', label: 'brackets_tab.mode_strength'   },
-  { value: 'popularity', icon: 'mdi-fire',            label: 'brackets_tab.mode_popularity' },
-]
+const heatModeOptions = computed(() => [
+  { value: 'strength',   icon: 'mdi-trophy-outline', label: t('brackets_tab.mode_strength')   },
+  { value: 'popularity', icon: 'mdi-fire',           label: t('brackets_tab.mode_popularity') },
+])
 
 const stepOptions = computed(() =>
   [1, 2, 3, 4, 6].map(n => ({
@@ -158,6 +144,14 @@ const stepOptions = computed(() =>
     title: `${(WT_BR_STEPS[n] - WT_BR_STEPS[0]).toFixed(1)} BR`,
   }))
 )
+
+const topNOptions = computed(() => [
+  { label: t('common.top_all'), value: 0 },
+  { label: 'Top-3',  value: 3 },
+  { label: 'Top-5',  value: 5 },
+  { label: 'Top-7',  value: 7 },
+  { label: 'Top-10', value: 10 },
+])
 
 const availableTypeOptions = computed(() => {
   const active = []
@@ -186,30 +180,15 @@ const availableTypeOptions = computed(() => {
 
 watch(availableTypeOptions, (opts) => {
   const available = new Set(opts.map(o => o.value))
-  excludeTypes.value = excludeTypes.value.filter(t => available.has(t))
+  excludeTypes.value = excludeTypes.value.filter(type => available.has(type))
 })
 
-function getShortLabel(type) {
-  const opt = availableTypeOptions.value.find(o => o.value === type)
-  return opt ? opt.shortLabel : type
+const typeOptionMap = computed(() => new Map(availableTypeOptions.value.map(o => [o.value, o])))
+const getShortLabel = type => typeOptionMap.value.get(type)?.shortLabel ?? type
+const getTypeIcon   = type => typeOptionMap.value.get(type)?.icon ?? 'mdi-help'
+const removeExcludeType = type => {
+  excludeTypes.value = excludeTypes.value.filter(x => x !== type)
 }
-
-function getTypeIcon(type) {
-  const opt = availableTypeOptions.value.find(o => o.value === type)
-  return opt ? opt.icon : 'mdi-help'
-}
-
-function removeExcludeType(type) {
-  excludeTypes.value = excludeTypes.value.filter(t => t !== type)
-}
-
-const topNOptions = computed(() => [
-  { label: t('common.top_all'), value: 0 },
-  { label: 'Top-3',  value: 3 },
-  { label: 'Top-5',  value: 5 },
-  { label: 'Top-7',  value: 7 },
-  { label: 'Top-10', value: 10 },
-])
 
 function buildWtBrackets(stepsN) {
   const step = Math.max(1, stepsN)
@@ -219,22 +198,16 @@ function buildWtBrackets(stepsN) {
   if (boundaryIndices[boundaryIndices.length - 1] !== n - 1) boundaryIndices.push(n - 1)
 
   return boundaryIndices.slice(0, -1).map((startIdx, i) => {
-    const endIdx  = boundaryIndices[i + 1]
-    const minBr   = WT_BR_STEPS[startIdx]
-    const maxBr   = WT_BR_STEPS[endIdx]
-    const isLast  = i === boundaryIndices.length - 2
-
+    const endIdx = boundaryIndices[i + 1]
+    const minBr  = WT_BR_STEPS[startIdx]
+    const maxBr  = WT_BR_STEPS[endIdx]
+    const isLast = i === boundaryIndices.length - 2
     const lastIncludedBr = isLast ? maxBr : WT_BR_STEPS[endIdx - 1]
 
-    let label
-    if (step === 1) {
-      label = minBr.toFixed(1)
-    } else {
-      label = `${minBr.toFixed(1)}–${lastIncludedBr.toFixed(1)}`
-    }
-
     return {
-      label,
+      label: step === 1
+        ? minBr.toFixed(1)
+        : `${minBr.toFixed(1)}–${lastIncludedBr.toFixed(1)}`,
       min:       minBr,
       max:       maxBr,
       inclusive: isLast,
@@ -242,23 +215,18 @@ function buildWtBrackets(stepsN) {
   })
 }
 
+const battlesOf = v => v['Сыграно игр'] ?? 0
+
 function weightedMeta(pool) {
   if (!pool.length) return 0
-  const total = pool.reduce((s, v) => s + (v['Сыграно игр'] ?? 0), 0)
-  if (total < 1) return pool.reduce((s, v) => s + v.META_SCORE, 0) / pool.length
-  return pool.reduce((s, v) => s + v.META_SCORE * (v['Сыграно игр'] ?? 0), 0) / total
-}
-
-function bracketPopularity(inBracket, nations) {
-  const totalBattles = inBracket.reduce((s, v) => s + (v['Сыграно игр'] ?? 0), 0)
-  const row = {}
-  for (const nat of nations) {
-    const natBattles = inBracket
-      .filter(v => v.Nation === nat)
-      .reduce((s, v) => s + (v['Сыграно игр'] ?? 0), 0)
-    row[nat] = totalBattles > 0 ? Math.round((natBattles / totalBattles) * 1000) / 10 : 0
+  let total = 0, weighted = 0, plain = 0
+  for (const v of pool) {
+    const b = battlesOf(v)
+    total    += b
+    weighted += v.META_SCORE * b
+    plain    += v.META_SCORE
   }
-  return row
+  return total < 1 ? plain / pool.length : weighted / total
 }
 
 const pivot = shallowRef({ rows: [], nations: [], mode: 'strength' })
@@ -278,20 +246,36 @@ watchEffect(() => {
     const brackets = buildWtBrackets(steps)
     const nations  = [...new Set(vehicles.map(v => v.Nation))].sort()
 
-    const rows = brackets.map(b => {
-      const inBracket = vehicles.filter(v =>
-        v.BR >= b.min && (b.inclusive ? v.BR <= b.max : v.BR < b.max)
-      )
+    const buckets = brackets.map(() => new Map())
+    for (const v of vehicles) {
+      const bi = brackets.findIndex(b => v.BR >= b.min && (b.inclusive ? v.BR <= b.max : v.BR < b.max))
+      if (bi === -1) continue
+      const m = buckets[bi]
+      const list = m.get(v.Nation)
+      if (list) list.push(v); else m.set(v.Nation, [v])
+    }
+
+    const rows = brackets.map((b, bi) => {
+      const byNation = buckets[bi]
+      const row = { bracket: b.label }
 
       if (mode === 'popularity') {
-        return { bracket: b.label, ...bracketPopularity(inBracket, nations) }
+        let total = 0
+        const sums = new Map()
+        for (const [nat, list] of byNation) {
+          const s = list.reduce((acc, v) => acc + battlesOf(v), 0)
+          sums.set(nat, s)
+          total += s
+        }
+        for (const nat of nations) {
+          row[nat] = total > 0 ? Math.round(((sums.get(nat) ?? 0) / total) * 1000) / 10 : 0
+        }
+        return row
       }
 
-      const row = { bracket: b.label }
       for (const nat of nations) {
-        const pool = n
-          ? [...inBracket.filter(v => v.Nation === nat)].sort((a, b) => b.META_SCORE - a.META_SCORE).slice(0, n)
-          : inBracket.filter(v => v.Nation === nat)
+        let pool = byNation.get(nat) ?? []
+        if (n && pool.length > n) pool = [...pool].sort((a, c) => c.META_SCORE - a.META_SCORE).slice(0, n)
         row[nat] = Math.round(weightedMeta(pool) * 10) / 10
       }
       return row
@@ -301,43 +285,43 @@ watchEffect(() => {
   })
 })
 
-const popHotThreshold = computed(() => {
-  const nCount = pivot.value.nations.length || 1
-  return Math.min(80, Math.max(20, (300 / nCount)))
-})
-
 const POP_STOPS = [
-  { t: 0,    c: [51, 65, 85]   },
-  { t: 0.45, c: [56, 189, 248] },
-  { t: 1,    c: [251, 146, 60] },
+  { t: 0,    c: [120, 128, 145] },
+  { t: 0.45, c: [127, 178, 229] },
+  { t: 1,    c: [245, 166, 35]  },
 ]
 
+const popHotThreshold = computed(() => {
+  const nCount = pivot.value.nations.length || 1
+  return Math.min(80, Math.max(20, 300 / nCount))
+})
+
 function popularityColor(pct) {
-  if (!pct) return '#334155'
-  const t = Math.min(1, Math.max(0, pct / popHotThreshold.value))
+  const x = Math.min(1, Math.max(0, pct / popHotThreshold.value))
   for (let i = 0; i < POP_STOPS.length - 1; i++) {
     const a = POP_STOPS[i], b = POP_STOPS[i + 1]
-    if (t >= a.t && t <= b.t) {
-      const lt = (t - a.t) / (b.t - a.t || 1)
-      const r  = Math.round(a.c[0] + (b.c[0] - a.c[0]) * lt)
-      const g  = Math.round(a.c[1] + (b.c[1] - a.c[1]) * lt)
-      const bl = Math.round(a.c[2] + (b.c[2] - a.c[2]) * lt)
-      return `rgb(${r},${g},${bl})`
+    if (x >= a.t && x <= b.t) {
+      const k = (x - a.t) / (b.t - a.t || 1)
+      const mix = j => Math.round(a.c[j] + (b.c[j] - a.c[j]) * k)
+      return `rgb(${mix(0)},${mix(1)},${mix(2)})`
     }
   }
-  const last = POP_STOPS[POP_STOPS.length - 1].c
-  return `rgb(${last[0]},${last[1]},${last[2]})`
+  const [r, g, b] = POP_STOPS[POP_STOPS.length - 1].c
+  return `rgb(${r},${g},${b})`
+}
+
+function scoreColor(score, mode) {
+  if (!score) return 'var(--ink-dim)'
+  return mode === 'popularity' ? popularityColor(score) : metaColor(score)
 }
 
 const legendGradient = computed(() => heatMode.value === 'popularity'
-  ? 'linear-gradient(to right, #334155 0%, #38bdf8 45%, #fb923c 100%)'
-  : 'linear-gradient(to right, #780f0f 0%, #fb242a 30%, #fbbf24 45%, #34d34a 75%, #05780f 100%)'
+  ? 'linear-gradient(to right, rgb(120,128,145) 0%, var(--c-info) 45%, var(--c-warn) 100%)'
+  : 'linear-gradient(to right, var(--c-bad) 0%, var(--c-warn) 50%, var(--c-ok) 100%)'
 )
-
-function scoreColor(score, mode) {
-  if (!score) return '#334155'
-  return mode === 'popularity' ? popularityColor(score) : metaColor(score)
-}
+const legendLow  = computed(() => t(heatMode.value === 'popularity' ? 'brackets_tab.tip_rare'     : 'brackets_tab.tip_weak'))
+const legendHigh = computed(() => t(heatMode.value === 'popularity' ? 'brackets_tab.tip_dominant' : 'brackets_tab.tip_strong'))
+const legendTitle = computed(() => `${legendLow.value} → ${legendHigh.value}`)
 
 function formatCell(val) {
   if (!val) return '—'
@@ -346,62 +330,70 @@ function formatCell(val) {
 </script>
 
 <style scoped>
-.excl-chips-row {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  align-items: center;
-  gap: 4px;
-  overflow: hidden;
-  max-width: 100%;
-}
-
-.excl-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
-  font-weight: 600;
-  color: #a7f3d0;
-  background: rgba(167, 243, 208, 0.08);
-  border: 1px solid rgba(167, 243, 208, 0.25);
-  border-radius: 4px;
-  padding: 1px 5px;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: background 0.12s, border-color 0.12s;
-}
+.excl-row   { display: flex; align-items: center; gap: 4px; max-width: 100%; overflow: hidden; }
+.excl-chip  { padding: 1px 6px; font-size: 10px; cursor: pointer; transition: color 0.12s, border-color 0.12s, background 0.12s; }
 .excl-chip:hover {
-  background: rgba(248, 113, 113, 0.12);
-  border-color: rgba(248, 113, 113, 0.4);
-  color: #f87171;
+  --c: var(--c-bad);
 }
-.excl-chip-x { font-size: 11px; opacity: 0.6; }
+.excl-x     { font-size: 11px; opacity: 0.6; }
+.excl-more  { flex-shrink: 0; padding: 1px 6px; font-size: 10px; color: var(--ink-faint); }
 
-.excl-overflow {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
-  font-weight: 700;
-  color: #64748b;
-  background: rgba(100, 116, 139, 0.12);
-  border: 1px solid #334155;
-  border-radius: 4px;
-  padding: 1px 5px;
+.heat-legend { display: inline-flex; align-items: center; gap: 8px; }
+.heat-bar    { display: inline-block; width: 120px; height: 6px; }
+.heat-bar--tip { width: 140px; height: 8px; vertical-align: middle; }
+@media (max-width: 960px) { .heat-legend { display: none; } }
+
+.pivot-wrap {
+  max-height: calc(100vh - 254px);
+  overflow: auto;
+}
+.pivot-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: var(--surface);
+  font: 12px var(--font-display);
+  font-variant-numeric: tabular-nums;
+}
+.pivot-table th,
+.pivot-table td {
+  padding: 6px 12px;
+  text-align: center;
   white-space: nowrap;
-  flex-shrink: 0;
+  border-bottom: 1px solid var(--hairline);
 }
-.pivot-wrapper { overflow-x: auto; border: 1px solid #1e3a5f; border-radius: 8px; max-height: calc(100vh - 230px); overflow-y: auto; }
-.pivot-table { border-collapse: collapse; width: 100%; font-family: 'JetBrains Mono', monospace; font-size: 12px; }
 .pivot-table thead th {
-  background: #1e293b; color: #a7f3d0; font-weight: 600;
-  font-size: 11px; letter-spacing: .08em; padding: 8px 12px; text-align: center;
-  border-bottom: 1px solid #1e3a5f; white-space: nowrap; position: sticky; top: 0; z-index: 1;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--surface);
+  color: var(--ink-faint);
+  font: 500 11px var(--font-display);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
-.pivot-table tbody tr:nth-child(even) td { background: #111d30; }
-.pivot-table tbody tr:nth-child(odd)  td { background: #0f172a; }
-.pivot-table tbody tr:hover td { background: #1e3a5f !important; }
-.pivot-table td { color: #e2e8f0; padding: 6px 12px; text-align: center; border-bottom: 1px solid #1e293b; }
-.br-col, .br-cell { text-align: left !important; padding-left: 14px !important; color: #94a3b8 !important; font-weight: 600; min-width: 100px; }
-.score-cell { font-weight: 600; }
+.pivot-table tbody tr:last-child td { border-bottom: none; }
+
+.br-col,
+.br-cell {
+  position: sticky;
+  left: 0;
+  min-width: 100px;
+  padding-left: 14px !important;
+  text-align: left !important;
+  background: var(--surface);
+  border-right: 1px solid var(--hairline);
+}
+.br-col  { z-index: 3; }
+.br-cell { z-index: 1; color: var(--ink-muted); font-weight: 600; }
+
+.score-cell {
+  color: var(--c);
+  font-weight: 600;
+  background: color-mix(in srgb, var(--c) 9%, transparent);
+  transition: background 0.12s;
+}
+.score-cell.is-empty { font-weight: 400; background: transparent; }
+.pivot-table tbody tr:hover .score-cell:not(.is-empty) { background: color-mix(in srgb, var(--c) 20%, transparent); }
+.pivot-table tbody tr:hover .br-cell { color: var(--primary); background: var(--surface-2); }
 </style>
