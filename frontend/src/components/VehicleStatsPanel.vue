@@ -1,5 +1,5 @@
 <template>
-  <v-card class="stats-card" color="#0f172a" style="border: 1px solid #1e3a5f;">
+  <v-card class="stats-card" color="surface" variant="flat" border>
     <div class="stats-card__head">
       <div class="d-flex align-center">
         <v-icon icon="mdi-chart-line" size="14" style="opacity:.7" class="mr-2" />
@@ -9,11 +9,11 @@
     </div>
     <div class="stats-card__sub">{{ vehicleName }}</div>
 
-    <v-divider color="#1e293b" class="my-3" />
+    <v-divider class="my-3" />
 
     <div class="stats-card__body">
       <div v-if="loading" class="stats-state">
-        <v-progress-circular indeterminate size="20" width="2" color="#38bdf8" class="mr-2" />
+        <v-progress-circular indeterminate size="20" width="2" color="primary" class="mr-2" />
         {{ t('common.loading') }}
       </div>
 
@@ -65,9 +65,9 @@
                 <path :d="m.linePath" fill="none" :stroke="m.color" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke" />
                 <line
                   :x1="m.markerX" y1="0" :x2="m.markerX" :y2="SPARK_H"
-                  stroke="rgba(148,163,184,0.30)" stroke-width="1" stroke-dasharray="2,2" vector-effect="non-scaling-stroke"
+                  stroke="rgba(231,233,238,0.30)" stroke-width="1" stroke-dasharray="2,2" vector-effect="non-scaling-stroke"
                 />
-                <circle :cx="m.markerX" :cy="m.markerY" r="3.5" :fill="m.color" stroke="#0f172a" stroke-width="1.5" vector-effect="non-scaling-stroke" />
+                <circle :cx="m.markerX" :cy="m.markerY" r="3.5" :fill="m.color" stroke="#1B1E25" stroke-width="1.5" vector-effect="non-scaling-stroke" />
               </svg>
             </div>
           </div>
@@ -175,7 +175,7 @@ const metrics = computed(() => {
     const activeVal = series[activeIdx].value
     const activeLbl = series[activeIdx].label
 
-    const color = def.colorFn ? def.colorFn(activeVal) : '#7dd3fc'
+    const color = def.colorFn ? def.colorFn(activeVal) : '#7FB2E5'
 
     const minV = Math.min(...values)
     const maxV = Math.max(...values)
@@ -218,34 +218,68 @@ const activePeriodLabel = computed(() => metrics.value[0]?.periodLabel ?? null)
 .stats-card { padding: 14px 16px; height: 100%; display: flex; flex-direction: column; }
 
 .stats-card__head { display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
-.stats-card__title { font-size: 12px; font-weight: 700; letter-spacing: .1em; color: #a7f3d0; text-transform: uppercase; }
-.stats-card__period { font-size: 10px; color: #7dd3fc; font-family: 'JetBrains Mono', monospace; letter-spacing: .04em; }
-.stats-card__sub { font-size: 11px; color: #a8b3c4; font-family: 'JetBrains Mono', monospace; margin-top: 2px; flex-shrink: 0; }
+.stats-card__title {
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--primary);
+}
+.stats-card__period {
+  font-family: var(--font-display);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--ink-muted);
+}
+.stats-card__sub {
+  margin-top: 2px;
+  font-family: var(--font-display);
+  font-size: 11px;
+  color: var(--ink-faint);
+  flex-shrink: 0;
+}
 
 .stats-card__body { flex: 1 1 auto; min-height: 0; overflow: hidden; }
 
 .stats-state {
   display: flex; align-items: center; justify-content: center;
-  padding: 28px 8px; font-size: 12px; color: #a8b3c4;
+  padding: 28px 8px;
+  font-family: var(--font-display);
+  font-size: 12px;
+  color: var(--ink-faint);
 }
-.stats-state--error { color: #f87171; }
+.stats-state--error { color: var(--danger); }
 
 .metric-block { height: 96px; padding-left: 12px; margin-bottom: 14px; }
 .metric-block:last-child { margin-bottom: 0; }
 
 .metric-block__head { display: flex; align-items: center; gap: 4px; height: 16px; }
-.metric-block__label { font-size: 10px; font-weight: 700; letter-spacing: .1em; color: #94a3b8; text-transform: uppercase; }
-.metric-block__delta { margin-left: 2px; font-size: 10px; font-weight: 600; display: inline-flex; align-items: center; gap: 1px; }
-.metric-block__delta.is-up   { color: #34d399; }
-.metric-block__delta.is-down { color: #f87171; }
+.metric-block__label {
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.metric-block__delta {
+  margin-left: 2px;
+  display: inline-flex; align-items: center; gap: 1px;
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 500;
+}
+.metric-block__delta.is-up   { color: var(--primary); }
+.metric-block__delta.is-down { color: var(--danger); }
 
 .metric-block__row { display: flex; align-items: center; gap: 10px; height: 64px; margin-top: 6px; }
 .metric-block__val {
   flex: 0 0 76px;
   width: 76px;
+  font-family: var(--font-display);
   font-size: 21px;
-  font-weight: 700;
-  font-family: 'JetBrains Mono', monospace;
+  font-weight: 500;
   line-height: 1;
   white-space: nowrap;
 }
@@ -255,8 +289,9 @@ const activePeriodLabel = computed(() => metrics.value[0]?.periodLabel ?? null)
 
 .spark-label {
   position: absolute; right: 2px;
-  font-size: 9px; color: #64748b;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-display);
+  font-size: 9px;
+  color: var(--ink-dim);
   pointer-events: none; z-index: 1;
 }
 .spark-label--max { top: 0; }

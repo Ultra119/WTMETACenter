@@ -17,7 +17,7 @@
 
     <Transition name="veh-img-fade">
       <div v-if="(imgError || !src) && showFallback" class="veh-img-placeholder">
-        <v-icon :size="iconSize" style="opacity:.12;color:#a7f3d0">mdi-image-outline</v-icon>
+        <v-icon :size="iconSize" style="opacity:.14;color:var(--primary)">mdi-image-outline</v-icon>
       </div>
     </Transition>
 
@@ -59,7 +59,7 @@ const iconSize = computed(() => props.aspect === '1/1' ? 28 : 36)
   position: relative;
   width: 100%;
   overflow: hidden;
-  background: rgba(30, 58, 95, 0.12);
+  background: rgba(231, 233, 238, 0.04);
 }
 .veh-img {
   position: absolute;
@@ -75,9 +75,9 @@ const iconSize = computed(() => props.aspect === '1/1' ? 28 : 36)
   inset: 0;
   background: linear-gradient(
     90deg,
-    rgba(30, 58, 95, 0.0)  0%,
-    rgba(30, 58, 95, 0.25) 50%,
-    rgba(30, 58, 95, 0.0)  100%
+    rgba(231, 233, 238, 0.0)  0%,
+    rgba(231, 233, 238, 0.07) 50%,
+    rgba(231, 233, 238, 0.0)  100%
   );
   background-size: 200% 100%;
   animation: shimmer 1.6s infinite;
