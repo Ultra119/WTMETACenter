@@ -1,6 +1,6 @@
 <template>
   <v-dialog :model-value="modelValue" @update:model-value="$emit('update:modelValue', $event)" max-width="580" scrollable>
-    <v-card color="#0f172a" style="border: 1px solid #1e3a5f;">
+    <v-card color="surface" variant="flat" border>
 
       <v-card-title class="about-header">
         <span class="mdi mdi-information-outline about-header-icon" />
@@ -9,7 +9,7 @@
         <v-btn icon="mdi-close" variant="text" size="small" :title="t('common.close')" @click="$emit('update:modelValue', false)" />
       </v-card-title>
 
-      <v-divider color="#1e293b" />
+      <v-divider />
 
       <v-card-text class="pa-0">
 
@@ -41,7 +41,7 @@
           </div>
         </div>
 
-        <v-divider color="#1e293b" />
+        <v-divider />
 
         <div v-if="store.metaInfo" class="ab-section">
           <div class="ab-section-title">
@@ -66,7 +66,7 @@
           </div>
         </div>
 
-        <v-divider v-if="store.metaInfo" color="#1e293b" />
+        <v-divider v-if="store.metaInfo" />
 
         <div class="ab-section">
           <div class="ab-section-title">
@@ -107,7 +107,7 @@
          </a>
         </div>
 
-        <v-divider color="#1e293b" />
+        <v-divider />
 
         <div class="ab-section ab-section--legal">
           <div class="ab-section-title">
@@ -139,141 +139,95 @@ defineEmits(['update:modelValue'])
 .about-header {
   display: flex;
   align-items: center;
-  padding: 12px 16px;
-  gap: 8px;
+  padding: 14px 16px;
+  gap: 10px;
 }
-.about-header-icon {
-  font-size: 18px;
-  color: #38bdf8;
-  opacity: 0.75;
-  flex-shrink: 0;
-}
+.about-header-icon  { font-size: 18px; color: var(--primary); flex-shrink: 0; }
 .about-header-title {
-  font-size: 17px;
-  font-weight: 700;
-  color: #a7f3d0;
-  letter-spacing: .06em;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink);
 }
 
-.ab-section {
-  padding: 14px 16px;
-}
-.ab-section--legal {
-  background: rgba(239, 68, 68, 0.025);
-}
+.ab-section { padding: 16px; }
+.ab-section--legal { background: rgba(232, 96, 123, 0.04); }
 
 .ab-section-title {
   display: flex;
   align-items: center;
-  gap: 5px;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: .12em;
-  color: #475569;
+  gap: 6px;
+  margin-bottom: 12px;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  margin-bottom: 10px;
+  color: var(--ink-faint);
 }
-.ab-section-title .mdi {
-  font-size: 13px;
-  opacity: 0.7;
-}
+.ab-section-title .mdi { font-size: 13px; color: var(--primary); }
 
 .ab-text {
-  font-size: 12px;
-  color: #94a3b8;
-  line-height: 1.65;
   margin: 0 0 6px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink-muted);
 }
-.ab-text--muted {
-  color: #64748b;
-  font-size: 11px;
-}
-.ab-text--legal {
-  color: #475569;
-  font-size: 10px;
-  font-style: italic;
-  margin-bottom: 0;
-}
+.ab-text--muted { font-size: 12px; color: var(--ink-faint); }
+.ab-text--legal { margin-bottom: 0; font-size: 11px; color: var(--ink-dim); }
 
-.ab-links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 10px;
-}
+.ab-links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
 .ab-link {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   padding: 5px 11px;
-  border: 1px solid #1e3a5f;
-  border-radius: 6px;
+  border: 1px solid var(--primary-line);
   background: transparent;
-  color: #38bdf8;
+  color: var(--primary);
+  font-family: var(--font-display);
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   text-decoration: none;
-  letter-spacing: .04em;
-  transition: border-color .15s, background .15s;
+  transition: background 0.15s;
 }
-.ab-link:hover {
-  border-color: rgba(56, 189, 248, 0.4);
-  background: rgba(56, 189, 248, 0.07);
-}
-.ab-link .mdi { font-size: 13px; }
+.ab-link:hover { background: var(--primary-soft); }
+.ab-link .mdi  { font-size: 13px; }
 
-.ab-link--warn {
-  color: #fb923c;
-  border-color: rgba(251, 146, 60, 0.2);
-}
-.ab-link--warn:hover {
-  border-color: rgba(251, 146, 60, 0.45);
-  background: rgba(251, 146, 60, 0.06);
-}
-.ab-link--sm {
-  font-size: 10px;
-  padding: 3px 9px;
-}
+.ab-link--warn { color: var(--amber); border-color: rgba(245, 166, 35, 0.4); }
+.ab-link--warn:hover { background: rgba(245, 166, 35, 0.08); }
+.ab-link--sm { padding: 3px 9px; font-size: 10px; }
 
 .ab-stat-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 5px 0;
-  font-size: 12px;
-  border-bottom: 1px solid rgba(30, 41, 59, 0.5);
+  padding: 6px 0;
+  border-bottom: 1px solid var(--hairline);
 }
 .ab-stat-row:last-of-type { border-bottom: none; }
 .ab-stat-label {
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: .07em;
-  text-transform: uppercase;
-  color: #475569;
-}
-.ab-stat-value {
-  color: #e2e8f0;
-  font-weight: 600;
-}
-.ab-mono {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-display);
   font-size: 11px;
-  color: #7dd3fc;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
 }
+.ab-stat-value { font-family: var(--font-display); font-size: 12px; color: var(--ink); }
+.ab-mono { color: var(--primary); }
 
 .ab-item {
   display: flex;
   align-items: flex-start;
   gap: 8px;
-  margin-bottom: 7px;
-  font-size: 12px;
-  color: #64748b;
-}
-.ab-bullet {
+  margin-bottom: 8px;
   font-size: 13px;
-  color: #334155;
-  flex-shrink: 0;
-  margin-top: 1px;
+  color: var(--ink-muted);
 }
+.ab-bullet { flex-shrink: 0; margin-top: 2px; font-size: 13px; color: var(--ink-dim); }
 .ab-item-text { line-height: 1.5; }
 </style>
