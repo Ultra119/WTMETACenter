@@ -84,7 +84,7 @@
             'lm-total--under': totalPrefUsed <   DEFAULT_LINEUP_SLOTS,
           }"
         >{{ totalPrefUsed }}</span>
-        <button class="lm-reset" :title="$t('progression_tab.reset_defaults')" @click="resetLineupPrefs">↺</button>
+        <button class="lm-reset" :title="$t('progression_tab.reset_defaults')" @click="resetLineupPrefs"><v-icon size="14">mdi-restore</v-icon></button>
       </div>
     </div>
 
@@ -97,18 +97,18 @@
         <div class="tip-two-col">
           <div class="tip-col">
             <p><b>{{ $t('progression_tab.tip_title') }}</b></p>
-            <div class="tip-row"><span class="tip-icon">🟢</span><span><b class="tip-label">{{ $t('verdicts.must') }}</b> — {{ $t('progression_tab.tip_must') }}</span></div>
-            <div class="tip-row"><span class="tip-icon">🔵</span><span><b class="tip-label">{{ $t('verdicts.fill') }}</b> — {{ $t('progression_tab.tip_fill') }}</span></div>
-            <div class="tip-row"><span class="tip-icon">🟡</span><span><b class="tip-label">{{ $t('verdicts.pass') }}</b> — {{ $t('progression_tab.tip_pass') }}</span></div>
-            <div class="tip-row"><span class="tip-icon">🔴</span><span><b class="tip-label">{{ $t('verdicts.skip') }}</b> — {{ $t('progression_tab.tip_skip') }}</span></div>
-            <div class="tip-row"><span class="tip-icon">👑</span><span><b class="tip-label">{{ $t('verdicts.prem') }}</b> — {{ $t('progression_tab.tip_prem') }}</span></div>
-            <p style="margin-top:8px; color:#475569">{{ $t('progression_tab.tip_lineup') }}</p>
+            <div class="tip-row"><v-icon class="tip-icon" size="14" :style="{ color: VERDICT_COLORS.MUST.border }">{{ VERDICT_COLORS.MUST.icon }}</v-icon><span><b class="tip-label">{{ $t('verdicts.must') }}</b> — {{ $t('progression_tab.tip_must') }}</span></div>
+            <div class="tip-row"><v-icon class="tip-icon" size="14" :style="{ color: VERDICT_COLORS.FILL.border }">{{ VERDICT_COLORS.FILL.icon }}</v-icon><span><b class="tip-label">{{ $t('verdicts.fill') }}</b> — {{ $t('progression_tab.tip_fill') }}</span></div>
+            <div class="tip-row"><v-icon class="tip-icon" size="14" :style="{ color: VERDICT_COLORS.PASS.border }">{{ VERDICT_COLORS.PASS.icon }}</v-icon><span><b class="tip-label">{{ $t('verdicts.pass') }}</b> — {{ $t('progression_tab.tip_pass') }}</span></div>
+            <div class="tip-row"><v-icon class="tip-icon" size="14" :style="{ color: VERDICT_COLORS.SKIP.border }">{{ VERDICT_COLORS.SKIP.icon }}</v-icon><span><b class="tip-label">{{ $t('verdicts.skip') }}</b> — {{ $t('progression_tab.tip_skip') }}</span></div>
+            <div class="tip-row"><v-icon class="tip-icon" size="14" :style="{ color: VERDICT_COLORS.PREM.border }">{{ VERDICT_COLORS.PREM.icon }}</v-icon><span><b class="tip-label">{{ $t('verdicts.prem') }}</b> — {{ $t('progression_tab.tip_prem') }}</span></div>
+            <p style="margin-top:8px; color: var(--ink-faint)">{{ $t('progression_tab.tip_lineup') }}</p>
           </div>
           <div class="tip-vdivider" />
           <div class="tip-col tip-col--types">
             <p><b>{{ $t('progression_tab.branch') }}</b></p>
             <div v-for="t in (BRANCH_TYPES[branch] ?? [])" :key="t" class="tip-type-row">
-              <v-icon size="13" :style="{ color: '#64748b' }">{{ TYPE_ICON[t] }}</v-icon>
+              <v-icon size="13" :style="{ color: 'var(--ink-faint)' }">{{ TYPE_ICON[t] }}</v-icon>
               <span class="tip-type-label">{{ $t(`vehicle_types.${t}`, TYPE_LABELS[t] || t) }}</span>
             </div>
           </div>
@@ -149,7 +149,7 @@
 
         <div :style="{ gridColumn: `2 / span ${gridData.numCols}` }" />
 
-        <div class="grid-hdr grid-hdr--prem">👑 PREMIUM</div>
+        <div class="grid-hdr grid-hdr--prem"><v-icon size="12" class="mr-1">mdi-crown</v-icon>PREMIUM</div>
 
         <template v-for="era in gridData.eras" :key="`era-${era}`">
 
@@ -167,7 +167,7 @@
               :key="item.key"
             >
               <div v-if="item.isGroup" class="group-bracket">
-                <div class="group-label">📁 {{ item.groupLabel }}</div>
+                <div class="group-label"><v-icon size="10" class="mr-1">mdi-folder-outline</v-icon>{{ item.groupLabel }}</div>
                 <ProgressionCard
                   v-for="v in item.vehicles"
                   :key="v._idx"
@@ -191,7 +191,7 @@
               :key="item.key"
             >
               <div v-if="item.isGroup" class="group-bracket">
-                <div class="group-label">📁 {{ item.groupLabel }}</div>
+                <div class="group-label"><v-icon size="10" class="mr-1">mdi-folder-outline</v-icon>{{ item.groupLabel }}</div>
                 <ProgressionCard
                   v-for="v in item.vehicles"
                   :key="v._idx"
@@ -848,163 +848,193 @@ if (!Object.keys(lineupPrefs.value).length) {
 </script>
 
 <style scoped>
-.tip-two-col {
-  display: flex;
-  gap: 0;
-  align-items: flex-start;
-}
+.tip-two-col { display: flex; gap: 0; align-items: flex-start; }
 .tip-col { flex: 1; min-width: 0; }
 .tip-col--types { flex: 0 0 130px; }
 .tip-vdivider {
   width: 1px;
-  background: #1e3a5f;
+  background: var(--hairline-strong);
   align-self: stretch;
   margin: 0 12px;
   flex-shrink: 0;
 }
-.tip-type-row {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  margin-top: 5px;
-}
-.tip-type-label {
-  font-size: 11px;
-  color: #94a3b8;
-  white-space: nowrap;
-}
+.tip-type-row { display: flex; align-items: center; gap: 7px; margin-top: 5px; }
+.tip-type-label { font-size: 11px; color: var(--ink-muted); white-space: nowrap; }
 
 .prog-root { display: flex; flex-direction: column; height: 100%; }
 
 .ctrl-nation { max-width: 200px; flex-shrink: 0; }
 
-
+/* ── verdict counters ── */
 .stats-badges { display: flex; gap: 4px; flex-wrap: wrap; margin-left: auto; }
 .badge {
   display: inline-flex;
   align-items: center;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
-  font-weight: 700;
-  border-radius: 5px;
+  gap: 4px;
   padding: 2px 8px;
+  border: 1px solid transparent;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 600;
   white-space: nowrap;
 }
-.badge-total { background: rgba(148,163,184,0.10); color: #94a3b8; }
-.badge-must  { background: rgba(16,185,129,0.12);  color: #10b981; }
-.badge-fill  { background: rgba(56,189,248,0.12);  color: #38bdf8; }
-.badge-skip  { background: rgba(248,113,113,0.12); color: #f87171; }
-.badge-prem  { background: rgba(167,139,250,0.12); color: #a78bfa; }
+.badge-total { border-color: var(--hairline);             color: var(--ink-muted); }
+.badge-must  { border-color: rgba(94, 234, 212, 0.30);    background: rgba(94, 234, 212, 0.08);   color: #5EEAD4; }
+.badge-fill  { border-color: rgba(127, 178, 229, 0.30);   background: rgba(127, 178, 229, 0.08);  color: #7FB2E5; }
+.badge-skip  { border-color: rgba(232, 96, 123, 0.30);    background: rgba(232, 96, 123, 0.08);   color: #E8607B; }
+.badge-prem  { border-color: rgba(169, 155, 224, 0.30);   background: rgba(169, 155, 224, 0.08);  color: #A99BE0; }
 
+/* ── lineup mix ── */
 .lineup-mix-row {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
-  padding: 6px 2px 2px;
-  border-top: 1px solid rgba(30, 58, 95, 0.6);
+  padding: 10px 2px 2px;
+  border-top: 1px solid var(--hairline);
 }
 .lineup-mix-types { display: flex; flex-wrap: wrap; gap: 6px; }
 .lineup-type-item {
   display: inline-flex;
   align-items: center;
-  gap: 3px;
-  background: rgba(15, 23, 42, 0.8);
-  border: 1px solid #1e3a5f;
-  border-radius: 6px;
+  gap: 4px;
   padding: 3px 5px;
+  border: 1px solid var(--hairline);
+  background: transparent;
 }
-.lm-icon { font-size: 12px; line-height: 1; }
+.lm-icon { font-size: 12px; line-height: 1; color: var(--ink-muted); }
 .lm-btn {
-  width: 18px; height: 18px;
-  line-height: 1; font-size: 13px; font-weight: 700;
-  border: 1px solid #1e3a5f; border-radius: 4px;
-  background: rgba(30, 41, 59, 0.8); color: #94a3b8;
-  cursor: pointer; display: flex; align-items: center; justify-content: center;
-  padding: 0; transition: background 0.12s, color 0.12s, border-color 0.12s;
+  display: flex; align-items: center; justify-content: center;
+  width: 18px; height: 18px; padding: 0;
+  border: 1px solid var(--hairline);
+  background: transparent;
+  color: var(--ink-muted);
+  font-size: 13px; font-weight: 600; line-height: 1;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
 }
 .lm-btn:hover:not(:disabled) {
-  background: rgba(167, 243, 208, 0.12);
-  border-color: #a7f3d0; color: #a7f3d0;
+  background: var(--primary-soft);
+  border-color: var(--primary-line);
+  color: var(--primary);
 }
 .lm-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 .lm-count {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px; font-weight: 700; color: #475569;
-  min-width: 14px; text-align: center; transition: color 0.12s;
+  min-width: 14px;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-dim);
+  transition: color 0.12s;
 }
-.lm-count--active { color: #38bdf8; }
+.lm-count--active { color: var(--primary); }
 .lm-total {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px; font-weight: 700;
-  padding: 2px 7px; border-radius: 5px;
-  background: rgba(30, 41, 59, 0.6); flex-shrink: 0;
+  flex-shrink: 0;
+  padding: 2px 7px;
+  border: 1px solid var(--hairline);
+  font-family: var(--font-display);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-muted);
 }
-.lm-total--full  { color: #10b981; background: rgba(16,185,129,0.10); }
-.lm-total--over  { color: #f87171; background: rgba(248,113,113,0.12); }
-.lm-total--under { color: #fbbf24; background: rgba(251,191,36,0.08); }
+.lm-total--full  { color: #5EEAD4; border-color: rgba(94, 234, 212, 0.30); background: rgba(94, 234, 212, 0.08); }
+.lm-total--over  { color: #E8607B; border-color: rgba(232, 96, 123, 0.30); background: rgba(232, 96, 123, 0.08); }
+.lm-total--under { color: #F5A623; border-color: rgba(245, 166, 35, 0.30); background: rgba(245, 166, 35, 0.07); }
 .lm-reset {
-  font-size: 14px; line-height: 1;
-  background: none; border: 1px solid #1e3a5f; border-radius: 5px;
-  color: #475569; cursor: pointer; padding: 2px 6px;
-  transition: color 0.12s, border-color 0.12s; flex-shrink: 0;
+  display: inline-flex; align-items: center;
+  flex-shrink: 0;
+  padding: 2px 6px;
+  border: 1px solid var(--hairline);
+  background: none;
+  color: var(--ink-faint);
+  cursor: pointer;
+  transition: color 0.12s, border-color 0.12s, background 0.12s;
 }
-.lm-reset:hover { color: #a7f3d0; border-color: #a7f3d0; }
+.lm-reset:hover { color: var(--primary); border-color: var(--primary-line); background: var(--primary-soft); }
 
+/* ── legend ── */
 .legend-row {
   display: flex; flex-wrap: wrap; align-items: center;
   gap: 16px; padding: 4px 2px;
 }
-.legend-item { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: #64748b; }
+.legend-item {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-family: var(--font-display);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
 .legend-icon { font-size: 12px; }
 .legend-text { white-space: nowrap; }
 
+/* ── grid ── */
 .prog-grid-wrap {
-  flex: 1; overflow: auto;
+  flex: 1;
+  overflow: auto;
   -webkit-overflow-scrolling: touch;
-  max-height: calc(100vh - 260px); padding-bottom: 12px;
+  max-height: calc(100vh - 284px);
+  padding-bottom: 12px;
 }
 .prog-grid { display: grid; gap: 4px; align-items: start; width: 100%; }
 
 .grid-hdr {
-  background: #1e293b; border-radius: 4px; padding: 6px 4px;
-  text-align: center; font-size: 9px; font-weight: 700;
-  letter-spacing: 0.1em; text-transform: uppercase;
-  min-height: 32px; display: flex; align-items: center; justify-content: center;
+  display: flex; align-items: center; justify-content: center;
+  min-height: 32px;
+  padding: 6px 4px;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  font-family: var(--font-display);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-align: center;
 }
 .grid-hdr--rank {
-  color: #475569;
+  color: var(--ink-faint);
   position: sticky; left: 0; z-index: 2;
   box-shadow: 4px 0 6px -4px rgba(0, 0, 0, 0.5);
 }
-.grid-hdr--prem { color: #a78bfa; }
+.grid-hdr--prem { color: #A99BE0; }
 
 .rank-cell {
-  background: #162032; border-radius: 4px; padding: 10px 4px;
-  text-align: center; display: flex; align-items: flex-start;
-  justify-content: center; min-height: 64px;
+  display: flex; align-items: flex-start; justify-content: center;
+  min-height: 64px;
+  padding: 10px 4px;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
   position: sticky; left: 0; z-index: 1;
   box-shadow: 4px 0 6px -4px rgba(0, 0, 0, 0.5);
 }
 .rank-roman {
-  font-size: 24px; font-weight: 800; color: #a7f3d0; line-height: 1;
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--primary);
 }
 
 .prog-cell { min-height: 64px; padding: 2px; min-width: 0; }
 
 .group-bracket {
-  border-left: 2px solid #334155; border-top: 1px solid #1e293b;
-  border-right: 1px solid #1e293b; border-bottom: 1px solid #1e293b;
-  border-radius: 0 4px 4px 0; padding: 4px 0; margin-bottom: 4px;
-  background: rgba(30, 41, 59, 0.35);
+  padding: 4px 0;
+  margin-bottom: 4px;
+  border: 1px solid var(--hairline);
+  border-left: 2px solid var(--hairline-strong);
+  background: rgba(231, 233, 238, 0.02);
 }
 .group-label {
-  font-size: 8px; color: #475569; letter-spacing: 0.05em;
-  text-transform: uppercase; padding: 0 4px 2px 6px;
+  padding: 0 4px 2px 6px;
+  font-family: var(--font-display);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.group-bracket :deep(.prog-card:not(:last-child))  { border-bottom-right-radius: 0; margin-bottom: 1px; }
-.group-bracket :deep(.prog-card:not(:first-child)) { border-top-right-radius: 0; }
+.group-bracket :deep(.prog-card:not(:last-child)) { margin-bottom: 1px; }
 
 @media (max-width: 760px) {
   .controls-row {
