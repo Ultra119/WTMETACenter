@@ -37,12 +37,12 @@
       v-if="vehicle._excludedFromLineup"
       class="pc-hint pc-hint--excluded"
     >
-      🚫 {{ vehicle._excluded_hint }}
+      <v-icon size="11" class="pc-hint-icon">mdi-cancel</v-icon>{{ vehicle._excluded_hint }}
     </div>
 
     <template v-if="vehicle.Verdict === 'PREM'">
       <div v-if="vehicle.Prem_Pain_Fix" class="pc-hint pc-hint--prem">
-        👑 {{ (vehicle.Prem_Boost ?? 0) >= 1.05
+        <v-icon size="11" class="pc-hint-icon">mdi-crown</v-icon>{{ (vehicle.Prem_Boost ?? 0) >= 1.05
           ? t('progression_tab.prem_pain_fix_boost')
           : t('progression_tab.prem_pain_fix_only') }}
       </div>
@@ -87,24 +87,22 @@ const wrStr   = computed(() => parseFloat(props.vehicle.WR           || 0).toFix
 const kdStr   = computed(() => parseFloat(props.vehicle.KD           || 0).toFixed(1))
 const metaStr = computed(() => parseFloat(props.vehicle._localScore  || 0).toFixed(0))
 
-const typeIcon  = computed(() => TYPE_ICON[props.vehicle._branch] || '🔧')
-const brColor   = computed(() => CLASS_BR_COLOR[props.vehicle.VehicleClass] || '#64748b')
-const nameColor = computed(() => brColor.value === '#64748b' ? '#e2e8f0' : brColor.value)
+const typeIcon  = computed(() => TYPE_ICON[props.vehicle._branch] || 'mdi-wrench')
+const classColor = computed(() => CLASS_BR_COLOR[props.vehicle.VehicleClass] || null)
+const brColor    = computed(() => classColor.value || 'var(--ink-faint)')
+const nameColor  = computed(() => classColor.value || 'var(--ink)')
 
 const boostLabel = computed(() => {
   const b = props.vehicle.Prem_Boost
   if (!b || b < 0.01) return null
   const val = b.toFixed(1)
-  if (b >= 1.05) return { text: t('progression_tab.prem_boost_grind',  { val }), color: '#34d399' }
-  if (b >= 0.95) return { text: t('progression_tab.prem_boost_parity', { val }), color: '#94a3b8' }
-  return               { text: t('progression_tab.prem_boost_weaker', { val }), color: '#f87171' }
+  if (b >= 1.05) return { text: t('progression_tab.prem_boost_grind',  { val }), color: 'var(--primary)' }
+  if (b >= 0.95) return { text: t('progression_tab.prem_boost_parity', { val }), color: 'var(--ink-muted)' }
+  return               { text: t('progression_tab.prem_boost_weaker', { val }), color: 'var(--danger)' }
 })
 
 const cardStyle = computed(() => ({
-  borderLeft:      `4px solid ${vc.value.border}`,
-  borderTop:       `1px solid ${vc.value.border}22`,
-  borderRight:     `1px solid ${vc.value.border}22`,
-  borderBottom:    `1px solid ${vc.value.border}22`,
+  borderLeft:      `3px solid ${vc.value.border}`,
   backgroundColor: vc.value.bg,
   '--glow':        vc.value.border,
 }))
@@ -113,30 +111,21 @@ const cardStyle = computed(() => ({
 <style scoped>
 .prog-card {
   position: relative;
-  border-radius: 0 5px 5px 0;
   padding: 7px 10px;
   margin-bottom: 4px;
   box-sizing: border-box;
+  border: 1px solid var(--hairline);   /* left accent is set inline per verdict */
   cursor: pointer;
   min-width: 0;
-  transition: box-shadow 0.15s, transform 0.12s, filter 0.12s;
+  transition: box-shadow 0.15s, filter 0.12s;
 }
 .prog-card:hover {
-  transform: translateY(-1px) translateX(1px);
-  box-shadow: 3px 4px 16px var(--glow, #1e3a5f66);
-  filter: brightness(1.08);
+  box-shadow: inset 0 0 0 1px var(--glow, var(--primary-line));
+  filter: brightness(1.1);
 }
-.prog-card--grouped {
-  margin-bottom: 0;
-}
-.prog-card--excluded {
-  opacity: 0.5;
-  filter: grayscale(0.4);
-}
-.prog-card--excluded:hover {
-  opacity: 0.85;
-  filter: grayscale(0.15);
-}
+.prog-card--grouped  { margin-bottom: 0; }
+.prog-card--excluded { opacity: 0.5; filter: grayscale(0.4); }
+.prog-card--excluded:hover { opacity: 0.85; filter: grayscale(0.15); }
 
 .pc-header {
   display: flex;
@@ -144,78 +133,67 @@ const cardStyle = computed(() => ({
   gap: 4px;
   margin-bottom: 4px;
 }
-.pc-type-icon {
-  font-size: 12px;
-  flex-shrink: 0;
-  opacity: 0.75;
-}
-.pc-class-icon {
-  flex-shrink: 0;
-  opacity: 0.9;
-}
+.pc-type-icon  { font-size: 12px; flex-shrink: 0; opacity: 0.7; }
+.pc-class-icon { flex-shrink: 0; opacity: 0.9; }
 .pc-name {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 12px;
-  font-weight: 600;
   flex: 1;
   min-width: 0;
+  font-family: var(--font-display);
+  font-size: 12px;
+  font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 .pc-br {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 11px;
-  font-weight: 700;
   flex-shrink: 0;
-}
-.pc-verdict {
+  font-family: var(--font-display);
   font-size: 11px;
-  flex-shrink: 0;
+  font-weight: 600;
 }
+.pc-verdict { font-size: 11px; flex-shrink: 0; }
 
-.pc-stats {
-  display: flex;
-  gap: 8px;
-}
+.pc-stats { display: flex; gap: 10px; }
 .pc-stat {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: var(--font-display);
   font-size: 11px;
-  color: #94a3b8;
+  color: var(--ink-muted);
 }
 .pc-stat-label {
-  font-size: 10px;
-  color: #475569;
-  margin-right: 2px;
+  margin-right: 3px;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--ink-dim);
 }
 
 .pc-hint {
-  font-size: 10px;
   margin-top: 5px;
   padding-top: 5px;
+  font-size: 10px;
   line-height: 1.4;
 }
+.pc-hint-icon { margin-right: 4px; vertical-align: -1px; }
 .pc-hint--cross {
-  color: #7dd3fc;
-  border-top: 1px solid rgba(125, 211, 252, 0.20);
+  color: #7FB2E5;
+  border-top: 1px solid rgba(127, 178, 229, 0.22);
 }
 .pc-hint--skip {
-  color: #fecaca;
-  border-top: 1px solid rgba(248, 113, 113, 0.25);
+  color: #F2A7B6;
+  border-top: 1px solid rgba(232, 96, 123, 0.28);
 }
 .pc-hint--prem {
-  color: #c4b5fd;
-  border-top: 1px solid rgba(167, 139, 250, 0.25);
+  color: #C3B8EC;
+  border-top: 1px solid rgba(169, 155, 224, 0.28);
 }
 .pc-hint--excluded {
-  color: #64748b;
-  border-top: 1px solid rgba(100, 116, 139, 0.25);
+  color: var(--ink-faint);
+  border-top: 1px solid var(--hairline);
 }
 .pc-hint--boost {
-  font-family: 'JetBrains Mono', monospace;
-  font-weight: 600;
-  border-top: 1px solid rgba(167, 139, 250, 0.15);
-  padding-top: 3px;
   margin-top: 3px;
+  padding-top: 3px;
+  font-family: var(--font-display);
+  font-weight: 500;
+  border-top: 1px solid rgba(169, 155, 224, 0.15);
 }
 </style>
