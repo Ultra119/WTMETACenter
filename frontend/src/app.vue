@@ -14,22 +14,22 @@
 
     <SideBar :open="showSidebar" />
 
-    <v-main style="background: #020c1a;">
+    <v-main>
       <v-tabs
         v-if="showNav"
         v-model="activeTab"
-        bg-color="#0f172a"
+        bg-color="background"
         color="primary"
         density="compact"
         height="44"
-        style="border-bottom: 1px solid #1e3a5f;"
+        class="nav-tabs"
       >
         <v-tab v-for="tab in tabs" :key="tab.to" :to="tab.to" :prepend-icon="tab.icon">
           {{ t(tab.labelKey) }}
         </v-tab>
       </v-tabs>
 
-      <div class="pa-4">
+      <div class="page">
         <router-view v-slot="{ Component }">
           <keep-alive>
             <component :is="Component" />
@@ -104,11 +104,18 @@ onMounted(() => {
 </script>
 
 <style>
-.v-tab { font-family: var(--font-ui) !important; font-weight: 600; letter-spacing: 0.08em; }
-::-webkit-scrollbar       { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: #0f172a; }
-::-webkit-scrollbar-thumb { background: #1e3a5f; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #a7f3d0; }
+.nav-tabs { border-bottom: 1px solid var(--hairline); }
+.v-tab {
+  min-width: 0;
+  font-family: var(--font-display) !important;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.page { width: 100%; padding: 24px; }
+@media (max-width: 720px) { .page { padding: 16px; } }
 
 .filter-progress-bar {
   position: fixed;
@@ -122,7 +129,7 @@ onMounted(() => {
 }
 .filter-progress-inner {
   height: 100%;
-  background: #38bdf8;
+  background: var(--primary);
   animation: filter-slide 0.8s ease-in-out infinite;
   transform-origin: left center;
 }

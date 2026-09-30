@@ -5,11 +5,11 @@ export const VERDICT_PREM = 'PREM'
 export const VERDICT_FILL = 'FILL'
 
 export const VERDICT_COLORS = {
-  MUST: { border: '#10b981', bg: 'rgba(16,185,129,0.08)',  icon: 'mdi-check-circle',  label: 'Must Play'      },
-  FILL: { border: '#38bdf8', bg: 'rgba(56,189,248,0.07)',  icon: 'mdi-plus-circle',   label: 'Lineup Filler'  },
-  PASS: { border: '#fbbf24', bg: 'rgba(251,191,36,0.06)',  icon: 'mdi-minus-circle',  label: 'Passable'       },
-  SKIP: { border: '#f87171', bg: 'rgba(248,113,113,0.08)', icon: 'mdi-close-circle',  label: 'Hard Skip'      },
-  PREM: { border: '#a78bfa', bg: 'rgba(167,139,250,0.09)', icon: 'mdi-crown',         label: 'Premium Fix'    },
+  MUST: { border: '#5EEAD4', bg: 'rgba(94,234,212,0.08)',  icon: 'mdi-check-circle',  label: 'Must Play'      },
+  FILL: { border: '#7FB2E5', bg: 'rgba(127,178,229,0.07)',  icon: 'mdi-plus-circle',   label: 'Lineup Filler'  },
+  PASS: { border: '#F5A623', bg: 'rgba(245,166,35,0.06)',  icon: 'mdi-minus-circle',  label: 'Passable'       },
+  SKIP: { border: '#E8607B', bg: 'rgba(232,96,123,0.08)', icon: 'mdi-close-circle',  label: 'Hard Skip'      },
+  PREM: { border: '#A99BE0', bg: 'rgba(169,155,224,0.09)', icon: 'mdi-crown',         label: 'Premium Fix'    },
 }
 
 export const BRANCH_TYPES = {
@@ -59,12 +59,12 @@ export const CLASS_PREFIX = {
 }
 
 export const CLASS_BR_COLOR = {
-  Premium:     '#fbbf24',
-  Pack:        '#60a5fa',
-  Squadron:    '#34d399',
-  Marketplace: '#a78bfa',
-  Gift:        '#f472b6',
-  Event:       '#fb923c',
+  Premium:     '#F5A623',
+  Pack:        '#6FA0D8',
+  Squadron:    '#5EEAD4',
+  Marketplace: '#A99BE0',
+  Gift:        '#E58BB4',
+  Event:       '#E0855A',
 }
 
 export const ROMAN = { 1:'I', 2:'II', 3:'III', 4:'IV', 5:'V', 6:'VI', 7:'VII', 8:'VIII' }
@@ -122,11 +122,11 @@ export const FILL_MIN_SCORE     = 1.0
 export const REDBOOK_LOW_BATTLES = 100
 
 export const TYPE_BRANCH_COLOR = {
-  medium_tank:        '#94a3b8', light_tank:         '#94a3b8',
-  heavy_tank:         '#94a3b8', tank_destroyer:     '#94a3b8', spaa: '#a78bfa',
-  fighter:            '#38bdf8', bomber:             '#38bdf8', assault: '#38bdf8',
-  attack_helicopter:  '#34d399', utility_helicopter: '#34d399',
-  destroyer:          '#60a5fa', heavy_cruiser:      '#60a5fa', light_cruiser: '#60a5fa',
-  battleship:         '#60a5fa', battlecruiser:      '#60a5fa',
-  boat:               '#7dd3fc', heavy_boat:         '#7dd3fc', frigate: '#7dd3fc', barge: '#7dd3fc',
+  medium_tank:        '#9AA0AD', light_tank:         '#9AA0AD',
+  heavy_tank:         '#9AA0AD', tank_destroyer:     '#9AA0AD', spaa: '#A99BE0',
+  fighter:            '#7FB2E5', bomber:             '#7FB2E5', assault: '#7FB2E5',
+  attack_helicopter:  '#5EEAD4', utility_helicopter: '#5EEAD4',
+  destroyer:          '#6FA0D8', heavy_cruiser:      '#6FA0D8', light_cruiser: '#6FA0D8',
+  battleship:         '#6FA0D8', battlecruiser:      '#6FA0D8',
+  boat:               '#9CC8EE', heavy_boat:         '#9CC8EE', frigate: '#9CC8EE', barge: '#9CC8EE',
 }

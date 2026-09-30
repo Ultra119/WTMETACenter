@@ -1,33 +1,30 @@
 <template>
   <div class="home-page">
 
-    <div class="home-header">
-      <div class="home-eyebrow">
+    <header class="home-header">
+      <div class="label-eyebrow home-eyebrow">
         <span class="mdi mdi-radar" />
         {{ t('home_tab.eyebrow') }}
       </div>
       <h1 class="home-title">{{ t('topbar.title') }}</h1>
-      <p class="home-sub">{{ t('home_tab.subtitle') }}</p>
-    </div>
+      <p class="s home-sub">{{ t('home_tab.subtitle') }}</p>
+    </header>
 
     <div class="cards-grid">
       <router-link
-        v-for="card in cards"
+        v-for="(card, i) in cards"
         :key="card.to"
         :to="card.to"
         class="tab-card"
-        :style="{ '--card-accent': card.color }"
         @click="onCardClick"
       >
-        <div class="card-stripe" />
-        <div class="card-icon-wrap">
-          <v-icon :color="card.color" size="24">{{ card.icon }}</v-icon>
+        <div class="card-top">
+          <span class="card-n">{{ String(i + 1).padStart(2, '0') }}</span>
+          <v-icon class="card-icon" size="20">{{ card.icon }}</v-icon>
         </div>
-        <div class="card-body">
-          <div class="card-title">{{ t(card.labelKey) }}</div>
-          <div class="card-desc">{{ t(card.descKey) }}</div>
-        </div>
-        <v-icon class="card-arrow" size="15" color="#334155">mdi-arrow-right</v-icon>
+        <div class="card-title">{{ t(card.labelKey) }}</div>
+        <div class="card-desc">{{ t(card.descKey) }}</div>
+        <v-icon class="card-arrow" size="16">mdi-arrow-top-right</v-icon>
       </router-link>
     </div>
 
@@ -49,133 +46,100 @@ function onCardClick() {
 }
 
 const cards = [
-  { to: '/meta',        icon: 'mdi-trophy',                   color: '#a7f3d0', labelKey: 'tabs.meta',        descKey: 'home_tab.desc_meta'        },
-  { to: '/brackets',    icon: 'mdi-view-grid',                color: '#38bdf8', labelKey: 'tabs.brackets',    descKey: 'home_tab.desc_brackets'    },
-  { to: '/farm',        icon: 'mdi-wrench',                   color: '#fbbf24', labelKey: 'tabs.farm',        descKey: 'home_tab.desc_farm'        },
-  { to: '/progression', icon: 'mdi-chart-timeline-variant',   color: '#a78bfa', labelKey: 'tabs.progression', descKey: 'home_tab.desc_progression' },
-  { to: '/cost',        icon: 'mdi-chart-bar',                color: '#34d399', labelKey: 'tabs.cost',        descKey: 'home_tab.desc_cost'        },
-  { to: '/history',     icon: 'mdi-clock-time-eight-outline', color: '#fb923c', labelKey: 'tabs.history',     descKey: 'home_tab.desc_history'     },
+  { to: '/meta',        icon: 'mdi-trophy',                   labelKey: 'tabs.meta',        descKey: 'home_tab.desc_meta'        },
+  { to: '/brackets',    icon: 'mdi-view-grid',                labelKey: 'tabs.brackets',    descKey: 'home_tab.desc_brackets'    },
+  { to: '/farm',        icon: 'mdi-wrench',                   labelKey: 'tabs.farm',        descKey: 'home_tab.desc_farm'        },
+  { to: '/progression', icon: 'mdi-chart-timeline-variant',   labelKey: 'tabs.progression', descKey: 'home_tab.desc_progression' },
+  { to: '/cost',        icon: 'mdi-chart-bar',                labelKey: 'tabs.cost',        descKey: 'home_tab.desc_cost'        },
+  { to: '/history',     icon: 'mdi-clock-time-eight-outline', labelKey: 'tabs.history',     descKey: 'home_tab.desc_history'     },
 ]
 </script>
 
 <style scoped>
-.home-page {
-  max-width: 1060px;
-  margin: 0 auto;
-  padding: 56px 24px 80px;
-}
+.home-page { max-width: 1240px; margin: 0 auto; padding: 32px 0 64px; }
 
 .home-header {
-  text-align: center;
-  margin-bottom: 48px;
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--hairline);
 }
-
-.home-eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: #334155;
-  margin-bottom: 14px;
-}
-
+.home-eyebrow { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
 .home-title {
-  font-size: 40px;
-  font-weight: 700;
-  color: #a7f3d0;
-  letter-spacing: 0.05em;
-  margin: 0 0 10px;
-  line-height: 1.1;
-}
-
-.home-sub {
-  font-size: 14px;
-  color: #475569;
   margin: 0;
-  letter-spacing: 0.03em;
+  font-family: var(--font-display);
+  font-size: 40px;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  color: var(--primary);
 }
+.home-sub { max-width: 60ch; margin-top: 12px; }
 
 .cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 12px;
 }
 
 .tab-card {
-  --card-accent: #38bdf8;
   position: relative;
   display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 16px 14px 16px 18px;
-  background: #0f172a;
-  border: 1px solid #1e3a5f;
-  border-radius: 10px;
+  flex-direction: column;
+  min-width: 0;
+  padding: 16px 18px 18px;
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  color: inherit;
   text-decoration: none;
-  overflow: hidden;
-  transition: border-color 0.18s, background 0.18s;
-  cursor: pointer;
+  transition: border-color 0.15s;
 }
+.tab-card:hover { border-color: var(--primary-line); }
 
-.card-stripe {
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 3px;
-  background: var(--card-accent);
-  opacity: 0.18;
-  transition: opacity 0.18s;
-}
-
-.tab-card:hover {
-  border-color: #2a4060;
-  background: #111d30;
-}
-
-.tab-card:hover .card-stripe { opacity: 0.7; }
-
-.card-icon-wrap {
-  flex-shrink: 0;
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+.card-top {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
 }
-
-.card-body  { flex: 1; min-width: 0; }
+.card-n {
+  font-family: var(--font-display);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  color: var(--primary);
+}
+.card-icon { color: var(--ink-dim); transition: color 0.15s; }
+.tab-card:hover .card-icon { color: var(--primary); }
 
 .card-title {
-  font-size: 13px;
-  font-weight: 700;
-  color: #cbd5e1;
-  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  margin-bottom: 4px;
+  color: var(--ink);
 }
-
 .card-desc {
-  font-size: 11px;
-  color: #475569;
+  padding-right: 20px;
+  font-size: 13px;
   line-height: 1.55;
+  color: var(--ink-muted);
 }
 
 .card-arrow {
-  flex-shrink: 0;
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  color: var(--primary);
   opacity: 0;
-  transform: translateX(-6px);
-  transition: opacity 0.18s, transform 0.18s;
+  transform: translate(-4px, 4px);
+  transition: opacity 0.15s, transform 0.15s;
 }
+.tab-card:hover .card-arrow { opacity: 1; transform: none; }
 
-.tab-card:hover .card-arrow {
-  opacity: 0.4;
-  transform: translateX(0);
+@media (max-width: 720px) {
+  .home-page  { padding-top: 8px; }
+  .home-title { font-size: 28px; }
 }
 </style>
