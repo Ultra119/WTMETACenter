@@ -34,7 +34,7 @@
         :items-per-page="100"
         density="compact"
         fixed-header
-        height="calc(100vh - 230px)"
+        height="calc(100vh - 254px)"
         v-model:sort-by="sortBy"
         :row-props="({ index }) => ({ class: index % 2 === 0 ? 'row-even' : 'row-odd' })"
         class="wt-table"
@@ -63,7 +63,7 @@
           <span :style="{ color: wrColor(item.WR) }">{{ item.WR?.toFixed(1) }}</span>
         </template>
         <template #item.net_sl="{ item }">
-          <span style="color:#34d399;">{{ item.net_sl?.toLocaleString() }}</span>
+          <span style="color: rgb(var(--v-theme-primary));">{{ item.net_sl?.toLocaleString() }}</span>
         </template>
       </v-data-table>
     </div>
@@ -149,28 +149,3 @@ const headers = computed(() => [
   { title: t('common.net_sl'),  key: 'net_sl',         sortable: true, width: 110 },
 ])
 </script>
-
-<style scoped>
-.controls-bar {
-  background: rgba(15, 23, 42, 0.6);
-  border: 1px solid #1e3a5f;
-  border-radius: 10px;
-  padding: 10px 14px;
-}
-.ml-auto { margin-left: auto; }
-.controls-row {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 12px;
-}
-
-.table-wrap {
-  border: 1px solid #1e3a5f;
-  border-radius: 8px;
-  overflow: hidden;
-}
-.cell-name  { font-weight: 600; color: #e2e8f0; }
-.cell-score { font-weight: 700; font-family: 'JetBrains Mono', monospace; }
-.cell-class-icon { margin-right: 4px; vertical-align: middle; opacity: 0.85; }
-</style>
