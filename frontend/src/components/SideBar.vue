@@ -260,9 +260,16 @@ const generatedDate = computed(() => {
 
 .period-select :deep(.v-field__input) { min-height: unset; padding-block: 4px; font-size: 12px; }
 
-.chip-grid       { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
-.chip-grid--col  { grid-template-columns: 1fr; }
-.chip-label      { overflow: hidden; text-overflow: ellipsis; }
+.chip-grid       { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; }
+.chip-grid--col  { grid-template-columns: minmax(0, 1fr); }
+.chip-grid:not(.chip-grid--col) > :last-child:nth-child(odd) { grid-column: 1 / -1; }
+.chip-grid .ui-btn { min-width: 0; padding-inline: 8px; letter-spacing: 0.06em; }
+.chip-label      { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+
+.v-navigation-drawer :deep(.v-navigation-drawer__content) {
+  overflow-x: hidden;
+  scrollbar-gutter: stable both-edges;
+}
 .sidebar-info    { font-size: 11px; line-height: 1.7; }
 
 .section-fade-enter-active,
