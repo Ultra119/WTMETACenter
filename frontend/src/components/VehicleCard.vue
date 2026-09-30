@@ -137,7 +137,12 @@
               </div>
               <div v-if="showHp" class="kv">
                 <span class="kv__k">{{ t('vehicle_card.hp_rb') }}</span>
-                <span class="kv__v">{{ v('vdb_engine_hp_rb') }} {{ t('vehicle_card.hp_unit') }}</span>
+                <span class="kv__v">
+                  {{ v('vdb_engine_hp_rb') }} {{ t('vehicle_card.hp_unit') }}
+                  <span v-if="powerToWeight != null" class="t-muted" :title="powerToWeightHint">
+                    ({{ powerToWeight.toFixed(1) }} {{ t('vehicle_card.power_to_weight_unit', 'hp/t') }})
+                  </span>
+                </span>
               </div>
               <div class="eyebrow section-title" style="margin-top:10px"><v-icon size="12" style="margin-right:4px;opacity:.7">mdi-cash</v-icon>{{ t('vehicle_card.economy') }}</div>
               <div class="kv">
@@ -263,6 +268,22 @@ const showReverseSpeed = computed(() => !isFlying.value)
 const showArmor        = computed(() => isGround.value)
 const showThermal      = computed(() => !isAir.value)
 const showHp           = computed(() => !isAir.value || !!veh.value?.vdb_engine_hp_rb)
+
+const massTons = computed(() => {
+  const kg = Number(veh.value?.vdb_mass)
+  return kg > 0 ? kg / 1000 : null
+})
+
+const powerToWeight = computed(() => {
+  const hp = Number(veh.value?.vdb_engine_hp_rb)
+  return hp > 0 && massTons.value ? hp / massTons.value : null
+})
+
+const powerToWeightHint = computed(() =>
+  powerToWeight.value == null
+    ? ''
+    : `${Math.round(Number(veh.value.vdb_engine_hp_rb))} ${t('vehicle_card.hp_unit')} ÷ ${massTons.value.toFixed(1)} t`
+)
 
 const ammoCategories  = computed(() => getVehicleAmmoCategories(veh.value))
 const ammoCategoryLabel = useAmmoCategoryLabel()
