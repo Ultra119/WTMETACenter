@@ -1,6 +1,6 @@
 <template>
   <div
-    class="prog-card"
+    class="panel prog-card"
     :class="{
       'prog-card--grouped':  grouped,
       'prog-card--excluded': vehicle._excludedFromLineup,
@@ -11,15 +11,15 @@
     <div class="pc-header">
       <v-icon class="pc-type-icon" size="13" :title="vehicle._branch">{{ typeIcon }}</v-icon>
       <v-icon v-if="classIcon" class="pc-class-icon" size="11" :style="{ color: brColor }">{{ classIcon }}</v-icon>
-      <span class="pc-name" :style="{ color: nameColor }">{{ vehicleName }}</span>
-      <span class="pc-br"   :style="{ color: brColor   }">{{ brStr }}</span>
+      <span class="mono pc-name" :style="{ color: nameColor }">{{ vehicleName }}</span>
+      <span class="mono pc-br"   :style="{ color: brColor   }">{{ brStr }}</span>
       <v-icon class="pc-verdict" size="12" :style="{ color: vc.border }">{{ vc.icon }}</v-icon>
     </div>
 
-    <div class="pc-stats">
-      <span class="pc-stat"><span class="pc-stat-label">WR</span>{{ wrStr }}%</span>
-      <span class="pc-stat"><span class="pc-stat-label">K/D</span>{{ kdStr }}</span>
-      <span class="pc-stat"><span class="pc-stat-label">META</span>{{ metaStr }}</span>
+    <div class="mono pc-stats">
+      <span class="pc-stat"><span class="eyebrow eyebrow--xs pc-stat-label">WR</span>{{ wrStr }}%</span>
+      <span class="pc-stat"><span class="eyebrow eyebrow--xs pc-stat-label">K/D</span>{{ kdStr }}</span>
+      <span class="pc-stat"><span class="eyebrow eyebrow--xs pc-stat-label">META</span>{{ metaStr }}</span>
     </div>
 
     <div v-if="vehicle.Cross_Hint" class="pc-hint pc-hint--cross">
@@ -109,91 +109,43 @@ const cardStyle = computed(() => ({
 </script>
 
 <style scoped>
-.prog-card {
+.prog-card {                       /* border + bg come from .panel / inline verdict colours */
   position: relative;
-  padding: 7px 10px;
-  margin-bottom: 4px;
-  box-sizing: border-box;
-  border: 1px solid var(--hairline);   /* left accent is set inline per verdict */
-  cursor: pointer;
   min-width: 0;
+  margin-bottom: 4px;
+  padding: 7px 10px;
+  box-sizing: border-box;
+  cursor: pointer;
   transition: box-shadow 0.15s, filter 0.12s;
 }
-.prog-card:hover {
-  box-shadow: inset 0 0 0 1px var(--glow, var(--primary-line));
-  filter: brightness(1.1);
-}
-.prog-card--grouped  { margin-bottom: 0; }
-.prog-card--excluded { opacity: 0.5; filter: grayscale(0.4); }
+.prog-card:hover           { box-shadow: inset 0 0 0 1px var(--glow, var(--primary-line)); filter: brightness(1.1); }
+.prog-card--grouped        { margin-bottom: 0; }
+.prog-card--excluded       { opacity: 0.5; filter: grayscale(0.4); }
 .prog-card--excluded:hover { opacity: 0.85; filter: grayscale(0.15); }
 
-.pc-header {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  margin-bottom: 4px;
-}
-.pc-type-icon  { font-size: 12px; flex-shrink: 0; opacity: 0.7; }
+.pc-header     { display: flex; align-items: center; gap: 4px; margin-bottom: 4px; }
+.pc-type-icon  { flex-shrink: 0; opacity: 0.7; }
 .pc-class-icon { flex-shrink: 0; opacity: 0.9; }
-.pc-name {
-  flex: 1;
-  min-width: 0;
-  font-family: var(--font-display);
-  font-size: 12px;
-  font-weight: 500;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.pc-br {
-  flex-shrink: 0;
-  font-family: var(--font-display);
-  font-size: 11px;
-  font-weight: 600;
-}
-.pc-verdict { font-size: 11px; flex-shrink: 0; }
+.pc-name       { flex: 1; min-width: 0; font-size: 12px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pc-br         { flex-shrink: 0; font-size: 11px; font-weight: 600; }
+.pc-verdict    { flex-shrink: 0; }
 
-.pc-stats { display: flex; gap: 10px; }
-.pc-stat {
-  font-family: var(--font-display);
-  font-size: 11px;
-  color: var(--ink-muted);
-}
-.pc-stat-label {
-  margin-right: 3px;
-  font-size: 9px;
-  letter-spacing: 0.1em;
-  color: var(--ink-dim);
-}
+.pc-stats      { display: flex; gap: 10px; font-size: 11px; color: var(--ink-muted); }
+.pc-stat-label { margin-right: 3px; color: var(--ink-dim); }
 
+/* hint strip: one --c drives text + divider */
 .pc-hint {
+  --c: var(--ink-faint);
   margin-top: 5px;
   padding-top: 5px;
   font-size: 10px;
   line-height: 1.4;
+  color: color-mix(in srgb, var(--c) 75%, white);
+  border-top: 1px solid color-mix(in srgb, var(--c) 25%, transparent);
 }
-.pc-hint-icon { margin-right: 4px; vertical-align: -1px; }
-.pc-hint--cross {
-  color: #7FB2E5;
-  border-top: 1px solid rgba(127, 178, 229, 0.22);
-}
-.pc-hint--skip {
-  color: #F2A7B6;
-  border-top: 1px solid rgba(232, 96, 123, 0.28);
-}
-.pc-hint--prem {
-  color: #C3B8EC;
-  border-top: 1px solid rgba(169, 155, 224, 0.28);
-}
-.pc-hint--excluded {
-  color: var(--ink-faint);
-  border-top: 1px solid var(--hairline);
-}
-.pc-hint--boost {
-  margin-top: 3px;
-  padding-top: 3px;
-  font-family: var(--font-display);
-  font-weight: 500;
-  border-top: 1px solid rgba(169, 155, 224, 0.15);
-}
+.pc-hint--cross { --c: var(--c-info); }
+.pc-hint--skip  { --c: var(--c-bad); }
+.pc-hint--prem  { --c: var(--c-violet); }
+.pc-hint--boost { --c: var(--c-violet); margin-top: 3px; padding-top: 3px; font-family: var(--font-display); font-weight: 500; }
+.pc-hint-icon   { margin-right: 4px; vertical-align: -1px; }
 </style>

@@ -2,7 +2,7 @@
   <div class="home-page">
 
     <header class="home-header">
-      <div class="label-eyebrow home-eyebrow">
+      <div class="eyebrow home-eyebrow">
         <span class="mdi mdi-radar" />
         {{ t('home_tab.eyebrow') }}
       </div>
@@ -15,15 +15,15 @@
         v-for="(card, i) in cards"
         :key="card.to"
         :to="card.to"
-        class="tab-card"
+        class="panel tab-card"
         @click="onCardClick"
       >
         <div class="card-top">
-          <span class="card-n">{{ String(i + 1).padStart(2, '0') }}</span>
+          <span class="eyebrow eyebrow--primary">{{ String(i + 1).padStart(2, '0') }}</span>
           <v-icon class="card-icon" size="20">{{ card.icon }}</v-icon>
         </div>
-        <div class="card-title">{{ t(card.labelKey) }}</div>
-        <div class="card-desc">{{ t(card.descKey) }}</div>
+        <div class="eyebrow t-ink card-title">{{ t(card.labelKey) }}</div>
+        <div class="s card-desc">{{ t(card.descKey) }}</div>
         <v-icon class="card-arrow" size="16">mdi-arrow-top-right</v-icon>
       </router-link>
     </div>
@@ -56,81 +56,36 @@ const cards = [
 </script>
 
 <style scoped>
-.home-page { max-width: 1240px; margin: 0 auto; padding: 32px 0 64px; }
-
-.home-header {
-  margin-bottom: 32px;
-  padding-bottom: 24px;
-  border-bottom: 1px solid var(--hairline);
-}
+.home-page   { max-width: 1240px; margin: 0 auto; padding: 32px 0 64px; }
+.home-header { margin-bottom: 32px; padding-bottom: 24px; border-bottom: 1px solid var(--hairline); }
 .home-eyebrow { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
 .home-title {
   margin: 0;
-  font-family: var(--font-display);
-  font-size: 40px;
-  font-weight: 600;
-  line-height: 1.1;
+  font: 600 40px/1.1 var(--font-display);
   letter-spacing: -0.01em;
   text-transform: uppercase;
   color: var(--primary);
 }
-.home-sub { max-width: 60ch; margin-top: 12px; }
+.home-sub    { max-width: 60ch; margin-top: 12px; }
 
-.cards-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 12px;
-}
-
+.cards-grid  { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
 .tab-card {
   position: relative;
   display: flex;
   flex-direction: column;
-  min-width: 0;
   padding: 16px 18px 18px;
-  background: var(--surface);
-  border: 1px solid var(--hairline);
   color: inherit;
   text-decoration: none;
   transition: border-color 0.15s;
 }
 .tab-card:hover { border-color: var(--primary-line); }
-
-.card-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 20px;
-}
-.card-n {
-  font-family: var(--font-display);
-  font-size: 11px;
-  letter-spacing: 0.14em;
-  color: var(--primary);
-}
-.card-icon { color: var(--ink-dim); transition: color 0.15s; }
+.card-top       { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.card-icon      { color: var(--ink-dim); transition: color 0.15s; }
 .tab-card:hover .card-icon { color: var(--primary); }
-
-.card-title {
-  margin-bottom: 6px;
-  font-family: var(--font-display);
-  font-size: 14px;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--ink);
-}
-.card-desc {
-  padding-right: 20px;
-  font-size: 13px;
-  line-height: 1.55;
-  color: var(--ink-muted);
-}
-
+.card-title     { margin-bottom: 6px; font-size: 14px; letter-spacing: 0.08em; }
+.card-desc      { margin: 0; padding-right: 20px; }
 .card-arrow {
-  position: absolute;
-  right: 14px;
-  bottom: 14px;
+  position: absolute; right: 14px; bottom: 14px;
   color: var(--primary);
   opacity: 0;
   transform: translate(-4px, 4px);

@@ -9,7 +9,7 @@
           <span v-if="CLASS_PREFIX[vehicle.VehicleClass]" class="mdi" :class="CLASS_PREFIX[vehicle.VehicleClass]" style="font-size:9px; margin-right:2px;" />
           {{ t(`vehicle_classes.${vehicle.VehicleClass}`) }}
         </span>
-        <span v-if="vehicle.vdb_shop_rank" class="rank-badge ml-1">
+        <span v-if="vehicle.vdb_shop_rank" class="tag eyebrow ml-1">
           <span class="mdi mdi-medal-outline" style="font-size:10px; margin-right:3px;" />
           {{ t('vehicle_card.era') }} {{ vehicle.vdb_shop_rank }}
         </span>
@@ -17,26 +17,27 @@
 
         <button
           type="button"
-          class="stats-toggle"
-          :class="{ 'stats-toggle--active': showStatsPanel }"
+          class="ui-btn ui-btn--icon mr-1"
+          :class="{ 'is-active': showStatsPanel }"
           :title="t('vehicle_card.stats')"
           @click="showStatsPanel = !showStatsPanel"
         >
           <span class="mdi mdi-chart-line" style="font-size:13px;" />
         </button>
 
-        <div class="br-modes">
-          <span
+        <div class="ui-group">
+          <button
             v-for="m in BR_MODES"
             :key="m.key"
-            class="br-pill"
-            :class="{ 'br-pill--active': m.key === activeMode }"
+            type="button"
+            class="ui-btn"
+            :class="{ 'is-active': m.key === activeMode }"
             :title="t(`vehicle_card.${m.titleKey}`)"
             @click="activeMode = m.key"
           >
-            <span class="br-pill__mode">{{ m.short }}</span>
-            <span class="br-pill__val">{{ brByMode[m.key] ?? '—' }}</span>
-          </span>
+            <span class="eyebrow eyebrow--xs">{{ m.short }}</span>
+            <span>{{ brByMode[m.key] ?? '—' }}</span>
+          </button>
         </div>
 
         <v-btn icon="mdi-close" variant="text" size="small" :title="t('common.close')" @click="$emit('update:modelValue', false)" />
@@ -51,25 +52,25 @@
             <VehicleImage :name="displayName" :identifier="vehicle.vdb_identifier" :type="vehicle.Type" aspect="2/1" fit="cover" />
           </div>
           <div class="meta-pane">
-            <div class="meta-row">
-              <span class="meta-lbl">{{ t('vehicle_card.nation') }}</span>
-              <span class="meta-val">{{ fmtNation(vehicle.Nation) }}</span>
+            <div class="kv kv--ruled kv--eyebrow">
+              <span class="kv__k">{{ t('vehicle_card.nation') }}</span>
+              <span class="kv__v">{{ fmtNation(vehicle.Nation) }}</span>
             </div>
-            <div class="meta-row">
-              <span class="meta-lbl">{{ t('vehicle_card.type') }}</span>
-              <span class="meta-val">{{ fmtType(vehicle.Type) }}</span>
+            <div class="kv kv--ruled kv--eyebrow">
+              <span class="kv__k">{{ t('vehicle_card.type') }}</span>
+              <span class="kv__v">{{ fmtType(vehicle.Type) }}</span>
             </div>
-            <div class="meta-row">
-              <span class="meta-lbl">{{ t('vehicle_card.battles') }}</span>
-              <span class="meta-val">{{ (modeVehicle['Сыграно игр'] ?? 0).toLocaleString() }}</span>
+            <div class="kv kv--ruled kv--eyebrow">
+              <span class="kv__k">{{ t('vehicle_card.battles') }}</span>
+              <span class="kv__v">{{ (modeVehicle['Сыграно игр'] ?? 0).toLocaleString() }}</span>
             </div>
-            <div class="meta-row">
-              <span class="meta-lbl">{{ t('vehicle_card.wr') }}</span>
-              <span class="meta-val" :style="{ color: wrColor(modeVehicle.WR) }">{{ modeVehicle.WR?.toFixed(1) }}%</span>
+            <div class="kv kv--ruled kv--eyebrow">
+              <span class="kv__k">{{ t('vehicle_card.wr') }}</span>
+              <span class="kv__v" :style="{ color: wrColor(modeVehicle.WR) }">{{ modeVehicle.WR?.toFixed(1) }}%</span>
             </div>
-            <div v-for="row in kdBreakdown" :key="row.key" class="meta-row">
-              <span class="meta-lbl">{{ t(row.labelKey) }}</span>
-              <span class="meta-val">{{ row.value.toFixed(2) }}</span>
+            <div v-for="row in kdBreakdown" :key="row.key" class="kv kv--ruled kv--eyebrow">
+              <span class="kv__k">{{ t(row.labelKey) }}</span>
+              <span class="kv__v">{{ row.value.toFixed(2) }}</span>
             </div>
           </div>
         </div>
@@ -77,14 +78,14 @@
         <div class="card-grid">
 
           <div class="card-section">
-            <div class="section-title">
+            <div class="eyebrow section-title">
               <v-icon size="12" style="margin-right:4px;opacity:.7">mdi-trophy</v-icon>
               {{ t('vehicle_card.scores') }}
-              <span class="scores-mode">{{ activeModePill }}</span>
+              <span class="eyebrow eyebrow--xs eyebrow--primary scores-mode">{{ activeModePill }}</span>
             </div>
 
             <div class="score-row">
-              <span class="score-label">{{ t('vehicle_card.meta_score') }}</span>
+              <span class="kv__k score-label">{{ t('vehicle_card.meta_score') }}</span>
               <div class="score-bar-wrap">
                 <span class="score-val" :style="{ color: metaColor(activeScores.meta) }">
                   {{ activeScores.meta != null ? activeScores.meta.toFixed(1) : '—' }}
@@ -101,7 +102,7 @@
               </div>
             </div>
             <div class="score-row">
-              <span class="score-label">{{ t('vehicle_card.farm_score') }}</span>
+              <span class="kv__k score-label">{{ t('vehicle_card.farm_score') }}</span>
               <div class="score-bar-wrap">
                 <span class="score-val" :style="{ color: farmColor(activeScores.farm) }">
                   {{ activeScores.farm != null ? activeScores.farm.toFixed(1) : '—' }}
@@ -117,42 +118,42 @@
                 </div>
               </div>
             </div>
-            <div class="stat-row mt-2">
-              <span class="stat-label">{{ t('vehicle_card.net_sl') }}</span>
-              <span class="stat-value" style="color: var(--primary);">{{ fmtSL(modeVehicle['Net SL за игру']) }}</span>
+            <div class="kv mt-2">
+              <span class="kv__k">{{ t('vehicle_card.net_sl') }}</span>
+              <span class="kv__v" style="color: var(--primary);">{{ fmtSL(modeVehicle['Net SL за игру']) }}</span>
             </div>
           </div>
 
           <div class="card-section">
             <template v-if="hasVdb">
-              <div class="section-title"><v-icon size="12" style="margin-right:4px;opacity:.7">mdi-cog</v-icon>{{ t('vehicle_card.mobility') }}</div>
-              <div class="stat-row">
-                <span class="stat-label">{{ t('vehicle_card.speed_rb') }}</span>
-                <span class="stat-value">{{ v('vdb_engine_max_speed_rb') }} {{ t('vehicle_card.speed_unit') }}</span>
+              <div class="eyebrow section-title"><v-icon size="12" style="margin-right:4px;opacity:.7">mdi-cog</v-icon>{{ t('vehicle_card.mobility') }}</div>
+              <div class="kv">
+                <span class="kv__k">{{ t('vehicle_card.speed_rb') }}</span>
+                <span class="kv__v">{{ v('vdb_engine_max_speed_rb') }} {{ t('vehicle_card.speed_unit') }}</span>
               </div>
-              <div v-if="showReverseSpeed" class="stat-row">
-                <span class="stat-label">{{ t('vehicle_card.reverse_rb') }}</span>
-                <span class="stat-value">{{ v('vdb_engine_reverse_rb') }} {{ t('vehicle_card.speed_unit') }}</span>
+              <div v-if="showReverseSpeed" class="kv">
+                <span class="kv__k">{{ t('vehicle_card.reverse_rb') }}</span>
+                <span class="kv__v">{{ v('vdb_engine_reverse_rb') }} {{ t('vehicle_card.speed_unit') }}</span>
               </div>
-              <div v-if="showHp" class="stat-row">
-                <span class="stat-label">{{ t('vehicle_card.hp_rb') }}</span>
-                <span class="stat-value">{{ v('vdb_engine_hp_rb') }} {{ t('vehicle_card.hp_unit') }}</span>
+              <div v-if="showHp" class="kv">
+                <span class="kv__k">{{ t('vehicle_card.hp_rb') }}</span>
+                <span class="kv__v">{{ v('vdb_engine_hp_rb') }} {{ t('vehicle_card.hp_unit') }}</span>
               </div>
-              <div class="section-title" style="margin-top:10px"><v-icon size="12" style="margin-right:4px;opacity:.7">mdi-cash</v-icon>{{ t('vehicle_card.economy') }}</div>
-              <div class="stat-row">
-                <span class="stat-label">{{ t('vehicle_card.repair_rb') }}</span>
-                <span class="stat-value">{{ fmtSL(vehicle.vdb_repair_cost_realistic) }}</span>
+              <div class="eyebrow section-title" style="margin-top:10px"><v-icon size="12" style="margin-right:4px;opacity:.7">mdi-cash</v-icon>{{ t('vehicle_card.economy') }}</div>
+              <div class="kv">
+                <span class="kv__k">{{ t('vehicle_card.repair_rb') }}</span>
+                <span class="kv__v">{{ fmtSL(vehicle.vdb_repair_cost_realistic) }}</span>
               </div>
-              <div class="stat-row">
-                <span class="stat-label">{{ t('vehicle_card.sl_per_game') }}</span>
-                <span class="stat-value" style="color: var(--primary);">{{ fmtSL(modeVehicle['SL за игру']) }}</span>
+              <div class="kv">
+                <span class="kv__k">{{ t('vehicle_card.sl_per_game') }}</span>
+                <span class="kv__v" style="color: var(--primary);">{{ fmtSL(modeVehicle['SL за игру']) }}</span>
               </div>
             </template>
           </div>
 
           <template v-if="hasVdb">
             <div v-if="showArmor" class="card-section">
-              <div class="section-title"><v-icon size="12" style="margin-right:4px;opacity:.7">mdi-shield</v-icon>{{ t('vehicle_card.armor') }}</div>
+              <div class="eyebrow section-title"><v-icon size="12" style="margin-right:4px;opacity:.7">mdi-shield</v-icon>{{ t('vehicle_card.armor') }}</div>
               <table class="armor-table">
                 <thead>
                   <tr>
@@ -176,14 +177,14 @@
             </div>
 
             <div class="card-section" :style="!showArmor ? { gridColumn: '1 / -1' } : {}">
-              <div class="section-title"><v-icon size="12" style="margin-right:4px;opacity:.7">mdi-bullet</v-icon>{{ t('vehicle_card.weapons') }}</div>
-              <div class="stat-row">
-                <span class="stat-label">{{ t('vehicle_card.caliber')      }}</span>
-                <span class="stat-value">{{ v('vdb_main_caliber_mm') > 0 ? v('vdb_main_caliber_mm') + ' ' + t('vehicle_card.caliber_unit') : t('vehicle_card.no_vdb') }}</span>
+              <div class="eyebrow section-title"><v-icon size="12" style="margin-right:4px;opacity:.7">mdi-bullet</v-icon>{{ t('vehicle_card.weapons') }}</div>
+              <div class="kv">
+                <span class="kv__k">{{ t('vehicle_card.caliber')      }}</span>
+                <span class="kv__v">{{ v('vdb_main_caliber_mm') > 0 ? v('vdb_main_caliber_mm') + ' ' + t('vehicle_card.caliber_unit') : t('vehicle_card.no_vdb') }}</span>
               </div>
-              <div class="stat-row">
-                <span class="stat-label">{{ t('vehicle_card.shell_speed')  }}</span>
-                <span class="stat-value">{{ v('vdb_main_gun_speed') > 0 ? v('vdb_main_gun_speed') + ' ' + t('vehicle_card.speed_unit_ms') : t('vehicle_card.no_vdb') }}</span>
+              <div class="kv">
+                <span class="kv__k">{{ t('vehicle_card.shell_speed')  }}</span>
+                <span class="kv__v">{{ v('vdb_main_gun_speed') > 0 ? v('vdb_main_gun_speed') + ' ' + t('vehicle_card.speed_unit_ms') : t('vehicle_card.no_vdb') }}</span>
               </div>
               <div class="chips-row">
                 <v-chip v-if="showThermal && vehicle.vdb_has_thermal" color="info" size="x-small">{{ t('vehicle_card.thermal') }}</v-chip>
@@ -345,218 +346,40 @@ function v(key) {
 </script>
 
 <style scoped>
-.card-shell {
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 12px;
-}
+.card-shell  { display: flex; align-items: flex-start; justify-content: center; gap: 12px; }
 .main-card   { width: 760px; max-width: 100%; flex-shrink: 0; }
 .stats-panel { width: 340px; flex-shrink: 0; }
-
 .panel-slide-enter-active,
-.panel-slide-leave-active { transition: opacity .22s ease, transform .26s ease; }
+.panel-slide-leave-active { transition: opacity 0.22s ease, transform 0.26s ease; }
 .panel-slide-enter-from,
 .panel-slide-leave-to     { opacity: 0; transform: translateX(-18px); }
 
-/* ── header ── */
-.card-header { display: flex; align-items: center; padding: 12px 16px; gap: 8px; }
-.vehicle-name {
-  font-family: var(--font-display);
-  font-size: 18px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  color: var(--primary);
-}
+.card-header  { display: flex; align-items: center; gap: 8px; padding: 12px 16px; }
+.vehicle-name { font: 600 18px var(--font-display); letter-spacing: 0.02em; color: var(--primary); }
+.scores-mode  { margin-left: 6px; }
 
-.rank-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 7px;
-  border: 1px solid var(--hairline-strong);
-  font-family: var(--font-display);
-  font-size: 10px;
-  font-weight: 500;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--ink-muted);
-  white-space: nowrap;
-}
-
-.stats-toggle {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 26px;
-  margin-right: 4px;
-  border: 1px solid var(--hairline);
-  background: transparent;
-  color: var(--ink-muted);
-  cursor: pointer;
-  transition: border-color .15s, background .15s, color .15s;
-}
-.stats-toggle:hover {
-  border-color: var(--hairline-strong);
-  color: var(--ink);
-}
-.stats-toggle--active {
-  border-color: var(--primary-line);
-  background: var(--primary-soft);
-  color: var(--primary);
-}
-
-.br-modes { display: flex; gap: 0; align-items: center; }
-.br-pill {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 4px;
-  padding: 3px 8px;
-  border: 1px solid var(--hairline);
-  background: transparent;
-  cursor: pointer;
-  transition: border-color .15s, background .15s;
-}
-.br-pill + .br-pill { margin-left: -1px; }
-.br-pill:hover:not(.br-pill--active) { border-color: var(--hairline-strong); }
-.br-pill--active {
-  position: relative;
-  z-index: 1;
-  border-color: var(--primary-line);
-  background: var(--primary-soft);
-}
-.br-pill__mode {
-  font-family: var(--font-display);
-  font-size: 9px;
-  font-weight: 500;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--ink-faint);
-}
-.br-pill--active .br-pill__mode { color: var(--primary); }
-.br-pill__val {
-  font-family: var(--font-display);
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--ink-muted);
-}
-.br-pill--active .br-pill__val { color: var(--primary); }
-
-.scores-mode {
-  margin-left: 6px;
-  color: var(--primary);
-  letter-spacing: 0.14em;
-}
-
-/* ── info band ── */
-.info-band {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  border-bottom: 1px solid var(--hairline);
-}
-.img-pane {
-  border-right: 1px solid var(--hairline);
-  background: rgba(231, 233, 238, 0.03);
-  min-height: 90px;
-  overflow: hidden;
-}
+.info-band { display: grid; grid-template-columns: 1fr 1fr; border-bottom: 1px solid var(--hairline); }
+.img-pane  { min-height: 90px; overflow: hidden; border-right: 1px solid var(--hairline); background: rgba(231, 233, 238, 0.03); }
 .meta-pane { display: flex; flex-direction: column; justify-content: center; }
-.meta-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 5px 14px;
-  border-bottom: 1px solid var(--hairline);
-  font-size: 12px;
-}
-.meta-row:last-child { border-bottom: none; }
-.meta-lbl {
-  font-family: var(--font-display);
-  font-size: 10px;
-  font-weight: 500;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--ink-faint);
-}
-.meta-val {
-  font-family: var(--font-display);
-  font-weight: 500;
-  color: var(--ink);
-  font-variant-numeric: tabular-nums;
-}
+.meta-pane .kv { padding: 5px 14px; }
 
-/* ── sections ── */
-.card-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
-.card-section {
-  padding: 14px 16px;
-  border-right: 1px solid var(--hairline);
-  border-bottom: 1px solid var(--hairline);
-}
+.card-grid    { display: grid; grid-template-columns: 1fr 1fr; }
+.card-section { padding: 14px 16px; border-right: 1px solid var(--hairline); border-bottom: 1px solid var(--hairline); }
 .card-section:nth-child(even)      { border-right: none; }
 .card-section:nth-last-child(-n+2) { border-bottom: none; }
-
-.section-title {
-  display: flex;
-  align-items: center;
-  margin-bottom: 10px;
-  font-family: var(--font-display);
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--ink-faint);
-}
-
-.stat-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 12px; }
-.stat-label { color: var(--ink-muted); }
-.stat-value {
-  font-family: var(--font-display);
-  font-weight: 500;
-  color: var(--ink);
-  font-variant-numeric: tabular-nums;
-}
+.section-title { display: flex; align-items: center; margin-bottom: 10px; }
 
 .score-row   { margin-bottom: 8px; }
-.score-label {
-  display: block;
-  margin-bottom: 3px;
-  font-size: 11px;
-  letter-spacing: 0.02em;
-  color: var(--ink-muted);
-}
-.score-bar-wrap {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  height: 20px;
-  padding: 0 8px;
-  background: var(--bg);
-  border: 1px solid var(--hairline);
-}
-.score-val {
-  flex-shrink: 0;
-  min-width: 26px;
-  font-family: var(--font-display);
-  font-size: 11px;
-  font-weight: 600;
-}
+.score-label { display: block; margin-bottom: 3px; font-size: 11px; }
+.score-bar-wrap { display: flex; align-items: center; gap: 8px; height: 20px; padding: 0 8px; background: var(--bg); border: 1px solid var(--hairline); }
+.score-val   { flex-shrink: 0; min-width: 26px; font: 600 11px var(--font-display); }
 .score-track { flex: 1; height: 3px; background: rgba(231, 233, 238, 0.08); overflow: hidden; }
-.score-bar   { height: 100%; transition: width .3s, background .3s; }
+.score-bar   { height: 100%; transition: width 0.3s, background 0.3s; }
 
-.armor-table { width: 100%; border-collapse: collapse; font-family: var(--font-display); font-size: 11px; }
-.armor-table th {
-  padding: 2px 6px 6px;
-  text-align: center;
-  font-family: inherit;
-  font-size: 10px;
-  font-weight: 500;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--ink-faint);
-}
+.armor-table { width: 100%; border-collapse: collapse; font: 11px var(--font-display); }
+.armor-table th { padding: 2px 6px 6px; text-align: center; font: 500 10px var(--font-display); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-faint); }
 .armor-table td { padding: 4px 6px; text-align: center; color: var(--ink); }
 .armor-table tbody tr + tr td { border-top: 1px solid var(--hairline); }
 .armor-label { color: var(--ink-muted) !important; text-align: left !important; }
-
-.chips-row { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.chips-row   { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
 </style>

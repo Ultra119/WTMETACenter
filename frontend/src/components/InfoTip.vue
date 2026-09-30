@@ -4,9 +4,9 @@
     @mouseenter="onEnter"
     @mouseleave="onLeave"
   >
-    <span class="infotip-trigger" :class="{ 'infotip-trigger--active': visible }">!</span>
+    <span class="ui-btn ui-btn--icon ui-btn--xs" :class="{ 'is-active': visible }">!</span>
     <div
-      class="infotip-box"
+      class="popover infotip-box"
       :class="[`infotip-box--${align}`, { 'infotip-box--visible': visible }]"
       :style="{ width: props.width }"
       @mouseenter="onEnter"
@@ -41,47 +41,16 @@ function onLeave() {
 </script>
 
 <style scoped>
-.infotip {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  flex-shrink: 0;
-}
-
-.infotip-trigger {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  width: 20px;
-  height: 20px;
-  border: 1px solid var(--hairline-strong);
-  background: transparent;
-  color: var(--ink-faint);
-  font-family: var(--font-display);
-  font-size: 11px;
-  font-weight: 600;
-  cursor: default;
-  user-select: none;
-  transition: border-color 0.15s, color 0.15s, background 0.15s;
-}
-.infotip-trigger--active {
-  border-color: var(--primary);
-  color: var(--primary);
-  background: var(--primary-soft);
-}
+.infotip { position: relative; display: inline-flex; align-items: center; flex-shrink: 0; }
 
 .infotip-box {
   position: absolute;
   top: calc(100% + 8px);
   z-index: 200;
   padding: 12px 14px;
-  background: var(--surface);
-  border: 1px solid var(--hairline-strong);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55);
-  color: var(--ink-muted);
   font-size: 12px;
   line-height: 1.6;
+  color: var(--ink-muted);
   pointer-events: none;
   opacity: 0;
   transform: translateY(-4px);
@@ -89,7 +58,7 @@ function onLeave() {
 }
 .infotip-box--visible { pointer-events: auto; opacity: 1; transform: translateY(0); }
 
-.infotip-box::before {
+.infotip-box::before {           /* arrow */
   content: '';
   position: absolute;
   top: -5px;
@@ -100,20 +69,17 @@ function onLeave() {
   border-top: 1px solid var(--hairline-strong);
   transform: rotate(45deg);
 }
-
-.infotip-box--right         { right: 0; }
-.infotip-box--right::before { right: 6px; }
-.infotip-box--left          { left: 0; }
-.infotip-box--left::before  { left: 6px; }
-
+.infotip-box--right                       { right: 0; }
+.infotip-box--right::before               { right: 6px; }
+.infotip-box--left                        { left: 0; }
+.infotip-box--left::before                { left: 6px; }
 .infotip-box--center                      { left: 50%; transform: translateX(-50%) translateY(-4px); }
 .infotip-box--center.infotip-box--visible { transform: translateX(-50%) translateY(0); }
 .infotip-box--center::before              { left: 50%; transform: translateX(-50%) rotate(45deg); }
 
-.infotip-box :deep(b)  { color: var(--ink); font-weight: 600; }
-.infotip-box :deep(p)  { margin: 4px 0 0; }
-.infotip-box :deep(p:first-child) { margin-top: 0; }
-.infotip-box :deep(.tip-row) { display: flex; gap: 6px; align-items: baseline; margin-top: 5px; }
-.infotip-box :deep(.tip-icon)  { flex-shrink: 0; }
-.infotip-box :deep(.tip-label) { color: var(--ink); font-weight: 500; }
+.infotip-box :deep(b)               { color: var(--ink); font-weight: 600; }
+.infotip-box :deep(p)               { margin: 4px 0 0; }
+.infotip-box :deep(p:first-child)   { margin-top: 0; }
+.infotip-box :deep(.tip-row)        { align-items: baseline; margin-top: 5px; }
+.infotip-box :deep(.tip-label)      { color: var(--ink); font-weight: 500; }
 </style>

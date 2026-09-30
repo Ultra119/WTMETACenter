@@ -1,6 +1,6 @@
 <template>
   <v-app theme="wt">
-    <Transition name="filter-bar-fade">
+    <Transition name="fade">
       <div v-if="store.filtering" class="filter-progress-bar">
         <div class="filter-progress-inner" />
       </div>
@@ -103,43 +103,12 @@ onMounted(() => {
 })
 </script>
 
-<style>
-.nav-tabs { border-bottom: 1px solid var(--hairline); }
-.v-tab {
-  min-width: 0;
-  font-family: var(--font-display) !important;
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-.page { width: 100%; padding: 24px; }
-@media (max-width: 720px) { .page { padding: 16px; } }
-
-.filter-progress-bar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  z-index: 9999;
-  pointer-events: none;
-  overflow: hidden;
-}
-.filter-progress-inner {
-  height: 100%;
-  background: var(--primary);
-  animation: filter-slide 0.8s ease-in-out infinite;
-  transform-origin: left center;
-}
+<style scoped>
+.filter-progress-bar   { position: fixed; top: 0; left: 0; right: 0; height: 2px; z-index: 9999; pointer-events: none; overflow: hidden; }
+.filter-progress-inner { height: 100%; background: var(--primary); animation: filter-slide 0.8s ease-in-out infinite; transform-origin: left center; }
 @keyframes filter-slide {
   0%   { transform: translateX(-100%) scaleX(0.4); }
   50%  { transform: translateX(30%)   scaleX(0.7); }
   100% { transform: translateX(110%)  scaleX(0.4); }
 }
-.filter-bar-fade-enter-active,
-.filter-bar-fade-leave-active { transition: opacity 0.15s; }
-.filter-bar-fade-enter-from,
-.filter-bar-fade-leave-to     { opacity: 0; }
 </style>

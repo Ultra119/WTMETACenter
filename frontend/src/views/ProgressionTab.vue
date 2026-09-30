@@ -16,24 +16,16 @@
           class="ctrl-nation"
         />
 
-        <div class="seg-ctrl branch-seg">
-          <button
-            v-for="opt in BRANCH_OPTIONS"
-            :key="opt.value"
-            class="seg-btn"
-            :class="{ 'seg-btn--active': branch === opt.value }"
-            @click="branch = opt.value"
-          ><v-icon size="14" class="seg-btn-icon">{{ opt.icon }}</v-icon> {{ $t(opt.labelKey) }}</button>
-        </div>
+        <SegControl v-model="branch" :options="branchOptions" />
 
         <div class="stats-badges">
-          <span v-if="progressionData.length" class="badge badge-total">
+          <span v-if="progressionData.length" class="tag">
             <v-icon size="11">mdi-format-list-bulleted</v-icon> {{ progressionData.length }}
           </span>
-          <span class="badge badge-must"><v-icon size="11" :style="{ color: VERDICT_COLORS.MUST.border }">{{ VERDICT_COLORS.MUST.icon }}</v-icon> {{ countByVerdict('MUST') }}</span>
-          <span class="badge badge-fill"><v-icon size="11" :style="{ color: VERDICT_COLORS.FILL.border }">{{ VERDICT_COLORS.FILL.icon }}</v-icon> {{ countByVerdict('FILL') }}</span>
-          <span class="badge badge-skip"><v-icon size="11" :style="{ color: VERDICT_COLORS.SKIP.border }">{{ VERDICT_COLORS.SKIP.icon }}</v-icon> {{ countByVerdict('SKIP') }}</span>
-          <span class="badge badge-prem"><v-icon size="11" :style="{ color: VERDICT_COLORS.PREM.border }">{{ VERDICT_COLORS.PREM.icon }}</v-icon> {{ countByVerdict('PREM') }}</span>
+          <span class="tag tint"><v-icon size="11" :style="{ color: VERDICT_COLORS.MUST.border }">{{ VERDICT_COLORS.MUST.icon }}</v-icon> {{ countByVerdict('MUST') }}</span>
+          <span class="tag tint tint--info"><v-icon size="11" :style="{ color: VERDICT_COLORS.FILL.border }">{{ VERDICT_COLORS.FILL.icon }}</v-icon> {{ countByVerdict('FILL') }}</span>
+          <span class="tag tint tint--bad"><v-icon size="11" :style="{ color: VERDICT_COLORS.SKIP.border }">{{ VERDICT_COLORS.SKIP.icon }}</v-icon> {{ countByVerdict('SKIP') }}</span>
+          <span class="tag tint tint--violet"><v-icon size="11" :style="{ color: VERDICT_COLORS.PREM.border }">{{ VERDICT_COLORS.PREM.icon }}</v-icon> {{ countByVerdict('PREM') }}</span>
         </div>
 
         <div class="ctrl-divider" />
@@ -53,43 +45,41 @@
           <div
             v-for="t in activeBranchTypes"
             :key="t"
-            class="lineup-type-item"
+            class="panel lineup-type-item"
           >
-            <span class="lm-icon" :title="prefDisplay[t]?.label ?? t">
+            <span class="t-muted lm-icon" :title="prefDisplay[t]?.label ?? t">
               <v-icon v-if="prefDisplay[t]?.icon" size="14">{{ prefDisplay[t].icon }}</v-icon>
               <template v-else>?</template>
             </span>
             <button
-              class="lm-btn"
+              class="ui-btn ui-btn--icon ui-btn--xs"
               :disabled="(lineupPrefs[t] ?? 0) === 0"
               @click="decPref(t)"
             >−</button>
             <span
-              class="lm-count"
-              :class="{
-                'lm-count--active': (lineupPrefs[t] ?? 0) > 0,
-              }"
+              class="mono lm-count"
+              :class="(lineupPrefs[t] ?? 0) > 0 ? 'text-primary' : 't-dim'"
             >{{ lineupPrefs[t] ?? 0 }}</span>
             <button
-              class="lm-btn"
+              class="ui-btn ui-btn--icon ui-btn--xs"
               @click="incPref(t)"
             >+</button>
           </div>
         </div>
         <span
-          class="lm-total"
+          class="tag"
           :class="{
-            'lm-total--full':  totalPrefUsed === DEFAULT_LINEUP_SLOTS,
-            'lm-total--over':  totalPrefUsed >   DEFAULT_LINEUP_SLOTS,
-            'lm-total--under': totalPrefUsed <   DEFAULT_LINEUP_SLOTS,
+            'tint':           totalPrefUsed === DEFAULT_LINEUP_SLOTS,
+            'tint tint--bad':  totalPrefUsed >   DEFAULT_LINEUP_SLOTS,
+            'tint tint--warn': totalPrefUsed <   DEFAULT_LINEUP_SLOTS,
           }"
         >{{ totalPrefUsed }}</span>
-        <button class="lm-reset" :title="$t('progression_tab.reset_defaults')" @click="resetLineupPrefs"><v-icon size="14">mdi-restore</v-icon></button>
+        <button class="ui-btn ui-btn--icon ui-btn--xs" :title="$t('progression_tab.reset_defaults')" @click="resetLineupPrefs"><v-icon size="14">mdi-restore</v-icon></button>
       </div>
     </div>
 
     <div class="legend-row mb-3">
-      <span v-for="(vc, key) in VERDICT_COLORS" :key="key" class="legend-item">
+      <span v-for="(vc, key) in VERDICT_COLORS" :key="key" class="eyebrow legend-item">
         <v-icon class="legend-icon" size="12" :style="{ color: vc.border }">{{ vc.icon }}</v-icon>
         <span class="legend-text">{{ $t(`verdicts.${key.toLowerCase()}`, vc.label) }}</span>
       </span>
@@ -145,16 +135,16 @@
         }"
       >
 
-        <div class="grid-hdr grid-hdr--rank">RANK</div>
+        <div class="panel eyebrow eyebrow--sm grid-hdr grid-hdr--rank">RANK</div>
 
         <div :style="{ gridColumn: `2 / span ${gridData.numCols}` }" />
 
-        <div class="grid-hdr grid-hdr--prem"><v-icon size="12" class="mr-1">mdi-crown</v-icon>PREMIUM</div>
+        <div class="panel eyebrow eyebrow--sm grid-hdr grid-hdr--prem"><v-icon size="12" class="mr-1">mdi-crown</v-icon>PREMIUM</div>
 
         <template v-for="era in gridData.eras" :key="`era-${era}`">
 
-          <div class="rank-cell">
-            <span class="rank-roman">{{ ROMAN[era] }}</span>
+          <div class="panel rank-cell">
+            <span class="mono text-primary rank-roman">{{ ROMAN[era] }}</span>
           </div>
 
           <div
@@ -167,7 +157,7 @@
               :key="item.key"
             >
               <div v-if="item.isGroup" class="group-bracket">
-                <div class="group-label"><v-icon size="10" class="mr-1">mdi-folder-outline</v-icon>{{ item.groupLabel }}</div>
+                <div class="eyebrow eyebrow--xs t-dim group-label"><v-icon size="10" class="mr-1">mdi-folder-outline</v-icon>{{ item.groupLabel }}</div>
                 <ProgressionCard
                   v-for="v in item.vehicles"
                   :key="v._idx"
@@ -191,7 +181,7 @@
               :key="item.key"
             >
               <div v-if="item.isGroup" class="group-bracket">
-                <div class="group-label"><v-icon size="10" class="mr-1">mdi-folder-outline</v-icon>{{ item.groupLabel }}</div>
+                <div class="eyebrow eyebrow--xs t-dim group-label"><v-icon size="10" class="mr-1">mdi-folder-outline</v-icon>{{ item.groupLabel }}</div>
                 <ProgressionCard
                   v-for="v in item.vehicles"
                   :key="v._idx"
@@ -224,6 +214,7 @@ import { useDataStore } from '../stores/useDataStore.js'
 import { fmtNation } from '../composables/useVehicleFormatting.js'
 import ProgressionCard from '../components/ProgressionCard.vue'
 import InfoTip from '../components/InfoTip.vue'
+import SegControl from '../components/ui/SegControl.vue'
 import {
   ROMAN, BRANCH_TYPES, TYPE_LABELS, TYPE_ICON, VERDICT_COLORS, STD_CLASS,
   RANK_PENALTY, RANK_PENALTY_PREMIUM,
@@ -248,6 +239,10 @@ const BRANCH_OPTIONS = [
   { value: 'LargeFleet',  icon: 'mdi-ferry',      labelKey: 'sidebar.large_fleet' },
   { value: 'SmallFleet',  icon: 'mdi-sail-boat',  labelKey: 'sidebar.small_fleet' },
 ]
+
+const branchOptions = computed(() =>
+  BRANCH_OPTIONS.map(o => ({ value: o.value, icon: o.icon, label: t(o.labelKey) }))
+)
 
 const prefDisplay = computed(() => ({
   tank: { icon: 'mdi-tank', label: t('vehicle_types.tank') },
@@ -848,211 +843,66 @@ if (!Object.keys(lineupPrefs.value).length) {
 </script>
 
 <style scoped>
-.tip-two-col { display: flex; gap: 0; align-items: flex-start; }
-.tip-col { flex: 1; min-width: 0; }
+.prog-root   { display: flex; flex-direction: column; height: 100%; }
+.ctrl-nation { max-width: 200px; flex-shrink: 0; }
+.stats-badges { display: flex; flex-wrap: wrap; gap: 4px; margin-left: auto; }
+
+/* lineup mix */
+.lineup-mix-row   { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 10px 2px 2px; border-top: 1px solid var(--hairline); }
+.lineup-mix-types { display: flex; flex-wrap: wrap; gap: 6px; }
+.lineup-type-item { display: inline-flex; align-items: center; gap: 4px; padding: 3px 5px; }
+.lm-count         { min-width: 14px; text-align: center; font-size: 11px; font-weight: 600; transition: color 0.12s; }
+
+/* legend + tooltip */
+.legend-row   { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; padding: 4px 2px; }
+.legend-item  { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; letter-spacing: 0.08em; }
+.legend-text  { white-space: nowrap; }
+.tip-two-col  { display: flex; align-items: flex-start; }
+.tip-col      { flex: 1; min-width: 0; }
 .tip-col--types { flex: 0 0 130px; }
-.tip-vdivider {
-  width: 1px;
-  background: var(--hairline-strong);
-  align-self: stretch;
-  margin: 0 12px;
-  flex-shrink: 0;
-}
+.tip-vdivider { flex-shrink: 0; align-self: stretch; width: 1px; margin: 0 12px; background: var(--hairline-strong); }
 .tip-type-row { display: flex; align-items: center; gap: 7px; margin-top: 5px; }
 .tip-type-label { font-size: 11px; color: var(--ink-muted); white-space: nowrap; }
 
-.prog-root { display: flex; flex-direction: column; height: 100%; }
-
-.ctrl-nation { max-width: 200px; flex-shrink: 0; }
-
-/* ── verdict counters ── */
-.stats-badges { display: flex; gap: 4px; flex-wrap: wrap; margin-left: auto; }
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 2px 8px;
-  border: 1px solid transparent;
-  font-family: var(--font-display);
-  font-size: 11px;
-  font-weight: 600;
-  white-space: nowrap;
-}
-.badge-total { border-color: var(--hairline);             color: var(--ink-muted); }
-.badge-must  { border-color: rgba(94, 234, 212, 0.30);    background: rgba(94, 234, 212, 0.08);   color: #5EEAD4; }
-.badge-fill  { border-color: rgba(127, 178, 229, 0.30);   background: rgba(127, 178, 229, 0.08);  color: #7FB2E5; }
-.badge-skip  { border-color: rgba(232, 96, 123, 0.30);    background: rgba(232, 96, 123, 0.08);   color: #E8607B; }
-.badge-prem  { border-color: rgba(169, 155, 224, 0.30);   background: rgba(169, 155, 224, 0.08);  color: #A99BE0; }
-
-/* ── lineup mix ── */
-.lineup-mix-row {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 10px 2px 2px;
-  border-top: 1px solid var(--hairline);
-}
-.lineup-mix-types { display: flex; flex-wrap: wrap; gap: 6px; }
-.lineup-type-item {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 3px 5px;
-  border: 1px solid var(--hairline);
-  background: transparent;
-}
-.lm-icon { font-size: 12px; line-height: 1; color: var(--ink-muted); }
-.lm-btn {
-  display: flex; align-items: center; justify-content: center;
-  width: 18px; height: 18px; padding: 0;
-  border: 1px solid var(--hairline);
-  background: transparent;
-  color: var(--ink-muted);
-  font-size: 13px; font-weight: 600; line-height: 1;
-  cursor: pointer;
-  transition: background 0.12s, color 0.12s, border-color 0.12s;
-}
-.lm-btn:hover:not(:disabled) {
-  background: var(--primary-soft);
-  border-color: var(--primary-line);
-  color: var(--primary);
-}
-.lm-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-.lm-count {
-  min-width: 14px;
-  text-align: center;
-  font-family: var(--font-display);
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--ink-dim);
-  transition: color 0.12s;
-}
-.lm-count--active { color: var(--primary); }
-.lm-total {
-  flex-shrink: 0;
-  padding: 2px 7px;
-  border: 1px solid var(--hairline);
-  font-family: var(--font-display);
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--ink-muted);
-}
-.lm-total--full  { color: #5EEAD4; border-color: rgba(94, 234, 212, 0.30); background: rgba(94, 234, 212, 0.08); }
-.lm-total--over  { color: #E8607B; border-color: rgba(232, 96, 123, 0.30); background: rgba(232, 96, 123, 0.08); }
-.lm-total--under { color: #F5A623; border-color: rgba(245, 166, 35, 0.30); background: rgba(245, 166, 35, 0.07); }
-.lm-reset {
-  display: inline-flex; align-items: center;
-  flex-shrink: 0;
-  padding: 2px 6px;
-  border: 1px solid var(--hairline);
-  background: none;
-  color: var(--ink-faint);
-  cursor: pointer;
-  transition: color 0.12s, border-color 0.12s, background 0.12s;
-}
-.lm-reset:hover { color: var(--primary); border-color: var(--primary-line); background: var(--primary-soft); }
-
-/* ── legend ── */
-.legend-row {
-  display: flex; flex-wrap: wrap; align-items: center;
-  gap: 16px; padding: 4px 2px;
-}
-.legend-item {
-  display: inline-flex; align-items: center; gap: 5px;
-  font-family: var(--font-display);
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--ink-faint);
-}
-.legend-icon { font-size: 12px; }
-.legend-text { white-space: nowrap; }
-
-/* ── grid ── */
-.prog-grid-wrap {
-  flex: 1;
-  overflow: auto;
-  -webkit-overflow-scrolling: touch;
-  max-height: calc(100vh - 284px);
-  padding-bottom: 12px;
-}
-.prog-grid { display: grid; gap: 4px; align-items: start; width: 100%; }
+/* rank grid */
+.prog-grid-wrap { flex: 1; overflow: auto; -webkit-overflow-scrolling: touch; max-height: calc(100vh - 284px); padding-bottom: 12px; }
+.prog-grid      { display: grid; gap: 4px; align-items: start; width: 100%; }
+.prog-cell      { min-width: 0; min-height: 64px; padding: 2px; }
 
 .grid-hdr {
   display: flex; align-items: center; justify-content: center;
   min-height: 32px;
   padding: 6px 4px;
-  background: var(--surface);
-  border: 1px solid var(--hairline);
-  font-family: var(--font-display);
-  font-size: 10px;
-  font-weight: 500;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
   text-align: center;
 }
-.grid-hdr--rank {
-  color: var(--ink-faint);
-  position: sticky; left: 0; z-index: 2;
-  box-shadow: 4px 0 6px -4px rgba(0, 0, 0, 0.5);
-}
-.grid-hdr--prem { color: #A99BE0; }
+.grid-hdr--rank { position: sticky; left: 0; z-index: 2; box-shadow: 4px 0 6px -4px rgba(0, 0, 0, 0.5); }
+.grid-hdr--prem { color: var(--c-violet); }
 
 .rank-cell {
+  position: sticky; left: 0; z-index: 1;
   display: flex; align-items: flex-start; justify-content: center;
   min-height: 64px;
   padding: 10px 4px;
-  background: var(--surface);
-  border: 1px solid var(--hairline);
-  position: sticky; left: 0; z-index: 1;
   box-shadow: 4px 0 6px -4px rgba(0, 0, 0, 0.5);
 }
-.rank-roman {
-  font-family: var(--font-display);
-  font-size: 22px;
-  font-weight: 500;
-  line-height: 1;
-  color: var(--primary);
-}
-
-.prog-cell { min-height: 64px; padding: 2px; min-width: 0; }
+.rank-roman { font-size: 22px; font-weight: 500; line-height: 1; }
 
 .group-bracket {
-  padding: 4px 0;
   margin-bottom: 4px;
+  padding: 4px 0;
   border: 1px solid var(--hairline);
   border-left: 2px solid var(--hairline-strong);
   background: rgba(231, 233, 238, 0.02);
 }
-.group-label {
-  padding: 0 4px 2px 6px;
-  font-family: var(--font-display);
-  font-size: 9px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--ink-dim);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
+.group-label { padding: 0 4px 2px 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .group-bracket :deep(.prog-card:not(:last-child)) { margin-bottom: 1px; }
 
 @media (max-width: 760px) {
-  .controls-row {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    padding-bottom: 2px;
-  }
-  .controls-row > * { flex-shrink: 0; }
-  .controls-row .stats-badges { margin-left: 0; }
-
-  .lineup-mix-row {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    padding-bottom: 2px;
-  }
+  .controls-row,
+  .lineup-mix-row { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 2px; }
+  .controls-row > *,
   .lineup-mix-row > * { flex-shrink: 0; }
+  .controls-row .stats-badges { margin-left: 0; }
   .lineup-mix-types { flex-wrap: nowrap; }
 }
 </style>

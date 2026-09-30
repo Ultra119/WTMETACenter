@@ -3,25 +3,25 @@
     <div class="stats-card__head">
       <div class="d-flex align-center">
         <v-icon icon="mdi-chart-line" size="14" style="opacity:.7" class="mr-2" />
-        <span class="stats-card__title">{{ t('vehicle_card.stats') }}</span>
+        <span class="eyebrow eyebrow--primary">{{ t('vehicle_card.stats') }}</span>
       </div>
-      <span v-if="activePeriodLabel" class="stats-card__period">{{ activePeriodLabel }}</span>
+      <span v-if="activePeriodLabel" class="mono t-muted stats-card__period">{{ activePeriodLabel }}</span>
     </div>
-    <div class="stats-card__sub">{{ vehicleName }}</div>
+    <div class="mono t-faint stats-card__sub">{{ vehicleName }}</div>
 
     <v-divider class="my-3" />
 
     <div class="stats-card__body">
-      <div v-if="loading" class="stats-state">
+      <div v-if="loading" class="stats-state mono t-faint">
         <v-progress-circular indeterminate size="20" width="2" color="primary" class="mr-2" />
         {{ t('common.loading') }}
       </div>
 
-      <div v-else-if="error" class="stats-state stats-state--error">
+      <div v-else-if="error" class="stats-state mono text-error">
         {{ t('common.error_load', { msg: error }) }}
       </div>
 
-      <div v-else-if="metrics.length === 0" class="stats-state">
+      <div v-else-if="metrics.length === 0" class="stats-state mono t-faint">
         {{ t('vehicle_card.history_empty') }}
       </div>
 
@@ -34,25 +34,25 @@
         >
           <div class="metric-block__head">
             <v-icon :icon="m.icon" size="13" style="opacity:.65" />
-            <span class="metric-block__label">{{ m.label }}</span>
+            <span class="eyebrow eyebrow--sm">{{ m.label }}</span>
             <span
-              class="metric-block__delta"
-              :class="m.delta >= 0 ? 'is-up' : 'is-down'"
+              class="metric-block__delta mono"
+              :class="m.delta >= 0 ? 'text-primary' : 'text-error'"
             >
               <v-icon size="9">{{ m.delta >= 0 ? 'mdi-arrow-up' : 'mdi-arrow-down' }}</v-icon>{{ m.deltaFmt }}
             </span>
           </div>
 
           <div class="metric-block__row">
-            <span class="metric-block__val" :style="{ color: m.color }">{{ m.valueFmt }}</span>
+            <span class="mono metric-block__val" :style="{ color: m.color }">{{ m.valueFmt }}</span>
 
             <div
               class="spark-wrap"
               @mousemove="e => onChartHover(e, m)"
               @mouseleave="onHover(null)"
             >
-              <span class="spark-label spark-label--max">{{ m.maxFmt }}</span>
-              <span class="spark-label spark-label--min">{{ m.minFmt }}</span>
+              <span class="mono t-dim spark-label spark-label--max">{{ m.maxFmt }}</span>
+              <span class="mono t-dim spark-label spark-label--min">{{ m.minFmt }}</span>
 
               <svg class="spark-svg" :viewBox="`0 0 ${SPARK_W} ${SPARK_H}`" preserveAspectRatio="none">
                 <defs>
@@ -215,85 +215,23 @@ const activePeriodLabel = computed(() => metrics.value[0]?.periodLabel ?? null)
 </script>
 
 <style scoped>
-.stats-card { padding: 14px 16px; height: 100%; display: flex; flex-direction: column; }
+.stats-card        { display: flex; flex-direction: column; height: 100%; padding: 14px 16px; }
+.stats-card__head  { display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+.stats-card__period { font-size: 11px; letter-spacing: 0.04em; }
+.stats-card__sub   { margin-top: 2px; font-size: 11px; flex-shrink: 0; }
+.stats-card__body  { flex: 1 1 auto; min-height: 0; overflow: hidden; }
+.stats-state       { display: flex; align-items: center; justify-content: center; padding: 28px 8px; font-size: 12px; }
 
-.stats-card__head { display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
-.stats-card__title {
-  font-family: var(--font-display);
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--primary);
-}
-.stats-card__period {
-  font-family: var(--font-display);
-  font-size: 11px;
-  letter-spacing: 0.04em;
-  color: var(--ink-muted);
-}
-.stats-card__sub {
-  margin-top: 2px;
-  font-family: var(--font-display);
-  font-size: 11px;
-  color: var(--ink-faint);
-  flex-shrink: 0;
-}
-
-.stats-card__body { flex: 1 1 auto; min-height: 0; overflow: hidden; }
-
-.stats-state {
-  display: flex; align-items: center; justify-content: center;
-  padding: 28px 8px;
-  font-family: var(--font-display);
-  font-size: 12px;
-  color: var(--ink-faint);
-}
-.stats-state--error { color: var(--danger); }
-
-.metric-block { height: 96px; padding-left: 12px; margin-bottom: 14px; }
+.metric-block        { height: 96px; margin-bottom: 14px; padding-left: 12px; }
 .metric-block:last-child { margin-bottom: 0; }
+.metric-block__head  { display: flex; align-items: center; gap: 4px; height: 16px; }
+.metric-block__delta { display: inline-flex; align-items: center; gap: 1px; margin-left: 2px; font-size: 10px; font-weight: 500; }
+.metric-block__row   { display: flex; align-items: center; gap: 10px; height: 64px; margin-top: 6px; }
+.metric-block__val   { flex: 0 0 76px; width: 76px; font-size: 21px; font-weight: 500; line-height: 1; white-space: nowrap; }
 
-.metric-block__head { display: flex; align-items: center; gap: 4px; height: 16px; }
-.metric-block__label {
-  font-family: var(--font-display);
-  font-size: 10px;
-  font-weight: 500;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--ink-faint);
-}
-.metric-block__delta {
-  margin-left: 2px;
-  display: inline-flex; align-items: center; gap: 1px;
-  font-family: var(--font-display);
-  font-size: 10px;
-  font-weight: 500;
-}
-.metric-block__delta.is-up   { color: var(--primary); }
-.metric-block__delta.is-down { color: var(--danger); }
-
-.metric-block__row { display: flex; align-items: center; gap: 10px; height: 64px; margin-top: 6px; }
-.metric-block__val {
-  flex: 0 0 76px;
-  width: 76px;
-  font-family: var(--font-display);
-  font-size: 21px;
-  font-weight: 500;
-  line-height: 1;
-  white-space: nowrap;
-}
-
-.spark-wrap { position: relative; flex: 1 1 auto; height: 64px; cursor: crosshair; }
-.spark-svg  { width: 100%; height: 100%; display: block; }
-
-.spark-label {
-  position: absolute; right: 2px;
-  font-family: var(--font-display);
-  font-size: 9px;
-  color: var(--ink-dim);
-  pointer-events: none; z-index: 1;
-}
+.spark-wrap  { position: relative; flex: 1 1 auto; height: 64px; cursor: crosshair; }
+.spark-svg   { display: block; width: 100%; height: 100%; }
+.spark-label { position: absolute; right: 2px; z-index: 1; font-size: 9px; pointer-events: none; }
 .spark-label--max { top: 0; }
 .spark-label--min { bottom: 0; }
 

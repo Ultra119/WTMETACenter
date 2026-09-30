@@ -1,7 +1,7 @@
 <template>
   <div class="veh-img-wrap" :style="wrapStyle">
 
-    <Transition name="veh-img-fade">
+    <Transition name="fade">
       <img
         v-if="src && loaded"
         :src="src"
@@ -11,11 +11,11 @@
       />
     </Transition>
 
-    <Transition name="veh-img-fade">
+    <Transition name="fade">
       <div v-if="src && !loaded && !imgError && showFallback" class="veh-img-skeleton" />
     </Transition>
 
-    <Transition name="veh-img-fade">
+    <Transition name="fade">
       <div v-if="(imgError || !src) && showFallback" class="veh-img-placeholder">
         <v-icon :size="iconSize" style="opacity:.14;color:var(--primary)">mdi-image-outline</v-icon>
       </div>
@@ -55,46 +55,16 @@ const iconSize = computed(() => props.aspect === '1/1' ? 28 : 36)
 </script>
 
 <style scoped>
-.veh-img-wrap {
-  position: relative;
-  width: 100%;
-  overflow: hidden;
-  background: rgba(231, 233, 238, 0.04);
-}
-.veh-img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: var(--veh-fit, cover);
-  object-position: center;
-  display: block;
-}
+.veh-img-wrap        { position: relative; width: 100%; overflow: hidden; background: rgba(231, 233, 238, 0.04); }
+.veh-img,
+.veh-img-skeleton,
+.veh-img-placeholder { position: absolute; inset: 0; }
+.veh-img             { width: 100%; height: 100%; display: block; object-fit: var(--veh-fit, cover); object-position: center; }
+.veh-img-placeholder { display: flex; align-items: center; justify-content: center; }
 .veh-img-skeleton {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    90deg,
-    rgba(231, 233, 238, 0.0)  0%,
-    rgba(231, 233, 238, 0.07) 50%,
-    rgba(231, 233, 238, 0.0)  100%
-  );
+  background: linear-gradient(90deg, transparent 0%, rgba(231, 233, 238, 0.07) 50%, transparent 100%);
   background-size: 200% 100%;
   animation: shimmer 1.6s infinite;
 }
-@keyframes shimmer {
-  0%   { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
-}
-.veh-img-placeholder {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.veh-img-fade-enter-active { transition: opacity 0.25s ease; }
-.veh-img-fade-leave-active { transition: opacity 0.15s ease; }
-.veh-img-fade-enter-from,
-.veh-img-fade-leave-to     { opacity: 0; }
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 </style>
