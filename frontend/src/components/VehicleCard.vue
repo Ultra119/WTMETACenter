@@ -13,6 +13,11 @@
           <span class="mdi mdi-medal-outline" style="font-size:10px; margin-right:3px;" />
           {{ t('vehicle_card.era') }} {{ vehicle.vdb_shop_rank }}
         </span>
+        <!-- the vehicle was re-balanced; show how its BR moved -->
+        <span v-if="brHistory.length" class="tag eyebrow ml-1" :title="brHistoryTitle">
+          <span class="mdi mdi-swap-vertical" style="font-size:10px; margin-right:3px;" />
+          {{ brHistoryLabel }}
+        </span>
         <v-spacer />
 
         <button
@@ -252,6 +257,35 @@ const BR_MODES = [
 
 const veh      = computed(() => props.vehicle ?? {})
 const hasVdb   = computed(() => (veh.value?.vdb_match_score ?? 0) > 0)
+// rows pooled across all months carry a {period: BR} trail
+const brHistory = computed(() => {
+  const h = veh.value?.BR_HISTORY
+  if (!h || typeof h !== 'object') return []
+  return Object.entries(h).map(([period, br]) => ({ period, br: Number(br) }))
+})
+
+const brHistoryLabel = computed(() => {
+  const h = brHistory.value
+  if (h.length < 2) return ''
+  const first = h[0]
+  const last  = h[h.length - 1]
+  if (first.br === last.br) return ''
+  return `BR ${first.br.toFixed(1)} → ${last.br.toFixed(1)}`
+})
+
+const brHistoryTitle = computed(() =>
+  brHistory.value
+    .map(x => `${formatPeriod(x.period)}: ${x.br.toFixed(1)}`)
+    .join('\n')
+)
+
+function formatPeriod(p) {
+  const m = /^(\d{2})-(\d{4})$/.exec(String(p ?? ''))
+  if (!m) return String(p ?? '')
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
+  return `${months[Number(m[1]) - 1] ?? m[1]} ${m[2]}`
+}
+
 const displayName = computed(() => vehicleDisplayName(veh.value))
 
 const _GROUND_SET = new Set(['medium_tank', 'light_tank', 'heavy_tank', 'tank_destroyer', 'spaa'])

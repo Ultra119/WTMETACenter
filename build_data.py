@@ -43,6 +43,7 @@ _KEEP_COLS = [
     "vdb_ge_cost","vdb_exp_mul","vdb_sl_mul_realistic","vdb_sl_mul_arcade",
     "vdb_shop_column","vdb_shop_row","vdb_shop_nation","vdb_shop_branch",
     "vdb_shop_order","vdb_req_exp","vdb_value","vdb_required_vehicle",
+    "BR_HISTORY",
     "vdb_shop_group",
     "vdb_crew_total_count","vdb_visibility","vdb_mass",
     "vdb_match_score",
@@ -95,9 +96,23 @@ def _df_to_records(df: pd.DataFrame) -> list[dict]:
     for row in df[cols].itertuples(index=False):
         rec = {}
         for c, v in zip(cols, row):
+            if c == "BR_HISTORY":
+                continue
             rec[c] = _safe_val(v)
+        rec["BR_HISTORY"] = _br_history_of(row, cols)
         records.append(rec)
     return records
+
+
+def _br_history_of(row, cols) -> dict | None:
+    """{period: BR} for a vehicle that was re-balanced, else None."""
+    if "BR_HISTORY" not in cols:
+        return None
+    trail = row[cols.index("BR_HISTORY")]
+    if not isinstance(trail, dict) or not trail:
+        return None
+    ordered = sorted(trail.items(), key=lambda kv: _period_sort_key(kv[0]))
+    return {p: br for p, br in ordered}
 
 
 def _period_sort_key(p: str) -> tuple:
