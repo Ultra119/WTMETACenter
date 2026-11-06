@@ -67,7 +67,7 @@
             <div v-if="hits.length" class="search-list">
               <div
                 v-for="(v, i) in hits"
-                :key="v.Name + v.Nation"
+                :key="hitKey(v)"
                 class="search-item"
                 :class="{ 'search-item--active': i === activeIdx }"
                 @mousedown.prevent="pick(v)"
@@ -171,6 +171,11 @@ onMounted(()        => document.addEventListener('mousedown', onDocClick))
 onBeforeUnmount(()  => document.removeEventListener('mousedown', onDocClick))
 
 const MAX_HITS = 12
+// vdb_identifier is unique per vehicle; fall back to the display pair
+function hitKey(v) {
+  return v?.vdb_identifier || `${v?.Name ?? ''}||${v?.Nation ?? ''}`
+}
+
 const hits = shallowRef([])
 
 watchEffect(() => {
