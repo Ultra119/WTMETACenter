@@ -196,18 +196,19 @@ const removeExcludeType = type => {
 }
 
 function buildWtBrackets(stepsN) {
-  const step = Math.max(1, stepsN)
-  const n    = WT_BR_STEPS.length
+  const step  = Math.max(1, stepsN)
+  const steps = store.brSteps
+  const n     = steps.length
   const boundaryIndices = []
   for (let i = 0; i < n; i += step) boundaryIndices.push(i)
   if (boundaryIndices[boundaryIndices.length - 1] !== n - 1) boundaryIndices.push(n - 1)
 
   return boundaryIndices.slice(0, -1).map((startIdx, i) => {
     const endIdx = boundaryIndices[i + 1]
-    const minBr  = WT_BR_STEPS[startIdx]
-    const maxBr  = WT_BR_STEPS[endIdx]
+    const minBr  = steps[startIdx]
+    const maxBr  = steps[endIdx]
     const isLast = i === boundaryIndices.length - 2
-    const lastIncludedBr = isLast ? maxBr : WT_BR_STEPS[endIdx - 1]
+    const lastIncludedBr = isLast ? maxBr : steps[endIdx - 1]
 
     return {
       label: step === 1

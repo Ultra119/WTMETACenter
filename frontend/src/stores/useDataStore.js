@@ -1,14 +1,37 @@
 import { defineStore } from 'pinia'
 import { ref, shallowRef, computed, watch } from 'vue'
 
-export const WT_BR_STEPS = [
+// fallback ladder, used only until the dataset reports its own range
+export const FALLBACK_BR_STEPS = [
   1.0,1.3,1.7, 2.0,2.3,2.7, 3.0,3.3,3.7, 4.0,4.3,4.7,
   5.0,5.3,5.7, 6.0,6.3,6.7, 7.0,7.3,7.7, 8.0,8.3,8.7,
   9.0,9.3,9.7, 10.0,10.3,10.7, 11.0,11.3,11.7, 12.0,12.3,12.7, 13.0,
 ]
 
-const BR_MIN = Math.min(...WT_BR_STEPS)
-const BR_MAX = Math.max(...WT_BR_STEPS)
+// The WT ladder runs X.0, X.3, X.7 inside every decade, so in tenths the
+// i-th step is 10 + 3i + floor((i+1)/3). Building it from the formula keeps
+// the known 1.0-13.0 ladder byte-identical and extends past it on its own.
+export function buildBrSteps(maxBr) {
+  const steps = []
+  for (let i = 0; i < 500; i++) {
+    const br = (10 + 3 * i + Math.floor((i + 1) / 3)) / 10
+    if (br > maxBr + 1e-9) break
+    steps.push(br)
+  }
+  return steps
+}
+
+// the highest BR present in a set of rows
+export function maxBrOf(rows) {
+  let mx = 0
+  for (const r of rows ?? []) {
+    const b = Number(r?.BR)
+    if (Number.isFinite(b) && b > mx) mx = b
+  }
+  return mx
+}
+
+export const WT_BR_STEPS = FALLBACK_BR_STEPS
 
 // stable identities so the computed does not invalidate downstream watchers
 const EMPTY_ROWS  = Object.freeze([])
@@ -68,8 +91,22 @@ export const useDataStore = defineStore('data', () => {
 
   const mode       = ref('Realistic')
   const minBattles = ref(50)
-  const brRange    = ref([BR_MIN, BR_MAX])
   const classes    = ref(['Standard','Premium','Pack','Squadron','Marketplace','Gift','Event'])
+
+  // the ceiling comes from the data, so a raised BR cap needs no code change
+  const dataMaxBr = ref(0)
+  const brCeiling = computed(() => {
+    const fromData = dataMaxBr.value
+    const fromMeta = Number(metaInfo.value?.max_br) || 0
+    const fromRows = maxBrOf(allVehicles.value)
+    return Math.max(fromData, fromMeta, fromRows, WT_BR_STEPS[WT_BR_STEPS.length - 1])
+  })
+
+  const brSteps = computed(() => buildBrSteps(brCeiling.value))
+  const BR_MAX  = computed(() => brSteps.value[brSteps.value.length - 1])
+  const BR_STEP_MIN = computed(() => brSteps.value[0])
+
+  const brRange = ref([BR_STEP_MIN.value, BR_MAX.value])
 
   const showGround      = ref(true)
   const showAviation    = ref(true)
@@ -78,7 +115,7 @@ export const useDataStore = defineStore('data', () => {
   const showSmallFleet  = ref(false)
 
   const _minBattles = ref(50)
-  const _brRange    = ref([BR_MIN, BR_MAX])
+  const _brRange    = ref([BR_STEP_MIN.value, BR_MAX.value])
 
   const commitRange   = debounce(v => { _brRange.value    = v }, 220)
   const commitBattles = debounce(v => { _minBattles.value = v }, 220)
@@ -102,7 +139,31 @@ export const useDataStore = defineStore('data', () => {
 
     const res = await fetch(url, { signal })
     if (!res.ok) throw new Error(`mega_db_${currentPeriod.value}.json: ${res.status}`)
-    allVehicles.value = await res.json()
+    const rows = await res.json()
+    allVehicles.value = rows
+    dataMaxBr.value   = maxBrOf(rows)
+    _followCeiling()
+  }
+
+  // when the ceiling moves, a range pinned to the old top would silently
+  // exclude (or over-ask for) the new top bracket, so re-open it
+  function _followCeiling() {
+    const top = brCeiling.value
+    const [lo, hi] = _brRange.value
+
+    if (lo > top) return                       // range sits above the data
+    if (hi >= top - 1e-9) {
+      if (hi !== top) {
+        _brRange.value = [lo, top]
+        brRange.value  = [lo, top]
+      }
+      return
+    }
+    // the range was open-ended before the ceiling rose, keep it open-ended
+    if (hi === brSteps.value[brSteps.value.length - 2]) {
+      _brRange.value = [lo, top]
+      brRange.value  = [lo, top]
+    }
   }
 
   let _periodInitialized = false
@@ -269,7 +330,7 @@ export const useDataStore = defineStore('data', () => {
     loadData, clearLoadError,
     fetchVehicleHistory,
     tabFilterConfig, setTabFilters, clearTabFilters,
-    BR_MIN, BR_MAX, WT_BR_STEPS,
+    BR_MIN: BR_STEP_MIN, BR_MAX, BR_STEP_MIN, brSteps, brCeiling, WT_BR_STEPS,
     searchQuery,
     metaTabActive,
     historyTabActive,

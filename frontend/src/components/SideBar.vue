@@ -52,7 +52,7 @@
           </div>
           <v-range-slider
             :model-value="store.brRange"
-            :min="store.BR_MIN"
+            :min="store.BR_STEP_MIN"
             :max="store.BR_MAX"
             :step="0.1"
             color="primary"

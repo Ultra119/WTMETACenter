@@ -10,7 +10,7 @@
             <v-slider
               v-model="brIndex"
               :min="0"
-              :max="WT_BR_STEPS.length - 1"
+              :max="store.brSteps.length - 1"
               :step="1"
               hide-details
               color="primary"
@@ -187,7 +187,7 @@ useTabFilters()
 
 const DEFAULT_BR = 7.0
 const brIndex    = ref(Math.max(0, WT_BR_STEPS.indexOf(DEFAULT_BR)))
-const targetBr   = computed(() => WT_BR_STEPS[brIndex.value])
+const targetBr   = computed(() => store.brSteps[brIndex.value] ?? WT_BR_STEPS[brIndex.value] ?? DEFAULT_BR)
 
 const nation = ref('All')
 const nationItems = computed(() =>
