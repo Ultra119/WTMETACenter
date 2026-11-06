@@ -80,7 +80,7 @@ jobs:
             echo "→ Deploy: SKIP (nothing changed)"
           fi
 
-      - name: Build mega_db.json
+      - name: Build the dataset
         if: |
           steps.changes.outputs.dataset_changed == 'true' ||
           github.event.inputs.force == 'true' ||

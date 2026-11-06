@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import json
+import os
+
 from analytics.units_csv import _BADGE_CHARS
 
 
@@ -52,6 +55,10 @@ def check_records(checks: Checks, period: str, records: list[dict]) -> None:
     )
     if out_of_range:
         checks.fail(f"{period}: {out_of_range} rows with META_SCORE outside 0-100")
+
+    without_id = sum(1 for r in records if not r.get("vdb_identifier"))
+    if without_id:
+        checks.fail(f"{period}: {without_id} rows without vdb_identifier")
 
     missing_br = sum(1 for r in records if r.get("BR") is None)
     if missing_br:
@@ -128,6 +135,84 @@ def evaluate(
         check_tree(checks, period_records["All"], shop_loaded)
 
     return checks
+
+
+def check_export(checks: Checks, data_dir: str, expected: dict[str, int]) -> None:
+    index_path = os.path.join(data_dir, "index.json")
+    try:
+        with open(index_path, encoding="utf-8") as f:
+            index = json.load(f)
+    except (OSError, ValueError) as e:
+        checks.fail(f"index.json unreadable: {e}")
+        return
+
+    vehicles_path = os.path.join(data_dir, "vehicles.json")
+    try:
+        with open(vehicles_path, encoding="utf-8") as f:
+            vehicles = json.load(f)
+    except (OSError, ValueError) as e:
+        checks.fail(f"vehicles.json unreadable: {e}")
+        return
+
+    if not vehicles:
+        checks.fail("vehicles.json is empty")
+        return
+
+    if index.get("vehicles") != len(vehicles):
+        checks.fail(
+            f"index.json claims {index.get('vehicles')} vehicles, "
+            f"vehicles.json holds {len(vehicles)}"
+        )
+
+    columns = index.get("row_columns") or []
+    if "vdb_identifier" in columns:
+        checks.fail("vdb_identifier must not be a row column")
+
+    for period, expected_rows in expected.items():
+        entry = (index.get("periods") or {}).get(period)
+        if not entry:
+            checks.fail(f"index.json is missing period {period}")
+            continue
+
+        seen = 0
+        for mode, count in (entry.get("modes") or {}).items():
+            path = os.path.join(data_dir, "stats", period, f"{mode}.json")
+            try:
+                with open(path, encoding="utf-8") as f:
+                    blob = json.load(f)
+            except (OSError, ValueError) as e:
+                checks.fail(f"stats/{period}/{mode}.json unreadable: {e}")
+                continue
+
+            ids = blob.get("identifier") or []
+            rows = blob.get("rows") or []
+            if len(ids) != len(rows):
+                checks.fail(
+                    f"stats/{period}/{mode}.json: {len(ids)} identifiers "
+                    f"for {len(rows)} rows"
+                )
+            if blob.get("columns") != columns:
+                checks.fail(f"stats/{period}/{mode}.json: column list differs from index")
+            for i, identifier in enumerate(ids):
+                if not identifier:
+                    checks.fail(f"stats/{period}/{mode}.json: row {i} has no identifier")
+                    break
+                if identifier not in vehicles:
+                    checks.fail(
+                        f"stats/{period}/{mode}.json: {identifier!r} is not in vehicles.json"
+                    )
+                    break
+            seen += len(rows)
+
+        if seen != entry.get("vehicles"):
+            checks.fail(
+                f"{period}: index claims {entry.get('vehicles')} vehicles, "
+                f"files hold {seen}"
+            )
+        if seen != expected_rows:
+            checks.fail(
+                f"{period}: files hold {seen} rows, the build produced {expected_rows}"
+            )
 
 
 def report(checks: Checks) -> None:

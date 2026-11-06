@@ -119,20 +119,75 @@ export const useDataStore = defineStore('data', () => {
   const metaTabActive = ref(false)
   const historyTabActive = ref(false)
 
-  let _vehicleAC = null
+  const _attrsAC  = new AbortController()
+  let _vehiclesReady = null
+  let _periodAC  = new AbortController()
+
+  function _cacheBust() {
+    const hash = metaInfo.value?.dataset_hash ?? ''
+    return hash ? `?v=${hash.slice(0, 8)}` : ''
+  }
+
+  async function _loadVehicleAttrs() {
+    if (_vehiclesReady) return _vehiclesReady
+    _vehiclesReady = (async () => {
+      const res = await fetch(`${_basePath.value}/data/vehicles.json${_cacheBust()}`, { signal: _attrsAC.signal })
+      if (!res.ok) throw new Error(`vehicles.json: ${res.status}`)
+      return res.json()
+    })()
+    try {
+      return await _vehiclesReady
+    } catch (e) {
+      _vehiclesReady = null
+      throw e
+    }
+  }
+
+  function _decodeStats(mode, blob, attrs) {
+    const columns = blob.columns ?? []
+    const ids     = blob.identifier ?? []
+    const rows    = blob.rows ?? []
+    const out     = new Array(rows.length)
+
+    for (let i = 0; i < rows.length; i++) {
+      const values = rows[i]
+      const id     = ids[i]
+      const base   = attrs[id]
+      const row    = base ? { ...base } : {}
+      for (let c = 0; c < columns.length; c++) {
+        const v = values[c]
+        if (v !== null) row[columns[c]] = v
+      }
+      row.vdb_identifier = id
+      row.Mode           = mode
+      out[i] = row
+    }
+    return out
+  }
+
+  async function _loadPeriod(period, signal) {
+    const index  = metaInfo.value?.index
+    const entry  = index?.periods?.[period]
+    if (!entry) throw new Error(`period ${period} is not in index.json`)
+
+    const attrs  = await _loadVehicleAttrs()
+    const modes  = Object.keys(entry.modes ?? {})
+    const blobs  = await Promise.all(modes.map(async m => {
+      const res = await fetch(`${_basePath.value}/data/stats/${period}/${m}.json${_cacheBust()}`, { signal })
+      if (!res.ok) throw new Error(`stats/${period}/${m}.json: ${res.status}`)
+      return [m, await res.json()]
+    }))
+
+    return blobs.flatMap(([m, blob]) => _decodeStats(m, blob, attrs))
+  }
 
   async function _loadVehicles() {
-    if (_vehicleAC) _vehicleAC.abort()
-    _vehicleAC = new AbortController()
-    const { signal } = _vehicleAC
-
-    const hash = metaInfo.value?.dataset_hash ?? ''
-    const qs   = hash ? `?v=${hash.slice(0, 8)}` : ''
-    const url  = `${_basePath.value}/data/mega_db_${currentPeriod.value}.json${qs}`
-
-    const res = await fetch(url, { signal })
-    if (!res.ok) throw new Error(`mega_db_${currentPeriod.value}.json: ${res.status}`)
-    const rows = await res.json()
+    const period = currentPeriod.value
+    const ac     = new AbortController()
+    _periodAC.abort()
+    _periodAC = ac
+    const rows = await _loadPeriod(period, ac.signal)
+    if (period !== currentPeriod.value) return
     allVehicles.value = rows
     dataMaxBr.value   = maxBrOf(rows)
     _followCeiling()
@@ -157,6 +212,7 @@ export const useDataStore = defineStore('data', () => {
   }
 
   let _periodInitialized = false
+  let _seenPeriod = null
 
   async function loadData(basePath = '') {
     _basePath.value  = basePath
@@ -167,15 +223,24 @@ export const useDataStore = defineStore('data', () => {
       if (!metaRes.ok) throw new Error(`meta_info.json: ${metaRes.status}`)
       metaInfo.value = await metaRes.json()
 
+      const indexRes = await fetch(`${basePath}/data/index.json${_cacheBust()}`)
+      if (!indexRes.ok) throw new Error(`data/index.json: ${indexRes.status}`)
+      metaInfo.value = { ...metaInfo.value, index: await indexRes.json() }
+
       const available = metaInfo.value?.periods ?? ['All']
+
+      let next = currentPeriod.value
 
       if (!_periodInitialized) {
         _periodInitialized = true
         const latestMonth = available.find(p => p !== 'All')
-        currentPeriod.value = latestMonth ?? available[0] ?? 'All'
+        next = latestMonth ?? available[0] ?? 'All'
       } else if (!available.includes(currentPeriod.value)) {
-        currentPeriod.value = available[0] ?? 'All'
+        next = available[0] ?? 'All'
       }
+
+      _seenPeriod = next
+      currentPeriod.value = next
 
       await _loadVehicles()
     } catch (e) {
@@ -200,13 +265,7 @@ export const useDataStore = defineStore('data', () => {
     if (period === currentPeriod.value) return allVehicles.value
     if (_periodCache.has(period)) return _periodCache.get(period)
 
-    const hash = metaInfo.value?.dataset_hash ?? ''
-    const qs   = hash ? `?v=${hash.slice(0, 8)}` : ''
-    const url  = `${_basePath.value}/data/mega_db_${period}.json${qs}`
-
-    const res = await fetch(url, { signal })
-    if (!res.ok) throw new Error(`mega_db_${period}.json: ${res.status}`)
-    const data = await res.json()
+    const data = await _loadPeriod(period, signal)
     _periodCache.set(period, data)
     return data
   }
@@ -248,6 +307,8 @@ export const useDataStore = defineStore('data', () => {
 
   watch(currentPeriod, async () => {
     if (!metaInfo.value) return
+    if (currentPeriod.value === _seenPeriod) return
+    _seenPeriod = currentPeriod.value
     filtering.value = true
     loadError.value = null
     try {

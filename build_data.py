@@ -20,8 +20,9 @@ sys.path.insert(0, os.path.join(PROJECT_DIR, "analytics"))
 sys.path.insert(0, PROJECT_DIR)
 
 from analytics.core      import AnalyticsCore
+from analytics.exporter  import write_dataset
 from analytics.loader    import invalid_periods
-from analytics.quality  import evaluate, report as report_quality
+from analytics.quality  import Checks, check_export, evaluate, report as report_quality
 from analytics.constants import WT_BR_STEPS
 
 _KEEP_COLS = [
@@ -283,14 +284,24 @@ def main() -> None:
         print(f"\n❌  DQ gate failed with {len(checks.failures)} error(s) — output was not written")
         sys.exit(1)
 
-    for period_label, records in period_records.items():
-        out_path = os.path.join(DATA_DIR, f"mega_db_{period_label}.json")
-        with open(out_path, "w", encoding="utf-8") as f:
-            json.dump(records, f, ensure_ascii=False, indent=2)
-        size_mb = os.path.getsize(out_path) / 1_048_576
-        print(f"   💾  {period_label}: {len(records)} records · {size_mb:.2f} MB")
-
     print("   ✅  gate passed")
+
+    export = write_dataset(DATA_DIR, period_records)
+    print(
+        f"   💾  {export['vehicles']} vehicles · "
+        f"{sum(export['periods'][p]['vehicles'] for p in export['periods'])} rows · "
+        f"{export['bytes'] / 1_048_576:.2f} MB"
+    )
+
+    expected = {p: len(r) for p, r in period_records.items()}
+    written_checks = Checks()
+    check_export(written_checks, DATA_DIR, expected)
+    report_quality(written_checks)
+    if written_checks.failures:
+        print(
+            f"\n❌  Export check failed with {len(written_checks.failures)} error(s)"
+        )
+        sys.exit(1)
 
     all_nations_raw = (
         core.full_df["Nation"].dropna().unique().tolist()
