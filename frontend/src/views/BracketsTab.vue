@@ -140,10 +140,14 @@ const heatModeOptions = computed(() => [
 ])
 
 const stepOptions = computed(() =>
-  [1, 2, 3, 4, 6].map(n => ({
-    value: n,
-    title: `${(WT_BR_STEPS[n] - WT_BR_STEPS[0]).toFixed(1)} BR`,
-  }))
+  [1, 2, 3, 4, 6].map(n => {
+    // label the bracket that actually gets built, not the raw grid offset
+    const first = buildWtBrackets(n)[0]
+    const title = first.min === first.max
+      ? `${first.min.toFixed(1)} BR`
+      : `${first.min.toFixed(1)}–${first.max.toFixed(1)} BR`
+    return { value: n, title }
+  })
 )
 
 const topNOptions = computed(() => [
