@@ -3,21 +3,21 @@ from __future__ import annotations
 import csv
 import os
 import re
-import unicodedata
 from typing import Optional
 
 from analytics.datamine import fetch
 
 _SHOP_SUFFIX_RE = re.compile(r"_shop$")
 
-_BADGE_PREFIX_RE = re.compile(r"^[^\w(\[{\"']+", re.UNICODE)
+_BADGE_CHARS = frozenset("\u2580\u2582\u2583\u2584\u2585\u2417\u2419\u2420\u25c4\u25ca\u25cb\u25cc\u25cd\u25d0\u25d4\u25d7\u25d8\u25e1\u25e2\u25e5\u22e0\uf059")
+
+
+_BADGE_RE = re.compile("[" + "".join(_BADGE_CHARS) + "]", re.UNICODE)
 
 
 def _strip_badge_prefix(name: str) -> str:
-    stripped = name.strip()
-    while stripped and unicodedata.category(stripped[0]) in ("So", "Sm", "Sk", "Co", "Cn"):
-        stripped = stripped[1:].lstrip()
-    return stripped.replace('""', '"') or name.strip()
+    cleaned = " ".join(_BADGE_RE.sub(" ", name).split())
+    return cleaned.replace('""', '"') or name.strip()
 
 
 UNITS_CSV_FILENAME: str = "units.csv"

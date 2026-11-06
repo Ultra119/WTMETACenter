@@ -20,6 +20,7 @@ sys.path.insert(0, os.path.join(PROJECT_DIR, "analytics"))
 sys.path.insert(0, PROJECT_DIR)
 
 from analytics.core      import AnalyticsCore
+from analytics.quality  import evaluate, report as report_quality
 from analytics.constants import WT_BR_STEPS
 
 _KEEP_COLS = [
@@ -64,6 +65,16 @@ _WT_NATIONS = {
 _WT_NATIONS_LOWER = {n.lower() for n in _WT_NATIONS}
 
 MIN_BATTLES = 1000
+
+def _load_vehicles_json() -> list[dict]:
+    path = os.path.join(PROJECT_DIR, "dataset", "vehicles.json")
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except (OSError, ValueError):
+        return []
+    return data if isinstance(data, list) else list(data.values())
+
 
 def _compute_dataset_hash(stats_dir: str) -> str:
     h = hashlib.sha256()
@@ -232,6 +243,7 @@ def main() -> None:
         period_dfs[p] = core.full_df[core.full_df["Period"] == p].copy()
 
     period_record_counts: dict[str, int] = {}
+    period_records:      dict[str, list[dict]] = {}
 
     for period_label in all_period_labels:
         print(f"\n▶  Period: {period_label}")
@@ -247,17 +259,33 @@ def main() -> None:
             print("   ⚠️   The list of entries is empty—the file has not been saved")
             continue
 
+        period_record_counts[period_label] = len(records)
+        period_records[period_label] = records
+
+    if not period_record_counts:
+        print("\n❌  No data was found for any period — nothing was saved")
+        sys.exit(1)
+
+    print("\n▶  Data quality gate")
+    checks = evaluate(
+        vehicles=_load_vehicles_json(),
+        period_records=period_records,
+        shop_loaded=core.shop_loaded,
+    )
+    report_quality(checks)
+
+    if checks.failures:
+        print(f"\n❌  DQ gate failed with {len(checks.failures)} error(s) — output was not written")
+        sys.exit(1)
+
+    for period_label, records in period_records.items():
         out_path = os.path.join(DATA_DIR, f"mega_db_{period_label}.json")
-        print(f"   💾  {out_path} …")
         with open(out_path, "w", encoding="utf-8") as f:
             json.dump(records, f, ensure_ascii=False, indent=2)
         size_mb = os.path.getsize(out_path) / 1_048_576
-        print(f"   ✅  {len(records)} records · {size_mb:.2f} MB")
-        period_record_counts[period_label] = len(records)
+        print(f"   💾  {period_label}: {len(records)} records · {size_mb:.2f} MB")
 
-    if not period_record_counts:
-        print("\n❌  No data was found for any period — meta_info.json was not saved")
-        sys.exit(1)
+    print("   ✅  gate passed")
 
     all_nations_raw = (
         core.full_df["Nation"].dropna().unique().tolist()

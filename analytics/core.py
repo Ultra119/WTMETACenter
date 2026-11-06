@@ -30,6 +30,9 @@ class AnalyticsCore:
         _vehicles_path      = os.path.join(self._project_dir, "dataset", "vehicles.json")
         self.vehicle_db: VehicleDB = VehicleDB(_vehicles_path)
 
+        _shop_path = os.path.join(self._project_dir, "dataset", "shop.blkx")
+        self.shop_loaded: bool = os.path.exists(_shop_path)
+
     def load_data_recursive(self) -> bool:
         raw_records = load_json_files(os.path.join(self._project_dir, "dataset", "stats"))
         if not raw_records:
