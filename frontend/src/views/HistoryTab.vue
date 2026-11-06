@@ -291,16 +291,24 @@ function toggleMonth(key) {
   monthExpanded.value = next
 }
 
-watch(() => store.searchQuery, q => {
-  if (q.trim()) {
-    const nextCollapsed = new Set()
-    const nextOpened    = new Set(yearGroups.value.map(yw => yw.year))
-    collapsedYears.value  = nextCollapsed
-    everOpenedYears.value = nextOpened
+// expansion the user set up by hand, parked while a search is active
+let _preSearch = null
+
+watch(() => !!store.searchQuery.trim(), searching => {
+  if (searching) {
+    if (!_preSearch) {
+      _preSearch = {
+        collapsed: new Set(collapsedYears.value),
+        months:    new Set(monthExpanded.value),
+      }
+    }
+    collapsedYears.value  = new Set()
+    everOpenedYears.value = new Set(yearGroups.value.map(yw => yw.year))
     monthExpanded.value   = new Set(groups.value.map(g => g.key))
-  } else {
-    collapsedYears.value = new Set(yearGroups.value.map(yw => yw.year))
-    monthExpanded.value  = new Set()
+  } else if (_preSearch) {
+    collapsedYears.value = _preSearch.collapsed
+    monthExpanded.value  = _preSearch.months
+    _preSearch = null
   }
 })
 
