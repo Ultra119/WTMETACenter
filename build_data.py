@@ -63,7 +63,6 @@ _WT_NATIONS = {
 
 _WT_NATIONS_LOWER = {n.lower() for n in _WT_NATIONS}
 
-# below this the numbers are noise and they skew the peer averages
 MIN_BATTLES = 1000
 
 def _compute_dataset_hash(stats_dir: str) -> str:
@@ -105,7 +104,6 @@ def _df_to_records(df: pd.DataFrame) -> list[dict]:
 
 
 def _br_history_of(row, cols) -> dict | None:
-    """{period: BR} for a vehicle that was re-balanced, else None."""
     if "BR_HISTORY" not in cols:
         return None
     trail = row[cols.index("BR_HISTORY")]

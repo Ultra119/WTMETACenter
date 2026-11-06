@@ -5,7 +5,6 @@ import time
 import urllib.error
 import urllib.request
 
-# pinned so the python pipeline and the frontend images come from one build
 DATAMINE_OWNER  = "gszabi99"
 DATAMINE_REPO   = "War-Thunder-Datamine"
 DATAMINE_REF    = "refs/tags/2.59.0.9"

@@ -18,7 +18,6 @@ _META_KEYS = frozenset({
 
 _VAL_FLAGS = frozenset({"showOnlyWhenBought", "showOnlyWhenResearch"})
 
-# wide enough that a column's row index can never spill into the next column
 _ORDER_STRIDE = 1_000_000
 
 
@@ -46,8 +45,6 @@ def _iter_column(col_dict: dict):
 
         if nested:
             for sub_key, sub_val in nested:
-                # fold in the parent flags too, otherwise a gift that lives in a
-                # nested slot loses the marker its parent carried
                 sub_is_gift     = is_gift or bool(sub_val.get("gift", ""))
                 sub_is_event    = is_event    or bool(sub_val.get("showOnlyWhenBought",   False))
                 sub_is_research = is_research or bool(sub_val.get("showOnlyWhenResearch", False))

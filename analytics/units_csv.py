@@ -8,19 +8,15 @@ from typing import Optional
 
 from analytics.datamine import fetch
 
-# only the marketplace duplicate marker; a trailing _85 in t_34_85 is part of
-# the model name and stripping it mangled 407 identifiers
 _SHOP_SUFFIX_RE = re.compile(r"_shop$")
 
 _BADGE_PREFIX_RE = re.compile(r"^[^\w(\[{\"']+", re.UNICODE)
 
 
-# badge glyphs are So/Sm, which \w matches, so test the category instead
 def _strip_badge_prefix(name: str) -> str:
     stripped = name.strip()
     while stripped and unicodedata.category(stripped[0]) in ("So", "Sm", "Sk", "Co", "Cn"):
         stripped = stripped[1:].lstrip()
-    # the csv escapes a literal quote by doubling it
     return stripped.replace('""', '"') or name.strip()
 
 

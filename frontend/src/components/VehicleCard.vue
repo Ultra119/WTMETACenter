@@ -257,7 +257,6 @@ const BR_MODES = [
 
 const veh      = computed(() => props.vehicle ?? {})
 const hasVdb   = computed(() => (veh.value?.vdb_match_score ?? 0) > 0)
-// rows pooled across all months carry a {period: BR} trail
 const brHistory = computed(() => {
   const h = veh.value?.BR_HISTORY
   if (!h || typeof h !== 'object') return []

@@ -204,7 +204,6 @@ const ROLE_RESERVE   = 'reserve'
 const farmOf = v => v.FARM_SCORE ?? 0
 const byFarmDesc = (a, b) => farmOf(b) - farmOf(a)
 
-// sets and their headers must agree, so both read these
 const ANCHOR_TOL   = 0.15
 const MAIN_DOWN    = 1.0
 const GEMS_DOWN    = 2.0

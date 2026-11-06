@@ -166,8 +166,6 @@ const filtered = computed(() => {
 })
 
 
-// release dates are plain calendar days; keep them as 'YYYY-MM-DD' strings so
-// they never depend on the viewer's timezone
 function parseReleaseKey(raw) {
   if (!raw) return null
   const s = String(raw).replace(/[./]/g, '-').trim()
@@ -300,7 +298,6 @@ function toggleMonth(key) {
   monthExpanded.value = next
 }
 
-// expansion the user set up by hand, parked while a search is active
 let _preSearch = null
 
 watch(() => !!store.searchQuery.trim(), searching => {

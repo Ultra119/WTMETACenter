@@ -2,7 +2,6 @@ import { createI18n } from 'vue-i18n'
 import ru from '../locales/ru.json'
 import en from '../locales/en.json'
 
-// localStorage throws in blocked-storage browsers and does not exist during SSR
 export function safeGet(key) {
   try { return localStorage.getItem(key) } catch { return null }
 }
@@ -30,7 +29,6 @@ export default i18n
 export function setLocale(lang) {
   i18n.global.locale.value = lang
   safeSet('wt-locale', lang)
-  // keep the document language in sync with the UI language
   if (typeof document !== 'undefined') document.documentElement.lang = lang
 }
 

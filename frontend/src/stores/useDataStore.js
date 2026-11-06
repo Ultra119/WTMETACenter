@@ -1,16 +1,12 @@
 import { defineStore } from 'pinia'
 import { ref, shallowRef, computed, watch } from 'vue'
 
-// fallback ladder, used only until the dataset reports its own range
 export const FALLBACK_BR_STEPS = [
   1.0,1.3,1.7, 2.0,2.3,2.7, 3.0,3.3,3.7, 4.0,4.3,4.7,
   5.0,5.3,5.7, 6.0,6.3,6.7, 7.0,7.3,7.7, 8.0,8.3,8.7,
   9.0,9.3,9.7, 10.0,10.3,10.7, 11.0,11.3,11.7, 12.0,12.3,12.7, 13.0,
 ]
 
-// The WT ladder runs X.0, X.3, X.7 inside every decade, so in tenths the
-// i-th step is 10 + 3i + floor((i+1)/3). Building it from the formula keeps
-// the known 1.0-13.0 ladder byte-identical and extends past it on its own.
 export function buildBrSteps(maxBr) {
   const steps = []
   for (let i = 0; i < 500; i++) {
@@ -21,7 +17,6 @@ export function buildBrSteps(maxBr) {
   return steps
 }
 
-// the highest BR present in a set of rows
 export function maxBrOf(rows) {
   let mx = 0
   for (const r of rows ?? []) {
@@ -33,7 +28,6 @@ export function maxBrOf(rows) {
 
 export const WT_BR_STEPS = FALLBACK_BR_STEPS
 
-// stable identities so the computed does not invalidate downstream watchers
 const EMPTY_ROWS  = Object.freeze([])
 const EMPTY_TYPES = new Set()
 
@@ -93,7 +87,6 @@ export const useDataStore = defineStore('data', () => {
   const minBattles = ref(50)
   const classes    = ref(['Standard','Premium','Pack','Squadron','Marketplace','Gift','Event'])
 
-  // the ceiling comes from the data, so a raised BR cap needs no code change
   const dataMaxBr = ref(0)
   const brCeiling = computed(() => {
     const fromData = dataMaxBr.value
@@ -145,13 +138,11 @@ export const useDataStore = defineStore('data', () => {
     _followCeiling()
   }
 
-  // when the ceiling moves, a range pinned to the old top would silently
-  // exclude (or over-ask for) the new top bracket, so re-open it
   function _followCeiling() {
     const top = brCeiling.value
     const [lo, hi] = _brRange.value
 
-    if (lo > top) return                       // range sits above the data
+    if (lo > top) return
     if (hi >= top - 1e-9) {
       if (hi !== top) {
         _brRange.value = [lo, top]
@@ -159,7 +150,6 @@ export const useDataStore = defineStore('data', () => {
       }
       return
     }
-    // the range was open-ended before the ceiling rose, keep it open-ended
     if (hi === brSteps.value[brSteps.value.length - 2]) {
       _brRange.value = [lo, top]
       brRange.value  = [lo, top]
@@ -268,8 +258,6 @@ export const useDataStore = defineStore('data', () => {
         console.error('[DataStore] period switch error:', e)
       }
     } finally {
-      // an aborted load still has to drop the spinner, otherwise the table
-      // stays blank after a fast period switch
       filtering.value = false
     }
   })
@@ -313,7 +301,6 @@ export const useDataStore = defineStore('data', () => {
     )
   })
 
-  // filtering is synchronous now; the flag only covers period loads
   const filtering = ref(false)
 
   const nations = computed(() => {

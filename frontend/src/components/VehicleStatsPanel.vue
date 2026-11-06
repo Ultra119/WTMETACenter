@@ -126,7 +126,6 @@ async function load() {
     error.value = e.message
     points.value = []
   } finally {
-    // only the newest run owns the spinner; an aborted one hands it over
     if (_historyAC === ac) loading.value = false
   }
 }

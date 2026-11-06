@@ -357,8 +357,6 @@ class VehicleDB:
         matched_mask = ids.map(lambda uid: cache.get(uid) is not None)
         matched_indices = df.index[matched_mask]
 
-        # .any() on an index tests integer truthiness, so a batch whose only
-        # match sat at row 0 was silently skipped
         if len(matched_indices):
             vdb_records = {idx: cache[ids[idx]] for idx in matched_indices}
             vdb_df = pd.DataFrame.from_dict(vdb_records, orient="index")
@@ -370,8 +368,6 @@ class VehicleDB:
                 )
                 vdb_df = vdb_df.drop(columns=["vdb_display_name"])
 
-            # df.update() skips NaN, which left real values missing when the
-            # datamine had no entry; assign column by column instead
             for col in vdb_df.columns:
                 if col not in df.columns:
                     df[col] = None

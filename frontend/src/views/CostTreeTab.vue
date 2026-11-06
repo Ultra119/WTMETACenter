@@ -317,8 +317,6 @@ watchEffect(() => {
       entry.countByEra[era] = (entry.countByEra[era] ?? 0) + 1
 
       if (isMetaEff) {
-        // a vehicle missing from the map must not be counted as a neutral 50,
-        // it would drag the average towards the middle
         const ms = metaMap.get(`${nat}__${v.Name}`)
         if (ms != null) {
           entry.sumMeta           = (entry.sumMeta           ?? 0) + ms

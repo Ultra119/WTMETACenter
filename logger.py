@@ -6,7 +6,6 @@ LOG_PATH = "debug_log.txt"
 MAX_BYTES = 2 * 1024 * 1024
 _LEVELS = ("DEBUG", "INFO", "WARN", "ERROR")
 
-# CI and interactive runs should see problems without opening the log file
 _STDOUT_FROM = "WARN"
 
 
@@ -37,7 +36,6 @@ def log(message, level: str = "DEBUG") -> None:
 
     text = str(message)
 
-    # never hide a message because the file could not be opened
     if _to_stdout(level):
         print(f"[{level}] {text}", file=sys.stderr)
 

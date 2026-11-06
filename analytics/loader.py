@@ -10,7 +10,6 @@ from analytics.units_csv import _strip_badge_prefix
 
 _PERIOD_RE = re.compile(r'^\d{1,2}-\d{4}$')
 
-# the datamine writes these into numeric columns; treat them as missing, not as 0
 _NA_TOKENS = {"n/a", "none", "nan", "null", "-", ""}
 
 
@@ -20,8 +19,6 @@ def _to_number(series: pd.Series, scale: float = 1.0) -> pd.Series:
     s = s.str.replace(" ", "", regex=False)
     s = s.where(~s.str.lower().isin(_NA_TOKENS), other=pd.NA)
     out = pd.to_numeric(s, errors="coerce").fillna(0).astype(float) * scale
-    # missing stats are 0 kills, not unknown; keep whole numbers integral so
-    # battle counts do not leak "2556171.0" into the exported json
     if (out == out.round()).all():
         return out.round().astype("int64")
     return out
@@ -99,11 +96,9 @@ def clean_dataframe(df: pd.DataFrame, vehicle_db) -> pd.DataFrame:
         df["Name"] = ""
 
     if "vdb_display_name" in df.columns:
-        # units.csv gives the clean localised name when it downloaded
         display = df["vdb_display_name"].fillna("").astype(str)
         df["Name"] = display.where(display.str.len() > 0, df["Name"])
 
-    # badge glyphs survive in the raw datamine even without units.csv
     df["Name"] = df["Name"].map(_strip_badge_prefix)
 
     df["Category"] = df["Type"].map(VEHICLE_TYPE_CATEGORY).fillna("Uncategorized")

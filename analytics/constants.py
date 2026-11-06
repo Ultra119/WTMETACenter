@@ -44,7 +44,6 @@ VEHICLE_TYPE_CATEGORY: dict = {
 #   ks_g  — наземные убийства / возрождение
 #   ks_a  — воздушные убийства / возрождение
 #   ks_n  — морские убийства / возрождение
-#   act — возрождения на бой (темп)
 
 ROLE_WEIGHTS: dict = {
     "medium_tank":        {"wr": 0.20, "ks_g": 0.35, "ks_a": 0.00, "ks_n": 0.00, "act": 0.45},
@@ -129,7 +128,6 @@ DEFAULT_SETTINGS: dict = {
     "c_spawns":      7500,
 }
 
-# kills/spawn before role weights drift; near each type's p95
 ROLE_SHIFT_RAW_THRESHOLDS: dict[tuple, float] = {
     ("tank_destroyer", "_ks_a_raw"): 0.12,
     ("light_tank",     "_ks_a_raw"): 0.12,
@@ -145,7 +143,6 @@ ROLE_SHIFT_RAW_THRESHOLDS: dict[tuple, float] = {
 
 
 def snap_to_wt_br(br: float) -> float:
-    # ties used to round down (2.5 -> 2.3); prefer the higher step
     up   = [x for x in WT_BR_STEPS if x >= br]
     down = [x for x in WT_BR_STEPS if x <= br]
     if not up:

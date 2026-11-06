@@ -9,7 +9,6 @@ from vehicle_db          import VehicleDB
 
 
 def _period_key(period: str) -> tuple:
-    """(year, month) for a 'MM-YYYY' label, so newest sorts last."""
     try:
         month, year = period.split("-")
         return (int(year), int(month))
@@ -46,19 +45,12 @@ class AnalyticsCore:
 
         df = df.copy()
 
-        # group on the datamine id, not the display name: several distinct
-        # vehicles share a name (bf-109c_1 vs bf-109c_1_promo), and a name-based
-        # key also changes with whether units.csv downloaded
         id_col = "vdb_identifier" if "vdb_identifier" in df.columns else "Name"
 
-        # A vehicle can be re-balanced between months (WyvernS.4 went 4.7 -> 5.0
-        # -> 5.3), so keying the pool on BR publishes one row per BR. Fold the
-        # months onto the newest BR and keep the trail for the card instead.
         br_history = self._build_br_history(df, id_col)
         if br_history and "Period" in df.columns and "BR" in df.columns:
             newest = {}
             for (vdb_id, mode), trail in br_history.items():
-                # the BR of the most recent period that reported it
                 latest_period = max(trail, key=_period_key)
                 newest[(vdb_id, mode)] = trail[latest_period]
             keys = list(zip(df[id_col], df["Mode"]))
@@ -127,7 +119,6 @@ class AnalyticsCore:
 
     @staticmethod
     def _build_br_history(df: pd.DataFrame, id_col: str) -> dict:
-        """{(id, mode): {period: br}} for vehicles whose BR ever moved."""
         if "Period" not in df.columns or "BR" not in df.columns:
             return {}
 
@@ -141,7 +132,6 @@ class AnalyticsCore:
         for vdb_id, mode, period, br in rows.itertuples(index=False):
             trail.setdefault((vdb_id, mode), {})[period] = float(br)
 
-        # only the movers need a trail; the rest stay compact
         return {k: v for k, v in trail.items() if len(set(v.values())) > 1}
 
     def calculate_meta(self, filters: dict) -> pd.DataFrame:

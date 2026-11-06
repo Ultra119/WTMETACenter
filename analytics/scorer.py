@@ -22,12 +22,10 @@ def _weighted_avg(values: pd.Series, weights: pd.Series) -> float:
 
 _SHIFT_MIN_BATTLES = 1000.0
 
-# calibrating at z_clip made every row past it land on exactly 100.0
 _SIG_CALIBRATION = 2.0
 
 
 def _shift_intensity(raw_val: float, thr: float, battles: float) -> float:
-    # 0 at the threshold, 1 at twice it; no z term, which used to block tanks
     if battles < _SHIFT_MIN_BATTLES or thr <= 0.0:
         return 0.0
     return max(0.0, min(1.0, (raw_val - thr) / thr))
@@ -89,7 +87,6 @@ def _sl_multiplier(df: pd.DataFrame) -> pd.Series:
 
 
 def _premium_residual(values: pd.Series, df: pd.DataFrame) -> float:
-    """Signed premium edge left in `values` after controlling for performance."""
     y = np.log(values.values)
     X = np.column_stack([
         np.ones(len(y)),
@@ -103,7 +100,6 @@ def _premium_residual(values: pd.Series, df: pd.DataFrame) -> float:
 
 
 def _fit_mul_exponent(sub: pd.DataFrame, mul: pd.Series) -> float:
-    """Pick the multiplier exponent that cancels the residual premium edge."""
     best_abs, best_a = None, _DEFAULT_MUL_EXPONENT
 
     for a in np.arange(0.6, 2.01, 0.05):
@@ -121,12 +117,6 @@ _EXPONENT_CACHE: dict = {}
 
 
 def _compute_activity(df: pd.DataFrame) -> pd.Series:
-    """Battle earnings with the income multiplier normalised out.
-
-    Dividing by `mul` once still left a ~20% premium edge, because the
-    multiplier tracks class as much as BR. The exponent is fitted per vehicle
-    type so the edge cancels instead of being assumed away.
-    """
     mul = _sl_multiplier(df)
     exponent = pd.Series(_DEFAULT_MUL_EXPONENT, index=df.index)
 

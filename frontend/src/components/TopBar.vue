@@ -171,7 +171,6 @@ onMounted(()        => document.addEventListener('mousedown', onDocClick))
 onBeforeUnmount(()  => document.removeEventListener('mousedown', onDocClick))
 
 const MAX_HITS = 12
-// vdb_identifier is unique per vehicle; fall back to the display pair
 function hitKey(v) {
   return v?.vdb_identifier || `${v?.Name ?? ''}||${v?.Nation ?? ''}`
 }
