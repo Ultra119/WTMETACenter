@@ -9,6 +9,22 @@ from analytics.constants import VEHICLE_TYPE_CATEGORY, snap_to_wt_br
 
 _PERIOD_RE = re.compile(r'^\d{1,2}-\d{4}$')
 
+# the datamine writes these into numeric columns; treat them as missing, not as 0
+_NA_TOKENS = {"n/a", "none", "nan", "null", "-", ""}
+
+
+def _to_number(series: pd.Series, scale: float = 1.0) -> pd.Series:
+    s = series.map(lambda v: "" if v is None or (isinstance(v, float) and pd.isna(v)) else str(v))
+    s = s.str.strip().str.replace(",", "", regex=False).str.replace("%", "", regex=False)
+    s = s.str.replace(" ", "", regex=False)
+    s = s.where(~s.str.lower().isin(_NA_TOKENS), other=pd.NA)
+    out = pd.to_numeric(s, errors="coerce").fillna(0).astype(float) * scale
+    # missing stats are 0 kills, not unknown; keep whole numbers integral so
+    # battle counts do not leak "2556171.0" into the exported json
+    if (out == out.round()).all():
+        return out.round().astype("int64")
+    return out
+
 
 def load_json_files(script_dir: str) -> list:
     log_debug("=== STARTING WT META CENTER ===")
@@ -138,35 +154,15 @@ def clean_dataframe(df: pd.DataFrame, vehicle_db) -> pd.DataFrame:
         df["Морские убийства"] = 0
     for col in int_cols:
         if col in df.columns:
-            s = df[col].astype(str).str.replace(",", "", regex=False)
-            s = s.map(lambda v: "0" if v.strip() in ("N/A", "None", "nan", "") else v)
-            df[col] = pd.to_numeric(s, errors="coerce").fillna(0)
+            df[col] = _to_number(df[col])
 
     for col in ("SL за игру", "RP за игру"):
-        if col in df.columns:
-            s = (
-                df[col].astype(str)
-                       .str.replace(",", "", regex=False)
-                       .str.replace(" ", "", regex=False)
-            )
-            s = s.map(lambda v: "0" if v.strip() in ("N/A", "None", "nan", "") else v)
-            df[col] = pd.to_numeric(s, errors="coerce").fillna(0)
-        else:
-            df[col] = 0.0
+        df[col] = _to_number(df[col]) if col in df.columns else 0.0
 
-    if "Убийств за смерть" in df.columns:
-        s = df["Убийств за смерть"].astype(str).str.replace(",", ".", regex=False)
-        s = s.map(lambda v: "0" if v.strip() in ("N/A", "None", "nan", "") else v)
-        df["KD"] = pd.to_numeric(s, errors="coerce").fillna(0)
-    else:
-        df["KD"] = 0.0
+    df["KD"] = _to_number(df["Убийств за смерть"].str.replace(",", ".", regex=False)) \
+        if "Убийств за смерть" in df.columns else 0.0
 
-    if "Процент побед" in df.columns:
-        s = df["Процент побед"].astype(str).str.replace("%", "", regex=False)
-        s = s.map(lambda v: "0" if v.strip() in ("N/A", "None", "nan", "") else v)
-        df["WR"] = pd.to_numeric(s, errors="coerce").fillna(0)
-    else:
-        df["WR"] = 0.0
+    df["WR"] = _to_number(df["Процент побед"]) if "Процент побед" in df.columns else 0.0
 
     raw_br = (
         df["Rank_Info"].apply(extract_br)
