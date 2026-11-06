@@ -72,6 +72,17 @@ def score(df: pd.DataFrame, settings: dict) -> pd.DataFrame:
     C_battles = float(settings.get("c_battles", 5000.0))
     C_spawns  = float(settings.get("c_spawns",  7500.0))
 
+    if not np.isfinite(sig_scale) or sig_scale <= 0.0:
+        sig_scale = 1.5
+    if not np.isfinite(z_clip) or z_clip <= 0.0:
+        z_clip = 3.0
+    if not np.isfinite(mm_window) or mm_window < 0.0:
+        mm_window = 1.0
+    if not np.isfinite(C_battles) or C_battles < 0.0:
+        C_battles = 5000.0
+    if not np.isfinite(C_spawns) or C_spawns < 0.0:
+        C_spawns = 7500.0
+
     spawns = df["Возрождения"].clip(lower=1)
 
     df["_ks_g_raw"] = df["Наземные убийства"]  / spawns
