@@ -35,41 +35,43 @@
       <span class="pc-stat"><span class="eyebrow eyebrow--xs pc-stat-label">META</span>{{ metaStr }}</span>
     </div>
 
-    <div v-if="vehicle.Cross_Hint" class="pc-hint pc-hint--cross">
-      {{ vehicle.Cross_Hint }}
-    </div>
-
-    <div
-      v-if="vehicle.Verdict === 'SKIP' && vehicle.Skip_Reason"
-      class="pc-hint pc-hint--skip"
-    >
-      {{ vehicle.Skip_Reason }}
-    </div>
-
-    <div
-      v-if="vehicle._excludedFromLineup"
-      class="pc-hint pc-hint--excluded"
-    >
-      <v-icon size="11" class="pc-hint-icon">mdi-cancel</v-icon>{{ vehicle._excluded_hint }}
-    </div>
-
-    <template v-if="vehicle.Verdict === 'PREM'">
-      <div v-if="vehicle.Prem_Pain_Fix" class="pc-hint pc-hint--prem">
-        <v-icon size="11" class="pc-hint-icon">mdi-crown</v-icon>{{ (vehicle.Prem_Boost ?? 0) >= 1.05
-          ? t('progression_tab.prem_pain_fix_boost')
-          : t('progression_tab.prem_pain_fix_only') }}
+    <div v-if="hasHints" class="pc-hints">
+      <div v-if="vehicle.Cross_Hint" class="pc-hint pc-hint--cross">
+        {{ vehicle.Cross_Hint }}
       </div>
+
       <div
-        v-if="boostLabel"
-        class="pc-hint pc-hint--boost"
-        :style="{ color: boostLabel.color }"
+        v-if="vehicle.Verdict === 'SKIP' && vehicle.Skip_Reason"
+        class="pc-hint pc-hint--skip"
       >
-        {{ boostLabel.text }}
+        {{ vehicle.Skip_Reason }}
       </div>
-      <div v-if="!vehicle.Prem_Pain_Fix && !boostLabel" class="pc-hint pc-hint--prem">
-        {{ t('progression_tab.prem_fallback') }}
+
+      <div
+        v-if="vehicle._excludedFromLineup"
+        class="pc-hint pc-hint--excluded"
+      >
+        <v-icon size="11" class="pc-hint-icon">mdi-cancel</v-icon>{{ vehicle._excluded_hint }}
       </div>
-    </template>
+
+      <template v-if="vehicle.Verdict === 'PREM'">
+        <div v-if="vehicle.Prem_Pain_Fix" class="pc-hint pc-hint--prem">
+          <v-icon size="11" class="pc-hint-icon">mdi-crown</v-icon>{{ (vehicle.Prem_Boost ?? 0) >= 1.05
+            ? t('progression_tab.prem_pain_fix_boost')
+            : t('progression_tab.prem_pain_fix_only') }}
+        </div>
+        <div
+          v-if="boostLabel"
+          class="pc-hint pc-hint--boost"
+          :style="{ color: boostLabel.color }"
+        >
+          {{ boostLabel.text }}
+        </div>
+        <div v-if="!vehicle.Prem_Pain_Fix && !boostLabel" class="pc-hint pc-hint--prem">
+          {{ t('progression_tab.prem_fallback') }}
+        </div>
+      </template>
+    </div>
   </div>
 </template>
 
@@ -116,6 +118,15 @@ const boostLabel = computed(() => {
   return               { text: t('progression_tab.prem_boost_weaker', { val }), color: 'var(--danger)' }
 })
 
+const hasHints = computed(() =>
+  !!(
+    props.vehicle.Cross_Hint ||
+    (props.vehicle.Verdict === 'SKIP' && props.vehicle.Skip_Reason) ||
+    props.vehicle._excludedFromLineup ||
+    props.vehicle.Verdict === 'PREM'
+  )
+)
+
 const artUrl = computed(() =>
   vehicleImageUrl(props.vehicle.vdb_identifier, props.vehicle.Type)
 )
@@ -161,7 +172,7 @@ const cardStyle = computed(() => ({
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: 68% center;
+  object-position: center;          /* centre the vehicle — no top crop */
   opacity: 0.30;
   filter: saturate(0.55) contrast(1.05);
   transition: opacity 0.18s;
@@ -169,8 +180,33 @@ const cardStyle = computed(() => ({
 .prog-card:hover .pc-art-img { opacity: 0.45; }
 
 .pc-header,
-.pc-stats,
-.pc-hint { position: relative; z-index: 1; }
+.pc-stats { position: relative; z-index: 1; }
+
+/* hint strip: sits below the tile, slides down into view on hover */
+.pc-hints {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  z-index: 2;
+  padding: 5px 10px 6px;
+  background: var(--surface);
+  border-top: 1px solid var(--hairline);
+  transform: translateY(-6px);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: transform 0.24s ease, opacity 0.18s ease, visibility 0s linear 0.24s;
+}
+.prog-card:hover .pc-hints,
+.prog-card:focus-within .pc-hints {
+  transform: translateY(0);
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition: transform 0.24s ease, opacity 0.18s ease;
+}
+.pc-hints .pc-hint:first-child { margin-top: 0; padding-top: 0; border-top: none; }
 
 .pc-header     { display: flex; align-items: center; gap: 4px; margin-bottom: 4px; }
 .pc-type-icon  { flex-shrink: 0; opacity: 0.7; }
