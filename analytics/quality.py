@@ -68,6 +68,12 @@ def check_records(checks: Checks, period: str, records: list[dict]) -> None:
     if below_gate:
         checks.fail(f"{period}: {below_gate} rows with no battles")
 
+    low_sample = sum(1 for r in records if (r.get("Сыграно игр") or 0) < 250)
+    if low_sample and low_sample / len(records) > 0.75:
+        checks.fail(
+            f"{period}: {low_sample / len(records):.0%} of rows have under 250 battles"
+        )
+
     glyphs = sum(
         1 for r in records
         if any(ch in _BADGE_CHARS for ch in (r.get("Name") or ""))

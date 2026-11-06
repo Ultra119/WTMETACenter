@@ -66,7 +66,7 @@ _WT_NATIONS = {
 
 _WT_NATIONS_LOWER = {n.lower() for n in _WT_NATIONS}
 
-MIN_BATTLES = 1000
+MIN_BATTLES = 1
 
 def _load_vehicles_json() -> list[dict]:
     path = os.path.join(PROJECT_DIR, "dataset", "vehicles.json")
