@@ -188,10 +188,11 @@ const cardStyle = computed(() => ({
   left: 0;
   right: 0;
   top: 100%;
-  z-index: 2;
+  z-index: 100;
   padding: 5px 10px 6px;
-  background: var(--surface);
+  background: var(--panel);
   border-top: 1px solid var(--hairline);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
   transform: translateY(-6px);
   opacity: 0;
   visibility: hidden;
