@@ -1,8 +1,37 @@
 import json
+import math
 import os
 
 from logger import log_debug
 from analytics.constants import DEFAULT_SETTINGS
+
+
+def _is_valid(key: str, value) -> bool:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return False
+
+    number = float(value)
+
+    if not math.isfinite(number) or number < 0.0:
+        return False
+    if key in ("sigmoid_scale", "z_clip"):
+        return number > 0.0
+    return True
+
+
+def _merge(loaded: dict) -> dict:
+    merged = dict(DEFAULT_SETTINGS)
+
+    for key, value in loaded.items():
+        if key not in DEFAULT_SETTINGS:
+            log_debug(f"settings.json: ignoring unknown key '{key}'")
+            continue
+        if not _is_valid(key, value):
+            log_debug(f"settings.json: '{key}' = {value!r} rejected, keeping default")
+            continue
+        merged[key] = float(value)
+
+    return merged
 
 
 def load_settings(script_dir: str) -> dict:
@@ -21,8 +50,11 @@ def load_settings(script_dir: str) -> dict:
         with open(settings_path, "r", encoding="utf-8") as f:
             loaded = json.load(f)
 
-        merged = dict(DEFAULT_SETTINGS)
-        merged.update(loaded)
+        if not isinstance(loaded, dict):
+            log_debug("settings.json is not an object; defaults are being used.")
+            return dict(DEFAULT_SETTINGS)
+
+        merged = _merge(loaded)
         log_debug(f"settings.json downloaded: {merged}")
         return merged
 

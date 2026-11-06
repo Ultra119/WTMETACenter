@@ -1,6 +1,5 @@
 {
     "mm_window": 1.0,
     "sigmoid_scale": 1.5,
-    "z_clip": 3.0,
-    "wilson_z": 1.96
+    "z_clip": 3.0
 }
