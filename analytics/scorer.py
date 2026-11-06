@@ -39,47 +39,31 @@ _REPAIR_COL_BY_MODE: dict[str, str] = {
     "Simulator":  "vdb_repair_cost_simulator",
 }
 
-_SL_MUL_COL_BY_MODE: dict[str, str] = {
-    "Realistic":  "vdb_sl_mul_realistic",
-    "Arcade":     "vdb_sl_mul_arcade",
-    "Simulator":  "vdb_sl_mul_simulator",
-}
-
-_MIN_SL_MUL = 0.3
-
-
-def _compute_net_and_activity(df: pd.DataFrame) -> tuple[pd.Series, pd.Series]:
+def _compute_net_sl(df: pd.DataFrame) -> pd.Series:
     has_vdb = df.get("vdb_match_score", pd.Series(0.0, index=df.index)) > 0
 
     repair = pd.Series(0.0, index=df.index)
-    sl_mul = pd.Series(1.0, index=df.index)
 
     if "Mode" in df.columns:
         for mode_name, col_name in _REPAIR_COL_BY_MODE.items():
             if col_name in df.columns:
                 mask = df["Mode"] == mode_name
                 repair = repair.where(~mask, df[col_name].fillna(0).astype(float))
-        for mode_name, col_name in _SL_MUL_COL_BY_MODE.items():
-            if col_name in df.columns:
-                mask = df["Mode"] == mode_name
-                sl_mul = sl_mul.where(~mask, df[col_name].fillna(0).astype(float))
     else:
         if "vdb_repair_cost_realistic" in df.columns:
             repair = df["vdb_repair_cost_realistic"].fillna(0).astype(float)
-        if "vdb_sl_mul_realistic" in df.columns:
-            sl_mul = df["vdb_sl_mul_realistic"].fillna(0).astype(float)
 
     repair = repair.where(has_vdb, 0.0)
-    sl_mul = sl_mul.where(has_vdb, 1.0)
-    sl_mul = sl_mul.clip(lower=_MIN_SL_MUL)
 
     deaths_per_game = df["Смерти"] / df["Сыграно игр"].clip(lower=1)
     repair_per_game = repair * deaths_per_game
 
-    sl_eff = df["SL за игру"].where(~has_vdb, df["SL за игру"] - repair_per_game)
-    act_raw = df["SL за игру"] / sl_mul
+    return df["SL за игру"].where(~has_vdb, df["SL за игру"] - repair_per_game)
 
-    return sl_eff, act_raw
+
+def _compute_activity(df: pd.DataFrame) -> pd.Series:
+    # spawns per battle: how much of a match the vehicle is actually on the field
+    return df["Возрождения"] / df["Сыграно игр"].clip(lower=1)
 
 
 def score(df: pd.DataFrame, settings: dict) -> pd.DataFrame:
@@ -103,7 +87,8 @@ def score(df: pd.DataFrame, settings: dict) -> pd.DataFrame:
     df["KD_AIR"]    = df["Воздушные убийства"] / deaths_for_kd
     df["KD_NAVAL"]  = df["Морские убийства"]   / deaths_for_kd
 
-    df["_sl_eff"], df["_act_raw"] = _compute_net_and_activity(df)
+    df["_sl_eff"] = _compute_net_sl(df)
+    df["_act_raw"] = _compute_activity(df)
 
     df["_type_group"] = df["Type"].map(VEHICLE_TYPE_CATEGORY).fillna("_other")
     df["_peer_group"] = df["Type"].map(SCORING_PEER_GROUP).fillna(df["Type"])
