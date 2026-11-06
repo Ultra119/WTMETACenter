@@ -205,6 +205,7 @@
     "hp_rb":          "Мощность (RB)",
     "speed_unit":     "км/ч",
     "hp_unit":        "л.с.",
+    "power_to_weight_unit": "л.с./т",
     "caliber":        "Калибр",
     "shell_speed":    "Скор. снаряда",
     "caliber_unit":   "мм",

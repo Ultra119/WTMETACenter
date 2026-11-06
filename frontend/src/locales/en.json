@@ -205,6 +205,7 @@
     "hp_rb":          "Horsepower (RB)",
     "speed_unit":     "km/h",
     "hp_unit":        "hp",
+    "power_to_weight_unit": "hp/t",
     "caliber":        "Caliber",
     "shell_speed":    "Shell velocity",
     "caliber_unit":   "mm",
