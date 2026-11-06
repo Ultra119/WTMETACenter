@@ -62,6 +62,9 @@ _WT_NATIONS = {
 
 _WT_NATIONS_LOWER = {n.lower() for n in _WT_NATIONS}
 
+# below this the numbers are noise and they skew the peer averages
+MIN_BATTLES = 1000
+
 def _compute_dataset_hash(stats_dir: str) -> str:
     h = hashlib.sha256()
     for root, _dirs, files in os.walk(stats_dir):
@@ -133,7 +136,7 @@ def _process_period(
                 "nation":          "All",
                 "min_br":          float(min(WT_BR_STEPS)),
                 "max_br":          float(max(WT_BR_STEPS)),
-                "min_battles":     1,
+                "min_battles":     MIN_BATTLES,
                 "vehicle_classes": _ALL_VEHICLE_CLASSES,
             }
 
