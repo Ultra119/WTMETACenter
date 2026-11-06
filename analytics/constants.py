@@ -147,4 +147,11 @@ ROLE_SHIFT_RAW_THRESHOLDS: dict[tuple, float] = {
 
 
 def snap_to_wt_br(br: float) -> float:
-    return min(WT_BR_STEPS, key=lambda x: abs(x - br))
+    # ties used to round down (2.5 -> 2.3); prefer the higher step
+    up   = [x for x in WT_BR_STEPS if x >= br]
+    down = [x for x in WT_BR_STEPS if x <= br]
+    if not up:
+        return down[-1]
+    if not down:
+        return up[0]
+    return up[0] if (up[0] - br) <= (br - down[-1]) else down[-1]
