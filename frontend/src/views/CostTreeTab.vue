@@ -317,10 +317,15 @@ watchEffect(() => {
       entry.countByEra[era] = (entry.countByEra[era] ?? 0) + 1
 
       if (isMetaEff) {
-        const ms = metaMap.get(`${nat}__${v.Name}`) ?? 50
-        entry.sumMeta              = (entry.sumMeta              ?? 0) + ms
-        entry.sumMetaByEra         = entry.sumMetaByEra ?? {}
-        entry.sumMetaByEra[era]    = (entry.sumMetaByEra[era]    ?? 0) + ms
+        // a vehicle missing from the map must not be counted as a neutral 50,
+        // it would drag the average towards the middle
+        const ms = metaMap.get(`${nat}__${v.Name}`)
+        if (ms != null) {
+          entry.sumMeta           = (entry.sumMeta           ?? 0) + ms
+          entry.metaMatches       = (entry.metaMatches       ?? 0) + 1
+          entry.sumMetaByEra      = entry.sumMetaByEra ?? {}
+          entry.sumMetaByEra[era] = (entry.sumMetaByEra[era] ?? 0) + ms
+        }
       }
     }
 
@@ -329,7 +334,8 @@ watchEffect(() => {
         row.count      = Object.values(row.countByEra).reduce((s, n) => s + n, 0)
         const sumW     = row.sumMeta ?? 0
         row.metaAdjVal = (isMetaEff && sumW > 0) ? Math.round(row.total / (sumW / 100)) : 0
-        row.avgMeta    = row.count > 0 ? Math.round(sumW / row.count) : 0
+        const matched  = row.metaMatches ?? 0
+        row.avgMeta    = matched > 0 ? Math.round(sumW / matched) : 0
       }
     }
 
