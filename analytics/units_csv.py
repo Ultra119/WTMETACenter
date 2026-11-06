@@ -7,7 +7,9 @@ import unicodedata
 import urllib.request
 from typing import Optional
 
-_SUFFIX_RE = re.compile(r"(_shop|_\d{1,2})$")
+# only the marketplace duplicate marker; a trailing _85 in t_34_85 is part of
+# the model name and stripping it mangled 407 identifiers
+_SHOP_SUFFIX_RE = re.compile(r"_shop$")
 
 _BADGE_PREFIX_RE = re.compile(r"^[^\w(\[{\"']+", re.UNICODE)
 
@@ -128,7 +130,7 @@ class UnitsCsvTranslator:
                         continue
 
                     identifier = raw_id.split("/", 1)[-1] if "/" in raw_id else raw_id
-                    base_id    = _SUFFIX_RE.sub("", identifier)
+                    base_id    = _SHOP_SUFFIX_RE.sub("", identifier)
                     en_key     = english.lower()
                     is_shop    = identifier.endswith("_shop")
 
