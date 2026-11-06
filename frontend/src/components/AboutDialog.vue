@@ -11,10 +11,10 @@
       <div class="eyebrow ab-title"><span class="mdi mdi-rocket-launch-outline" />{{ t('about.section_about') }}</div>
       <p class="s">{{ t('about.project_desc') }}</p>
       <div class="ab-links">
-        <a class="ui-btn tint" href="https://github.com/Ultra119/wt_meta_center" target="_blank" rel="noopener noreferrer">
+        <a class="ui-btn tint" href="https://github.com/Ultra119/WTMETACenter" target="_blank" rel="noopener noreferrer">
           <span class="mdi mdi-github" />{{ t('about.link_github') }}
         </a>
-        <a class="ui-btn tint tint--warn" href="https://github.com/Ultra119/wt_meta_center/issues" target="_blank" rel="noopener noreferrer">
+        <a class="ui-btn tint tint--warn" href="https://github.com/Ultra119/WTMETACenter/issues" target="_blank" rel="noopener noreferrer">
           <span class="mdi mdi-bug-outline" />{{ t('about.link_issues') }}
         </a>
       </div>

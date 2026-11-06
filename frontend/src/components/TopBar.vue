@@ -15,7 +15,7 @@
           <span class="logo-title">{{ t('topbar.title') }}</span>
         </router-link>
         <a
-          href="https://github.com/Ultra119/wt_meta_center/issues"
+          href="https://github.com/Ultra119/WTMETACenter/issues"
           target="_blank"
           rel="noopener noreferrer"
           class="eyebrow report-link"
