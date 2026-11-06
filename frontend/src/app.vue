@@ -53,11 +53,12 @@
 </template>
 
 <script setup>
-import { ref, computed, provide, onMounted } from 'vue'
+import { ref, computed, provide, onMounted, watch } from 'vue'
 import { useRoute }     from 'vue-router'
 import { useI18n }      from 'vue-i18n'
 import { useDataStore } from './stores/useDataStore.js'
 import { safeGet, safeSet } from './i18n/index.js'
+import { useUrlFilters } from './composables/useUrlFilters.js'
 import TopBar           from './components/TopBar.vue'
 import SideBar          from './components/SideBar.vue'
 import VehicleCard      from './components/VehicleCard.vue'
@@ -100,7 +101,31 @@ function openVehicle(v) {
   modalOpen.value       = true
 }
 
+// When the modal closes, clear the selected vehicle (URL will sync automatically)
+watch(modalOpen, (open) => {
+  if (!open) selectedVehicle.value = null
+})
+
 provide('openVehicle', openVehicle)
+
+// URL ↔ filter sync + vehicle deep-link
+useUrlFilters({ vehicle: selectedVehicle, modalOpen })
+
+// Vehicle deep-link: when data loads, check if URL has ?vehicle= and open it
+watch(
+  () => store.allVehicles,
+  (vehicles) => {
+    if (!vehicles?.length) return
+    const vid = route.query.vehicle
+    if (!vid || selectedVehicle.value) return
+    const found = vehicles.find(v => v.vdb_identifier === vid)
+    if (found) {
+      selectedVehicle.value = found
+      modalOpen.value = true
+    }
+  },
+  { immediate: true }
+)
 
 const DISCLAIMER_KEY    = 'wt_disclaimer_accepted'
 const disclaimerVisible = ref(!safeGet(DISCLAIMER_KEY))
