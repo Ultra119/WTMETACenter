@@ -357,7 +357,9 @@ class VehicleDB:
         matched_mask = ids.map(lambda uid: cache.get(uid) is not None)
         matched_indices = df.index[matched_mask]
 
-        if matched_indices.any():
+        # .any() on an index tests integer truthiness, so a batch whose only
+        # match sat at row 0 was silently skipped
+        if len(matched_indices):
             vdb_records = {idx: cache[ids[idx]] for idx in matched_indices}
             vdb_df = pd.DataFrame.from_dict(vdb_records, orient="index")
 
@@ -368,8 +370,14 @@ class VehicleDB:
                 )
                 vdb_df = vdb_df.drop(columns=["vdb_display_name"])
 
-            df.update(vdb_df)
-            df.loc[matched_indices, "vdb_match_score"] = 1.0
+            # df.update() skips NaN, which left real values missing when the
+            # datamine had no entry; assign column by column instead
+            for col in vdb_df.columns:
+                if col not in df.columns:
+                    df[col] = None
+                df.loc[vdb_df.index, col] = vdb_df[col]
+
+            df.loc[vdb_df.index, "vdb_match_score"] = 1.0
 
         matched = int((df["vdb_match_score"] > 0).sum())
         total   = len(df)
@@ -421,7 +429,10 @@ class VehicleDB:
 
                 if shop_rows:
                     shop_df = pd.DataFrame.from_dict(shop_rows, orient="index")
-                    df.update(shop_df)
+                    for col in shop_df.columns:
+                        if col not in df.columns:
+                            df[col] = None
+                        df.loc[shop_df.index, col] = shop_df[col]
                     print(
                         f"[VehicleDB] 🗺️  Shop-data applied "
                         f"for {len(shop_rows)} unmatched entries"
