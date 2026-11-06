@@ -120,7 +120,7 @@
             </div>
             <div class="kv mt-2">
               <span class="kv__k">{{ t('vehicle_card.net_sl') }}</span>
-              <span class="kv__v" style="color: var(--primary);">{{ fmtSL(modeVehicle['Net SL за игру']) }}</span>
+              <span class="kv__v" :style="{ color: slColor(modeVehicle['Net SL за игру']) }">{{ fmtSL(modeVehicle['Net SL за игру']) }}</span>
             </div>
           </div>
 
@@ -228,7 +228,7 @@ import { useI18n }  from 'vue-i18n'
 import { useDataStore } from '../stores/useDataStore.js'
 import {
   vehicleDisplayName, fmtType, fmtNation, fmtBR, fmtSL,
-  metaColor, farmColor, wrColor, CLASS_PREFIX, classChipStyle,
+  metaColor, farmColor, wrColor, slColor, CLASS_PREFIX, classChipStyle,
 } from '../composables/useVehicleFormatting.js'
 import {
   getVehicleAmmoCategories, AMMO_CATEGORY_META, useAmmoCategoryLabel,

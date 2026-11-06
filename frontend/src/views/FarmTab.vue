@@ -118,7 +118,7 @@
             </div>
           </template>
           <template #item.net_sl="{ item }">
-            <span class="fw-600" style="color:var(--c-ok)">{{ item.net_sl != null ? item.net_sl.toLocaleString() : '—' }}</span>
+            <span class="fw-600" :style="{ color: slColor(item.net_sl) }">{{ item.net_sl != null ? item.net_sl.toLocaleString() : '—' }}</span>
           </template>
         </v-data-table>
       </div>
@@ -175,7 +175,7 @@ import { useTabFilters }   from '../composables/useTabFilters.js'
 import { useDataStore, WT_BR_STEPS } from '../stores/useDataStore.js'
 import {
   vehicleDisplayName, vehicleClassMdiIcon, vehicleClassMdiColor,
-  farmColor, fmtBR, fmtNation, normRow,
+  farmColor, fmtBR, fmtNation, slColor, normRow,
 } from '../composables/useVehicleFormatting.js'
 import InfoTip from '../components/InfoTip.vue'
 

@@ -155,6 +155,12 @@ export function wrColor(score) {
   return _toHex(_interpolate(_WR_STOPS, score))
 }
 
+// net SL can be negative; keep losses out of the "good" colour
+export function slColor(v) {
+  if (v == null || isNaN(v)) return '#334155'
+  return v < 0 ? 'var(--c-bad)' : 'var(--c-ok)'
+}
+
 export function vehicleDisplayName(v) {
   return v?.Name ?? ''
 }

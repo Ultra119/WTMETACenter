@@ -63,7 +63,7 @@
           <span :style="{ color: wrColor(item.WR) }">{{ item.WR?.toFixed(1) }}</span>
         </template>
         <template #item.net_sl="{ item }">
-          <span style="color: rgb(var(--v-theme-primary));">{{ item.net_sl?.toLocaleString() }}</span>
+          <span :style="{ color: slColor(item.net_sl) }">{{ item.net_sl?.toLocaleString() }}</span>
         </template>
       </v-data-table>
     </div>
@@ -78,7 +78,7 @@ import { useDataStore } from '../stores/useDataStore.js'
 import {
   vehicleDisplayName, vehicleClassMdiIcon, vehicleClassMdiColor,
   fmtType, fmtNation, fmtBR,
-  metaColor, farmColor, wrColor, normRow,
+  metaColor, farmColor, wrColor, slColor, normRow,
 } from '../composables/useVehicleFormatting.js'
 import InfoTip from '../components/InfoTip.vue'
 
