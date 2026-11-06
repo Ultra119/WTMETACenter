@@ -444,9 +444,6 @@ class VehicleDB:
     def loaded(self) -> bool:
         return len(self._index) > 0
 
-    def stats(self) -> dict:
-        return {"total": len(self._index)}
-
     def __len__(self) -> int:
         return len(self._index)
 

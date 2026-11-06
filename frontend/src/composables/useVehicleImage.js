@@ -79,7 +79,3 @@ export function useVehicleImage(identifierRef, typeRef) {
 
   return { src, loaded, error }
 }
-
-export function vehicleImageCached(identifier) {
-  return identifier ? _cache.get(identifier.trim().toLowerCase()) === 'ok' : false
-}

@@ -1,4 +1,3 @@
-import { useI18n } from 'vue-i18n'
 import { CLASS_PREFIX, CLASS_BR_COLOR } from './constants.js'
 
 export { CLASS_PREFIX }
@@ -35,16 +34,6 @@ export function classChipStyle(cls) {
   const c = CLASS_CHIP_COLORS[cls]
   if (!c) return {}
   return { border: `1px solid ${c.border}`, background: c.bg, color: c.text }
-}
-
-export function useFmtType() {
-  const { t } = useI18n()
-  return (type) => {
-    if (!type) return '—'
-    const key = `vehicle_types.${type}`
-    const translated = t(key)
-    return translated === key ? type : translated
-  }
 }
 
 export const TYPE_LABELS_EN = {

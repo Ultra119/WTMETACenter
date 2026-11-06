@@ -38,26 +38,10 @@ class UnitsCsvTranslator:
         self._load(local_path)
 
 
-    def find_id(self, display_name: str) -> Optional[str]:
-        if not display_name:
-            return None
-        return self._en_to_id.get(display_name.strip().lower())
-
     def find_name(self, identifier: str) -> Optional[str]:
         if not identifier:
             return None
         return self._id_to_en.get(identifier)
-
-    def coverage_report(self, identifiers: list[str]) -> dict:
-        covered = [i for i in identifiers if i in self._id_to_en]
-        missing = [i for i in identifiers if i not in self._id_to_en]
-        pct = 100.0 * len(covered) / max(len(identifiers), 1)
-        return {
-            "total":   len(identifiers),
-            "covered": len(covered),
-            "missing": missing,
-            "pct":     round(pct, 1),
-        }
 
     def __len__(self) -> int:
         return len(self._en_to_id)
