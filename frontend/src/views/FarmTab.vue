@@ -84,7 +84,7 @@
       <div class="sub-head">
         <v-icon size="14" class="t-dim">mdi-view-list-outline</v-icon>
         <span class="eyebrow eyebrow--primary">{{ t('farm_tab.main_set') }}</span>
-        <span class="t-faint sub-head__range">BR {{ fmtBR(targetBr - 1.0) }} – {{ fmtBR(targetBr) }}</span>
+        <span class="t-faint sub-head__range">BR {{ fmtBR(targetBr - MAIN_DOWN) }} – {{ fmtBR(targetBr + ANCHOR_TOL) }}</span>
       </div>
 
       <div class="table-wrap mb-6">
@@ -126,7 +126,7 @@
       <div class="sub-head">
         <v-icon size="14" style="color:var(--c-violet)">mdi-diamond-stone</v-icon>
         <span class="eyebrow" style="color:var(--c-violet)">{{ t('farm_tab.gems') }}</span>
-        <span class="t-faint sub-head__range">BR {{ fmtBR(targetBr - 2.0) }} – {{ fmtBR(targetBr - 1.0) }}</span>
+        <span class="t-faint sub-head__range">BR {{ fmtBR(targetBr - GEMS_DOWN) }} – &lt; {{ fmtBR(targetBr - GEMS_UP) }}</span>
       </div>
 
       <div v-if="gemRows.length" class="table-wrap">
@@ -204,24 +204,30 @@ const ROLE_RESERVE   = 'reserve'
 const farmOf = v => v.FARM_SCORE ?? 0
 const byFarmDesc = (a, b) => farmOf(b) - farmOf(a)
 
+// sets and their headers must agree, so both read these
+const ANCHOR_TOL   = 0.15
+const MAIN_DOWN    = 1.0
+const GEMS_DOWN    = 2.0
+const GEMS_UP      = 0.85
+
 function buildFarmSet(vehicles, tBr, nat) {
   const df = nat === 'All' ? vehicles : vehicles.filter(v => v.Nation === nat)
 
   let anchor = null
   for (const v of df) {
-    if (Math.abs(v.BR - tBr) <= 0.15 && (!anchor || farmOf(v) > farmOf(anchor))) anchor = v
+    if (Math.abs(v.BR - tBr) <= ANCHOR_TOL && (!anchor || farmOf(v) > farmOf(anchor))) anchor = v
   }
   if (!anchor) return null
 
   const anchorFarm = farmOf(anchor)
 
   const mainSet = df
-    .filter(v => v.BR >= tBr - 1.0 && v.BR <= tBr + 0.15)
+    .filter(v => v.BR >= tBr - MAIN_DOWN && v.BR <= tBr + ANCHOR_TOL)
     .sort(byFarmDesc)
     .slice(0, 7)
     .map(v => ({
       ...v,
-      _roleKey: Math.abs(v.BR - tBr) <= 0.15
+      _roleKey: Math.abs(v.BR - tBr) <= ANCHOR_TOL
         ? ROLE_PRIMARY
         : farmOf(v) >= anchorFarm * 0.9
           ? ROLE_CANDIDATE
@@ -229,7 +235,7 @@ function buildFarmSet(vehicles, tBr, nat) {
     }))
 
   const gems = df
-    .filter(v => v.BR >= tBr - 2.0 && v.BR < tBr - 0.85 && farmOf(v) > anchorFarm)
+    .filter(v => v.BR >= tBr - GEMS_DOWN && v.BR < tBr - GEMS_UP && farmOf(v) > anchorFarm)
     .sort(byFarmDesc)
     .slice(0, 5)
     .map(v => ({
