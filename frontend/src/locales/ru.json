@@ -22,7 +22,9 @@
     "records": "{n} записей",
     "records_short": "записей",
     "low_sample": "Меньше 250 боёв — широкий доверительный интервал",
-    "wr_ci": "95% CI"
+    "wr_ci": "95% CI",
+    "trend": "Тренд",
+    "trend_since": "Изменение META с {from} по {to}"
   },
   "tabs": {
     "meta": "META Рейтинг",
@@ -81,7 +83,8 @@
     "tip_weak": "Слабо",
     "tip_rare": "Редко",
     "tip_avg_pop": "Средне",
-    "tip_dominant": "Доминирует"
+    "tip_dominant": "Доминирует",
+    "n_vehicles": "{n} машин"
   },
   "farm_tab": {
     "target_br": "Целевой БР",

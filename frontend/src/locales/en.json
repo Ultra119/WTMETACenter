@@ -22,7 +22,9 @@
     "records": "{n} records",
     "records_short": "records",
     "low_sample": "Fewer than 250 battles - wide confidence interval",
-    "wr_ci": "95% CI"
+    "wr_ci": "95% CI",
+    "trend": "Trend",
+    "trend_since": "META change from {from} to {to}"
   },
   "tabs": {
     "meta": "META Rating",
@@ -81,7 +83,8 @@
     "tip_weak": "Weak",
     "tip_rare": "Rare",
     "tip_avg_pop": "Common",
-    "tip_dominant": "Dominant"
+    "tip_dominant": "Dominant",
+    "n_vehicles": "{n} vehicles"
   },
   "farm_tab": {
     "target_br": "Target BR",

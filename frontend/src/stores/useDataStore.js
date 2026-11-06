@@ -184,6 +184,11 @@ export const useDataStore = defineStore('data', () => {
     return isNaN(t) ? 0 : t
   }
 
+  async function getPeriodRows(period) {
+    if (period === currentPeriod.value) return allVehicles.value
+    return dataset.getPeriod(period)
+  }
+
   async function _getPeriodVehicles(period, signal) {
     if (period === currentPeriod.value) return allVehicles.value
     return dataset.getPeriod(period, signal)
@@ -299,6 +304,7 @@ export const useDataStore = defineStore('data', () => {
     showGround, showAviation, showHelicopters, showLargeFleet, showSmallFleet,
     filteredVehicles, activeTypes, nations, filtering,
     isBusy,
+    getPeriodRows,
     loadData, clearLoadError,
     fetchVehicleHistory,
     tabFilterConfig, setTabFilters, clearTabFilters,

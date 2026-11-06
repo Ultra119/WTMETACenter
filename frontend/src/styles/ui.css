@@ -258,6 +258,10 @@ a.ui-btn                        { text-decoration: none; }
 .cell-name       { font-weight: 500; color: var(--ink); }
 .cell-score      { font-weight: 600; }
 .wr-cell         { display: inline-flex; align-items: center; gap: 4px; }
+.trend-cell      { display: inline-flex; align-items: center; gap: 2px; font-size: 11px; }
+.trend-up        { color: var(--c-ok); }
+.trend-down      { color: var(--c-bad); }
+.cell-count      { margin-left: 4px; font-size: 9px; opacity: 0.55; vertical-align: super; }
 .wr-cell .low-sample { color: var(--c-warn); opacity: 0.9; }
 .cell-class-icon { margin-right: 4px; vertical-align: middle; opacity: 0.9; }
 

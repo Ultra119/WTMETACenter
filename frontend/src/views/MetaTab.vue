@@ -58,6 +58,18 @@
         <template #item.META_SCORE="{ item }">
           <span class="cell-score" :style="{ color: metaColor(item.META_SCORE) }">{{ item.META_SCORE?.toFixed(1) }}</span>
         </template>
+        <template #item.META_TREND="{ item }">
+          <span
+            v-if="item.TREND?.META_SCORE != null && item.TREND.META_SCORE !== 0"
+            class="trend-cell mono"
+            :class="item.TREND.META_SCORE > 0 ? 'trend-up' : 'trend-down'"
+            :title="t('common.trend_since', { from: item.TREND.from, to: item.TREND.to })"
+          >
+            <v-icon size="10">{{ item.TREND.META_SCORE > 0 ? 'mdi-arrow-up' : 'mdi-arrow-down' }}</v-icon>
+            {{ Math.abs(item.TREND.META_SCORE).toFixed(1) }}
+          </span>
+          <span v-else class="t-dim">—</span>
+        </template>
         <template #item.FARM_SCORE="{ item }">
           <span class="cell-score" :style="{ color: farmColor(item.FARM_SCORE) }">{{ item.FARM_SCORE?.toFixed(1) }}</span>
         </template>
@@ -82,7 +94,7 @@
 </template>
 
 <script setup>
-import { ref, shallowRef, computed, watchEffect, nextTick, inject, onMounted, onBeforeUnmount, onActivated, onDeactivated } from 'vue'
+import { ref, shallowRef, computed, watch, watchEffect, nextTick, inject, onMounted, onBeforeUnmount, onActivated, onDeactivated } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useTabFilters } from '../composables/useTabFilters.js'
 import { useDataStore } from '../stores/useDataStore.js'
@@ -92,10 +104,18 @@ import {
   metaColor, farmColor, wrColor, slColor, normRow,
 } from '../composables/useVehicleFormatting.js'
 import LoadingSkeleton from '../components/LoadingSkeleton.vue'
+import { useTrends } from '../composables/useTrends.js'
 import InfoTip from '../components/InfoTip.vue'
 
 const { t }       = useI18n()
 const store = useDataStore()
+const trends = useTrends()
+
+watch(
+  () => store.isBusy,
+  busy => { if (!busy) trends.build(store) },
+  { immediate: true },
+)
 useTabFilters()
 const openVehicle = inject('openVehicle')
 
@@ -144,6 +164,7 @@ watchEffect(() => {
       classColor:     vehicleClassMdiColor(v),
       Type_Display:   fmtType(v.Type),
       Nation_Display: fmtNation(v.Nation),
+      TREND:          trends.trendFor(v),
     }))
   })
 })
@@ -157,6 +178,7 @@ const headers = computed(() => [
   { title: t('common.wr'),      key: 'WR',             sortable: true, width: 65  },
   { title: t('common.kd'),      key: 'KD',             sortable: true, width: 60  },
   { title: t('common.meta'),    key: 'META_SCORE',     sortable: true, width: 75  },
+  { title: t('common.trend'),   key: 'META_TREND',     sortable: true, width: 70  },
   { title: t('common.farm'),    key: 'FARM_SCORE',     sortable: true, width: 75  },
   { title: t('common.net_sl'),  key: 'net_sl',         sortable: true, width: 110 },
 ])

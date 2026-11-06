@@ -100,7 +100,11 @@
               class="score-cell"
               :class="{ 'is-empty': !row[nat] }"
               :style="{ '--c': scoreColor(row[nat], pivot.mode) }"
-            >{{ formatCell(row[nat]) }}</td>
+              :title="cellTitle(row, nat)"
+            >{{ formatCell(row[nat]) }}<span
+                v-if="row[`${nat}__n`]"
+                class="cell-count mono"
+              >{{ row[`${nat}__n`] }}</span></td>
           </tr>
         </tbody>
       </table>
@@ -222,7 +226,9 @@ function buildWtBrackets(stepsN) {
 
 const battlesOf = v => v['Сыграно игр'] ?? 0
 
-function weightedMeta(pool) {
+const SHRINK_BATTLES = 1000
+
+function weightedMeta(pool, prior) {
   if (!pool.length) return 0
   let total = 0, weighted = 0, plain = 0
   for (const v of pool) {
@@ -231,7 +237,20 @@ function weightedMeta(pool) {
     weighted += v.META_SCORE * b
     plain    += v.META_SCORE
   }
-  return total < 1 ? plain / pool.length : weighted / total
+  const raw = total < 1 ? plain / pool.length : weighted / total
+  if (prior == null) return raw
+  const k = total / (total + SHRINK_BATTLES)
+  return raw * k + prior * (1 - k)
+}
+
+function bracketPrior(vehicles) {
+  let total = 0, weighted = 0
+  for (const v of vehicles) {
+    const b = battlesOf(v)
+    total    += b
+    weighted += v.META_SCORE * b
+  }
+  return total < 1 ? 0 : weighted / total
 }
 
 const pivot = shallowRef({ rows: [], nations: [], mode: 'strength' })
@@ -260,6 +279,7 @@ watchEffect(() => {
       if (list) list.push(v); else m.set(v.Nation, [v])
     }
 
+    const prior = bracketPrior(vehicles)
     const rows = brackets.map((b, bi) => {
       const byNation = buckets[bi]
       const row = { bracket: b.label }
@@ -280,8 +300,9 @@ watchEffect(() => {
 
       for (const nat of nations) {
         let pool = byNation.get(nat) ?? []
+        row[`${nat}__n`] = pool.length
         if (n && pool.length > n) pool = [...pool].sort((a, c) => c.META_SCORE - a.META_SCORE).slice(0, n)
-        row[nat] = Math.round(weightedMeta(pool) * 10) / 10
+        row[nat] = Math.round(weightedMeta(pool, prior) * 10) / 10
       }
       return row
     })
@@ -324,6 +345,12 @@ const legendGradient = computed(() => heatMode.value === 'popularity'
   ? 'linear-gradient(to right, rgb(120,128,145) 0%, var(--c-info) 45%, var(--c-warn) 100%)'
   : 'linear-gradient(to right, var(--c-bad) 0%, var(--c-warn) 50%, var(--c-ok) 100%)'
 )
+
+function cellTitle(row, nat) {
+  const n = row[`${nat}__n`]
+  if (!n) return ''
+  return t('brackets_tab.n_vehicles', { n })
+}
 
 function formatCell(val) {
   if (!val) return '—'
