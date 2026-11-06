@@ -22,6 +22,9 @@ def _weighted_avg(values: pd.Series, weights: pd.Series) -> float:
 
 _SHIFT_MIN_BATTLES = 1000.0
 
+# calibrating at z_clip made every row past it land on exactly 100.0
+_SIG_CALIBRATION = 2.0
+
 
 def _shift_intensity(raw_val: float, thr: float, battles: float) -> float:
     # 0 at the threshold, 1 at twice it; no z term, which used to block tanks
@@ -246,9 +249,10 @@ def score(df: pd.DataFrame, settings: dict) -> pd.DataFrame:
                     ).clip(-z_clip, z_clip)
 
     def _sigmoid(z_col: str) -> pd.Series:
+        z_cal = z_clip * _SIG_CALIBRATION
         raw = 100.0 / (1.0 + np.exp(-sig_scale * df[z_col]))
-        lo  = 100.0 / (1.0 + np.exp( sig_scale * z_clip))
-        hi  = 100.0 / (1.0 + np.exp(-sig_scale * z_clip))
+        lo  = 100.0 / (1.0 + np.exp( sig_scale * z_cal))
+        hi  = 100.0 / (1.0 + np.exp(-sig_scale * z_cal))
         return ((raw - lo) / (hi - lo) * 100.0).clip(0.0, 100.0)
 
     s_wr   = _sigmoid("z_wr")
