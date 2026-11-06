@@ -37,8 +37,12 @@ class AnalyticsCore:
 
         df = df.copy()
 
-        group_cols = [c for c in [
-            "Name", "Mode", "Nation", "Type", "BR", "VehicleClass",
+        # group on the datamine id, not the display name: several distinct
+        # vehicles share a name (bf-109c_1 vs bf-109c_1_promo), and a name-based
+        # key also changes with whether units.csv downloaded
+        id_col      = "vdb_identifier" if "vdb_identifier" in df.columns else "Name"
+        group_cols  = [c for c in [
+            id_col, "Mode", "Nation", "Type", "BR", "VehicleClass",
         ] if c in df.columns]
 
         if not group_cols:
@@ -65,6 +69,8 @@ class AnalyticsCore:
             agg[f"__w_{c}"] = "sum"
         for c in vdb_cols:
             agg[c] = "first"
+        if "Name" in df.columns and "Name" not in group_cols:
+            agg["Name"] = "first"
 
         grouped = df.groupby(group_cols, as_index=False, sort=False).agg(agg)
 

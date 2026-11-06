@@ -212,7 +212,7 @@ def main() -> None:
 
     print("\n▶  Aggregate all periods → All")
     all_df = core.aggregate_all_periods(core.full_df)
-    print(f"   ✅  {len(all_df)} unique records (Name+Mode+Nation+Type+BR)")
+    print(f"   ✅  {len(all_df)} unique records (identifier+Mode+Nation+Type+BR)")
 
     period_dfs: dict[str, pd.DataFrame] = {"All": all_df}
     for p in raw_periods:
