@@ -3,6 +3,7 @@ from __future__ import annotations
 import csv
 import os
 import re
+import unicodedata
 import urllib.request
 from typing import Optional
 
@@ -10,8 +11,14 @@ _SUFFIX_RE = re.compile(r"(_shop|_\d{1,2})$")
 
 _BADGE_PREFIX_RE = re.compile(r"^[^\w(\[{\"']+", re.UNICODE)
 
+
+# badge glyphs are So/Sm, which \w matches, so test the category instead
 def _strip_badge_prefix(name: str) -> str:
-    return _BADGE_PREFIX_RE.sub("", name).strip()
+    stripped = name.strip()
+    while stripped and unicodedata.category(stripped[0]) in ("So", "Sm", "Sk", "Co", "Cn"):
+        stripped = stripped[1:].lstrip()
+    # the csv escapes a literal quote by doubling it
+    return stripped.replace('""', '"') or name.strip()
 
 
 UNITS_CSV_URL: str = (

@@ -6,6 +6,7 @@ import pandas as pd
 
 from logger import log_debug
 from analytics.constants import VEHICLE_TYPE_CATEGORY, snap_to_wt_br
+from analytics.units_csv import _strip_badge_prefix
 
 _PERIOD_RE = re.compile(r'^\d{1,2}-\d{4}$')
 
@@ -96,6 +97,14 @@ def clean_dataframe(df: pd.DataFrame, vehicle_db) -> pd.DataFrame:
         df["Name"] = df["Name"].astype(str)
     else:
         df["Name"] = ""
+
+    if "vdb_display_name" in df.columns:
+        # units.csv gives the clean localised name when it downloaded
+        display = df["vdb_display_name"].fillna("").astype(str)
+        df["Name"] = display.where(display.str.len() > 0, df["Name"])
+
+    # badge glyphs survive in the raw datamine even without units.csv
+    df["Name"] = df["Name"].map(_strip_badge_prefix)
 
     df["Category"] = df["Type"].map(VEHICLE_TYPE_CATEGORY).fillna("Uncategorized")
 
