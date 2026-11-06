@@ -141,7 +141,7 @@ export const useDataStore = defineStore('data', () => {
     return isNaN(t) ? 0 : t
   }
 
-  async function _getPeriodVehicles(period) {
+  async function _getPeriodVehicles(period, signal) {
     if (period === currentPeriod.value) return allVehicles.value
     if (_periodCache.has(period)) return _periodCache.get(period)
 
@@ -149,20 +149,21 @@ export const useDataStore = defineStore('data', () => {
     const qs   = hash ? `?v=${hash.slice(0, 8)}` : ''
     const url  = `${_basePath.value}/data/mega_db_${period}.json${qs}`
 
-    const res = await fetch(url)
+    const res = await fetch(url, { signal })
     if (!res.ok) throw new Error(`mega_db_${period}.json: ${res.status}`)
     const data = await res.json()
     _periodCache.set(period, data)
     return data
   }
 
-  async function fetchVehicleHistory({ name, nation, type, mode }) {
+  async function fetchVehicleHistory({ name, nation, type, mode, signal }) {
     const allPeriods = (metaInfo.value?.periods ?? []).filter(p => p !== 'All')
     const points = []
 
     for (const period of allPeriods) {
+      if (signal?.aborted) break
       try {
-        const vehicles = await _getPeriodVehicles(period)
+        const vehicles = await _getPeriodVehicles(period, signal)
         const entry = vehicles.find(e =>
           e.Name === name && e.Nation === nation && e.Type === type && e.Mode === mode
         )
@@ -180,10 +181,12 @@ export const useDataStore = defineStore('data', () => {
           })
         }
       } catch (e) {
+        if (e.name === 'AbortError') break
         console.error('[DataStore] history fetch error:', period, e)
       }
     }
 
+    if (signal?.aborted) throw new DOMException('aborted', 'AbortError')
     points.sort((a, b) => _periodToDate(a.period) - _periodToDate(b.period))
     return points
   }

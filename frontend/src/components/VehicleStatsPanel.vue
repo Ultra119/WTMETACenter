@@ -78,7 +78,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onBeforeUnmount } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useDataStore } from '../stores/useDataStore.js'
 import {
@@ -101,8 +101,15 @@ const error   = ref(null)
 
 const hoveredIdx = ref(null)
 
+let _historyAC = null
+
 async function load() {
-  if (!props.vehicle?.Name) { points.value = []; return }
+  if (_historyAC) _historyAC.abort()
+  _historyAC = null
+  if (!props.vehicle?.Name) { points.value = []; loading.value = false; return }
+
+  const ac = new AbortController()
+  _historyAC = ac
   loading.value = true
   error.value = null
   hoveredIdx.value = null
@@ -112,14 +119,19 @@ async function load() {
       nation: props.vehicle.Nation,
       type:   props.vehicle.Type,
       mode:   props.mode,
+      signal: ac.signal,
     })
   } catch (e) {
+    if (e.name === 'AbortError') return
     error.value = e.message
     points.value = []
   } finally {
-    loading.value = false
+    // only the newest run owns the spinner; an aborted one hands it over
+    if (_historyAC === ac) loading.value = false
   }
 }
+
+onBeforeUnmount(() => { if (_historyAC) _historyAC.abort() })
 
 watch(() => [props.vehicle?.Name, props.vehicle?.Nation, props.vehicle?.Type, props.mode], load, { immediate: true })
 
