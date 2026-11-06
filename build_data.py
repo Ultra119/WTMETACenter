@@ -98,6 +98,7 @@ def _compute_dataset_hash(stats_dir: str) -> str:
 
 
 def _safe_val(v):
+    """Fallback for individual value conversion."""
     import math
     import numpy as np
     if isinstance(v, (np.integer,)):     return int(v)
@@ -107,16 +108,55 @@ def _safe_val(v):
     return v
 
 
+def _col_to_python_list(series: pd.Series) -> list:
+    """Convert a pandas Series to a list of Python-native values (fast bulk path)."""
+    import numpy as np
+    dtype = series.dtype
+    if dtype.kind == 'f':
+        # float: convert NaN → None
+        arr = series.values
+        result = arr.tolist()  # Python floats
+        nan_mask = np.isnan(arr)
+        if nan_mask.any():
+            for i in np.where(nan_mask)[0]:
+                result[i] = None
+        return result
+    elif dtype.kind in ('i', 'u'):
+        return series.tolist()  # Python ints
+    elif dtype.kind == 'b':
+        return series.tolist()  # Python bools
+    elif dtype == object:
+        # Mixed types — convert element-wise
+        return [_safe_val(v) for v in series]
+    else:
+        return series.tolist()
+
+
 def _df_to_records(df: pd.DataFrame) -> list[dict]:
-    records = []
+    import numpy as np
     cols = [c for c in _KEEP_COLS if c in df.columns]
-    for row in df[cols].itertuples(index=False):
-        rec = {}
-        for c, v in zip(cols, row):
-            if c == "BR_HISTORY":
-                continue
-            rec[c] = _safe_val(v)
-        rec["BR_HISTORY"] = _br_history_of(row, cols)
+    non_hist_cols = [c for c in cols if c != "BR_HISTORY"]
+    has_hist = "BR_HISTORY" in cols
+    hist_idx = cols.index("BR_HISTORY") if has_hist else -1
+
+    # Pre-convert each column to Python-native list
+    col_lists = {c: _col_to_python_list(df[c]) for c in non_hist_cols}
+
+    # Handle BR_HISTORY separately
+    if has_hist:
+        hist_col = df["BR_HISTORY"]
+
+    n = len(df)
+    records = []
+    for i in range(n):
+        rec = {c: col_lists[c][i] for c in non_hist_cols}
+        if has_hist:
+            trail = hist_col.iloc[i] if i < len(hist_col) else None
+            if isinstance(trail, dict) and trail:
+                ordered = sorted(trail.items(), key=lambda kv: _period_sort_key(kv[0]))
+                rec["BR_HISTORY"] = {p: br for p, br in ordered}
+            else:
+                rec["BR_HISTORY"] = None
         records.append(rec)
     return records
 
