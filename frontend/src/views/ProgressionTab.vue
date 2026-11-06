@@ -497,7 +497,7 @@ watchEffect(() => {
       seen.set(key, v)
   }
 
-  if (!seen.size) return []
+  if (!seen.size) { progressionData.value = []; return }
 
   const enriched = [...seen.values()].map((v, i) => {
     const br     = parseFloat(v.BR) || 0
