@@ -344,6 +344,6 @@ def score(df: pd.DataFrame, settings: dict) -> pd.DataFrame:
         c for c in df.columns
         if (c.startswith("_") or c.startswith("z_")) and c != "Net SL за игру"
     ]
-    df.drop(columns=drop_cols, inplace=True, errors="ignore")
+    df = df.drop(columns=drop_cols, errors="ignore")
 
     return df
