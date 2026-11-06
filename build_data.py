@@ -20,6 +20,7 @@ sys.path.insert(0, os.path.join(PROJECT_DIR, "analytics"))
 sys.path.insert(0, PROJECT_DIR)
 
 from analytics.core      import AnalyticsCore
+from analytics.loader    import invalid_periods
 from analytics.quality  import evaluate, report as report_quality
 from analytics.constants import WT_BR_STEPS
 
@@ -78,12 +79,15 @@ def _load_vehicles_json() -> list[dict]:
 
 def _compute_dataset_hash(stats_dir: str) -> str:
     h = hashlib.sha256()
-    for root, _dirs, files in os.walk(stats_dir):
+    for root, dirs, files in os.walk(stats_dir):
+        dirs.sort()
         for fname in sorted(files):
             if not fname.endswith(".json"):
                 continue
             path = os.path.join(root, fname)
-            h.update(path.encode())
+            rel = os.path.relpath(path, stats_dir).replace(os.sep, "/")
+            h.update(rel.encode("utf-8"))
+            h.update(b"\0")
             with open(path, "rb") as f:
                 for chunk in iter(lambda: f.read(65536), b""):
                     h.update(chunk)
@@ -271,6 +275,7 @@ def main() -> None:
         vehicles=_load_vehicles_json(),
         period_records=period_records,
         shop_loaded=core.shop_loaded,
+        invalid_periods=invalid_periods,
     )
     report_quality(checks)
 

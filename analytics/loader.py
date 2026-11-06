@@ -8,7 +8,11 @@ from logger import log_debug
 from analytics.constants import VEHICLE_TYPE_CATEGORY, snap_to_wt_br
 from analytics.units_csv import _strip_badge_prefix
 
-_PERIOD_RE = re.compile(r'^\d{1,2}-\d{4}$')
+_PERIOD_RE = re.compile(r'^(0[1-9]|1[0-2])-\d{4}$')
+_PERIOD_ALIASES = frozenset({"all"})
+
+invalid_periods: list[str] = []
+
 
 _NA_TOKENS = {"n/a", "none", "nan", "null", "-", ""}
 
@@ -24,11 +28,24 @@ def _to_number(series: pd.Series, scale: float = 1.0) -> pd.Series:
     return out
 
 
+def _period_from_dir(first_sub: str) -> str:
+    if not first_sub:
+        return "All"
+    if _PERIOD_RE.match(first_sub):
+        return first_sub
+    if first_sub.lower() in _PERIOD_ALIASES:
+        return "All"
+    invalid_periods.append(first_sub)
+    log_debug(f"Skipping directory with an unrecognised period name: {first_sub!r}")
+    return ""
+
+
 def load_json_files(script_dir: str) -> list:
     log_debug("=== STARTING WT META CENTER ===")
 
     all_data: list = []
     skip_files = {"settings.json", "vehicles.json"}
+    invalid_periods.clear()
 
     for root, _dirs, files in os.walk(script_dir):
         for filename in files:
@@ -40,7 +57,9 @@ def load_json_files(script_dir: str) -> list:
 
             dir_category = first_sub if first_sub else "Uncategorized"
 
-            period = first_sub if _PERIOD_RE.match(first_sub) else "All"
+            period = _period_from_dir(first_sub)
+            if not period:
+                continue
 
             name_parts = filename.replace(".json", "").split("_")
             nation = name_parts[0] if name_parts else "Unknown"

@@ -15,6 +15,11 @@ class Checks:
         self.warnings.append(message)
 
 
+def check_periods(checks: Checks, invalid: list[str]) -> None:
+    for name in sorted(set(invalid)):
+        checks.fail(f"unrecognised period directory: {name!r}")
+
+
 def check_vehicles(checks: Checks, vehicles: list[dict]) -> None:
     if not vehicles:
         checks.fail("vehicles.json is empty")
@@ -109,9 +114,11 @@ def evaluate(
     vehicles: list[dict],
     period_records: dict[str, list[dict]],
     shop_loaded: bool,
+    invalid_periods: list[str] | None = None,
 ) -> Checks:
     checks = Checks()
 
+    check_periods(checks, invalid_periods or [])
     check_vehicles(checks, vehicles)
 
     for period, records in period_records.items():
