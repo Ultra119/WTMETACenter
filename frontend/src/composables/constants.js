@@ -119,8 +119,6 @@ export const CROSS_BR_LOOKBACK  = 1.0
 export const NO_CROSS_TYPES     = new Set(['spaa'])
 export const FILL_MIN_SCORE     = 1.0
 
-export const REDBOOK_LOW_BATTLES = 100
-
 export const TYPE_BRANCH_COLOR = {
   medium_tank:        '#9AA0AD', light_tank:         '#9AA0AD',
   heavy_tank:         '#9AA0AD', tank_destroyer:     '#9AA0AD', spaa: '#A99BE0',

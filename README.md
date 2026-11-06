@@ -13,7 +13,6 @@ tech tree progression analysis and more.
 - **BR Grid** — nation vs BR bracket heatmap
 - **Lineup** — optimal farm lineup builder for a target BR
 - **Tech Tree** — visual progression analyzer with MUST/SKIP/FILL verdicts per vehicle
-- **Red Book** — vehicles with critically low play counts
 
 ## Data sources
 
