@@ -166,7 +166,9 @@ const filtered = computed(() => {
 })
 
 
-function parseReleaseDate(raw) {
+// release dates are plain calendar days; keep them as 'YYYY-MM-DD' strings so
+// they never depend on the viewer's timezone
+function parseReleaseKey(raw) {
   if (!raw) return null
   const s = String(raw).replace(/[./]/g, '-').trim()
   const parts = s.split('-')
@@ -185,22 +187,30 @@ function parseReleaseDate(raw) {
     !Number.isInteger(day)   || day   < 1    || day   > 31
   ) return null
 
-  const d = new Date(year, month - 1, day)
-  if (d.getFullYear() !== year || d.getMonth() !== month - 1 || d.getDate() !== day) return null
-  return d
+  const utc = new Date(Date.UTC(year, month - 1, day))
+  if (utc.getUTCFullYear() !== year || utc.getUTCMonth() !== month - 1 || utc.getUTCDate() !== day) return null
+
+  return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+}
+
+function _utcDate(isoKey) {
+  const [y, m, d] = isoKey.split('-').map(Number)
+  return new Date(Date.UTC(y, m - 1, d))
 }
 
 function formatGroupDate(isoKey) {
   try {
-    const [y, m, d] = isoKey.split('-').map(Number)
-    return new Date(y, m - 1, d).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' })
+    return _utcDate(isoKey).toLocaleDateString(undefined, {
+      day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC',
+    })
   } catch { return isoKey }
 }
 
 function formatGroupMonth(isoKey) {
   try {
-    const [y, m, d] = isoKey.split('-').map(Number)
-    return new Date(y, m - 1, d).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })
+    return _utcDate(isoKey).toLocaleDateString(undefined, {
+      day: 'numeric', month: 'short', timeZone: 'UTC',
+    })
   } catch { return isoKey }
 }
 
@@ -210,8 +220,7 @@ const groups = computed(() => {
   const map = new Map()
 
   for (const v of filtered.value) {
-    const d   = parseReleaseDate(v.vdb_release_date)
-    const key = d ? d.toISOString().slice(0, 10) : LAUNCH_KEY
+    const key = parseReleaseKey(v.vdb_release_date) ?? LAUNCH_KEY
 
     if (!map.has(key)) {
       map.set(key, {
