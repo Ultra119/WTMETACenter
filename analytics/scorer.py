@@ -20,17 +20,14 @@ def _weighted_avg(values: pd.Series, weights: pd.Series) -> float:
     return float((values * w).sum() / total)
 
 
-_SHIFT_WIDTH_FACTOR = 0.4
+_SHIFT_MIN_BATTLES = 1000.0
 
 
-def _shift_intensity(raw_val: float, z_val: float, thr: float, z_clip: float) -> float:
-    magnitude = max(0.0, min(1.0, z_val / z_clip)) if z_clip > 1e-9 else 0.0
-    if magnitude <= 0.0:
+def _shift_intensity(raw_val: float, thr: float, battles: float) -> float:
+    # 0 at the threshold, 1 at twice it; no z term, which used to block tanks
+    if battles < _SHIFT_MIN_BATTLES or thr <= 0.0:
         return 0.0
-
-    width = max(thr * _SHIFT_WIDTH_FACTOR, 1e-6)
-    gate  = 1.0 / (1.0 + np.exp(-(raw_val - thr) / width))
-    return magnitude * gate
+    return max(0.0, min(1.0, (raw_val - thr) / thr))
 
 
 _REPAIR_COL_BY_MODE: dict[str, str] = {
@@ -255,9 +252,8 @@ def score(df: pd.DataFrame, settings: dict) -> pd.DataFrame:
         if vtype == "spaa":
             t = _shift_intensity(
                 raw_val=float(row.get("_ks_g_raw", 0.0)),
-                z_val=float(row.get("z_ks_g", 0.0)),
+                battles=float(row.get("Сыграно игр", 0.0)),
                 thr=ROLE_SHIFT_RAW_THRESHOLDS.get(("spaa", "_ks_g_raw"), 0.0),
-                z_clip=z_clip,
             )
             w_alt   = ROLE_WEIGHTS["tank_destroyer"]
             weights = {k: weights[k] * (1.0 - t) + w_alt[k] * t for k in weights}
@@ -265,9 +261,8 @@ def score(df: pd.DataFrame, settings: dict) -> pd.DataFrame:
         elif vtype in ("tank_destroyer", "light_tank", "medium_tank"):
             t = _shift_intensity(
                 raw_val=float(row.get("_ks_a_raw", 0.0)),
-                z_val=float(row.get("z_ks_a", 0.0)),
+                battles=float(row.get("Сыграно игр", 0.0)),
                 thr=ROLE_SHIFT_RAW_THRESHOLDS.get((vtype, "_ks_a_raw"), 0.0),
-                z_clip=z_clip,
             )
             w_alt   = ROLE_WEIGHTS["spaa"]
             weights = {k: weights[k] * (1.0 - t) + w_alt[k] * t for k in weights}
@@ -275,9 +270,8 @@ def score(df: pd.DataFrame, settings: dict) -> pd.DataFrame:
         elif vtype == "fighter":
             t = _shift_intensity(
                 raw_val=float(row.get("_ks_g_raw", 0.0)),
-                z_val=float(row.get("z_ks_g", 0.0)),
+                battles=float(row.get("Сыграно игр", 0.0)),
                 thr=ROLE_SHIFT_RAW_THRESHOLDS.get(("fighter", "_ks_g_raw"), 0.0),
-                z_clip=z_clip,
             )
             w_alt   = ROLE_WEIGHTS["assault"]
             weights = {k: weights[k] * (1.0 - t) + w_alt[k] * t for k in weights}
@@ -285,9 +279,8 @@ def score(df: pd.DataFrame, settings: dict) -> pd.DataFrame:
         elif vtype in ("assault", "bomber"):
             t = _shift_intensity(
                 raw_val=float(row.get("_ks_a_raw", 0.0)),
-                z_val=float(row.get("z_ks_a", 0.0)),
+                battles=float(row.get("Сыграно игр", 0.0)),
                 thr=ROLE_SHIFT_RAW_THRESHOLDS.get((vtype, "_ks_a_raw"), 0.0),
-                z_clip=z_clip,
             )
             w_alt   = ROLE_WEIGHTS["fighter"]
             weights = {k: weights[k] * (1.0 - t) + w_alt[k] * t for k in weights}

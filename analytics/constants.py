@@ -131,17 +131,18 @@ DEFAULT_SETTINGS: dict = {
     "c_deaths":      3000,
 }
 
+# kills/spawn before role weights drift; near each type's p95
 ROLE_SHIFT_RAW_THRESHOLDS: dict[tuple, float] = {
-    ("tank_destroyer", "_ks_a_raw"): 0.15,
-    ("light_tank",     "_ks_a_raw"): 0.15,
-    ("medium_tank",    "_ks_a_raw"): 0.15,
+    ("tank_destroyer", "_ks_a_raw"): 0.12,
+    ("light_tank",     "_ks_a_raw"): 0.12,
+    ("medium_tank",    "_ks_a_raw"): 0.05,
 
-    ("spaa",           "_ks_g_raw"): 0.30,
+    ("spaa",           "_ks_g_raw"): 0.70,
 
-    ("fighter",        "_ks_g_raw"): 0.10,
+    ("fighter",        "_ks_g_raw"): 0.85,
 
-    ("assault",        "_ks_a_raw"): 0.30,
-    ("bomber",         "_ks_a_raw"): 0.30,
+    ("assault",        "_ks_a_raw"): 0.80,
+    ("bomber",         "_ks_a_raw"): 0.65,
 }
 
 
