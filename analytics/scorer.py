@@ -160,26 +160,29 @@ def score(df: pd.DataFrame, settings: dict) -> pd.DataFrame:
                 n_g = row_slice["Сыграно игр"]
                 n_s = row_slice["Возрождения"]
 
+                d_g = (n_g + C_battles).clip(lower=1e-9)
+                d_s = (n_s + C_spawns).clip(lower=1e-9)
+
                 df.loc[mask_self, "_wr"] = (
                     (row_slice["_wr_raw"] * n_g + avg_wr * C_battles)
-                    / (n_g + C_battles)
+                    / d_g
                 )
 
                 df.loc[mask_self, "_ks_g"] = (
                     (row_slice["Наземные убийства"] + avg_ks_g * C_spawns)
-                    / (n_s + C_spawns)
+                    / d_s
                 )
                 df.loc[mask_self, "_ks_a"] = (
                     (row_slice["Воздушные убийства"] + avg_ks_a * C_spawns)
-                    / (n_s + C_spawns)
+                    / d_s
                 )
                 df.loc[mask_self, "_ks_n"] = (
                     (row_slice["Морские убийства"] + avg_ks_n * C_spawns)
-                    / (n_s + C_spawns)
+                    / d_s
                 )
                 df.loc[mask_self, "_act"] = (
                     (row_slice["_act_raw"] * n_g + avg_act * C_battles)
-                    / (n_g + C_battles)
+                    / d_g
                 )
 
     _RAW_COL: dict[str, str] = {
