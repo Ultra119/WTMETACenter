@@ -195,10 +195,14 @@ export const useDataStore = defineStore('data', () => {
     try {
       await _loadVehicles()
     } catch (e) {
-      if (e.name === 'AbortError') return
-      loadError.value = e.message
+      if (e.name !== 'AbortError') {
+        loadError.value = e.message
+        console.error('[DataStore] period switch error:', e)
+      }
+    } finally {
+      // an aborted load still has to drop the spinner, otherwise the table
+      // stays blank after a fast period switch
       filtering.value = false
-      console.error('[DataStore] period switch error:', e)
     }
   })
 
