@@ -213,6 +213,8 @@ export const useDataStore = defineStore('data', () => {
     }
   })
 
+  function clearLoadError() { loadError.value = null }
+
   const activeTypes = computed(() => {
     const wanted = new Set()
     if (showGround.value)      wanted.add('Ground')
@@ -264,7 +266,7 @@ export const useDataStore = defineStore('data', () => {
     mode, minBattles, brRange, classes,
     showGround, showAviation, showHelicopters, showLargeFleet, showSmallFleet,
     filteredVehicles, activeTypes, nations, filtering,
-    loadData,
+    loadData, clearLoadError,
     fetchVehicleHistory,
     tabFilterConfig, setTabFilters, clearTabFilters,
     BR_MIN, BR_MAX, WT_BR_STEPS,

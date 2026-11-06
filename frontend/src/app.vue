@@ -6,8 +6,17 @@
       </div>
     </Transition>
 
-    <v-snackbar :model-value="!!store.loadError" color="error" timeout="-1" location="top">
+    <v-snackbar
+      :model-value="!!store.loadError"
+      color="error"
+      timeout="-1"
+      location="top"
+      @update:model-value="store.clearLoadError()"
+    >
       {{ t('common.error_load', { msg: store.loadError }) }}
+      <template #actions>
+        <v-btn variant="text" size="small" @click="store.clearLoadError()">{{ t('common.close') }}</v-btn>
+      </template>
     </v-snackbar>
 
     <TopBar />
