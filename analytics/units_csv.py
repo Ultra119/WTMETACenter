@@ -4,8 +4,9 @@ import csv
 import os
 import re
 import unicodedata
-import urllib.request
 from typing import Optional
+
+from analytics.datamine import fetch
 
 # only the marketplace duplicate marker; a trailing _85 in t_34_85 is part of
 # the model name and stripping it mangled 407 identifiers
@@ -23,12 +24,8 @@ def _strip_badge_prefix(name: str) -> str:
     return stripped.replace('""', '"') or name.strip()
 
 
-UNITS_CSV_URL: str = (
-    "https://github.com/gszabi99/War-Thunder-Datamine"
-    "/raw/master/lang.vromfs.bin_u/lang/units.csv"
-)
 UNITS_CSV_FILENAME: str = "units.csv"
-_DOWNLOAD_TIMEOUT: int = 20
+UNITS_CSV_PATH: str     = "lang.vromfs.bin_u/lang/units.csv"
 
 
 class UnitsCsvTranslator:
@@ -82,21 +79,7 @@ class UnitsCsvTranslator:
         self._parse(path)
 
     def _try_download(self, dest: str) -> None:
-        try:
-            os.makedirs(os.path.dirname(dest), exist_ok=True)
-            print("[UnitsCsv] 📥 Download units.csv from War-Thunder-Datamine …")
-            req = urllib.request.Request(
-                UNITS_CSV_URL,
-                headers={"User-Agent": "WTMetaCenter/1.0"},
-            )
-            with urllib.request.urlopen(req, timeout=_DOWNLOAD_TIMEOUT) as resp, \
-                    open(dest, "wb") as out_f:
-                out_f.write(resp.read())
-            print(f"[UnitsCsv] ✅ Downloaded and saved → {dest}")
-        except Exception as e:
-            print(f"[UnitsCsv] ❌ Unable to download units.csv: {e}")
-            print( "[UnitsCsv]    Upload the file manually: dataset/units.csv")
-            print(f"[UnitsCsv]    URL: {UNITS_CSV_URL}")
+        fetch(dest, UNITS_CSV_PATH, "UnitsCsv")
 
     def _parse(self, path: str) -> None:
         count_parsed  = 0

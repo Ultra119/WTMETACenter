@@ -2,14 +2,11 @@ from __future__ import annotations
 
 import json
 import os
-import urllib.request
 
-SHOP_URL: str = (
-    "https://github.com/gszabi99/War-Thunder-Datamine"
-    "/raw/master/char.vromfs.bin_u/config/shop.blkx"
-)
-SHOP_FILENAME: str  = "shop.blkx"
-_DOWNLOAD_TIMEOUT: int = 30
+from analytics.datamine import fetch
+
+SHOP_FILENAME: str = "shop.blkx"
+SHOP_PATH: str     = "char.vromfs.bin_u/config/shop.blkx"
 
 _META_KEYS = frozenset({
     "image", "reqAir", "futureReqAir", "slaveUnit",
@@ -26,21 +23,7 @@ _ORDER_STRIDE = 1_000_000
 
 
 def _try_download(dest: str) -> None:
-    try:
-        os.makedirs(os.path.dirname(dest), exist_ok=True)
-        print(f"[ShopParser] 📥 Download shop.blkx from War-Thunder-Datamine …")
-        req = urllib.request.Request(
-            SHOP_URL,
-            headers={"User-Agent": "WTMetaCenter/1.0"},
-        )
-        with urllib.request.urlopen(req, timeout=_DOWNLOAD_TIMEOUT) as resp, \
-             open(dest, "wb") as out_f:
-            out_f.write(resp.read())
-        print(f"[ShopParser] ✅ Downloaded and saved → {dest}")
-    except Exception as e:
-        print(f"[ShopParser] ❌ Unable to download shop.blkx: {e}")
-        print( "[ShopParser]    Upload the file manually: dataset/shop.blkx")
-        print(f"[ShopParser]    URL: {SHOP_URL}")
+    fetch(dest, SHOP_PATH, "ShopParser")
 
 
 def _iter_column(col_dict: dict):
