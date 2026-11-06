@@ -18,7 +18,9 @@ _NA_TOKENS = {"n/a", "none", "nan", "null", "-", ""}
 
 
 def _to_number(series: pd.Series, scale: float = 1.0) -> pd.Series:
-    s = series.map(lambda v: "" if v is None or (isinstance(v, float) and pd.isna(v)) else str(v))
+    # Fast path: convert to string vectorized
+    s = series.astype(str)
+    s = s.where(~series.isna(), "")
     s = s.str.strip().str.replace(",", "", regex=False).str.replace("%", "", regex=False)
     s = s.str.replace(" ", "", regex=False)
     s = s.where(~s.str.lower().isin(_NA_TOKENS), other=pd.NA)
@@ -193,7 +195,25 @@ def clean_dataframe(df: pd.DataFrame, vehicle_db) -> pd.DataFrame:
         else pd.Series(float("nan"), index=df.index)
     )
 
-    df["BR"] = raw_br.apply(lambda x: snap_to_wt_br(x) if pd.notna(x) else float("nan"))
+    # Vectorized BR snapping using numpy searchsorted
+    import numpy as np
+    from analytics.constants import WT_BR_STEPS
+    _br_steps = np.array(WT_BR_STEPS, dtype=float)
+    br_vals = raw_br.values.astype(float)
+    valid = ~np.isnan(br_vals)
+    result = np.full(len(br_vals), np.nan)
+    if valid.any():
+        v = br_vals[valid]
+        idx = np.searchsorted(_br_steps, v, side='left')
+        idx = np.clip(idx, 1, len(_br_steps) - 1)
+        up = _br_steps[idx]
+        down = _br_steps[idx - 1]
+        snapped = np.where((up - v) <= (v - down), up, down)
+        # Handle edge cases: below first step or above last step
+        snapped = np.where(v <= _br_steps[0], _br_steps[0], snapped)
+        snapped = np.where(v >= _br_steps[-1], _br_steps[-1], snapped)
+        result[valid] = snapped
+    df["BR"] = result
 
     invalid_br = df["BR"].isna()
     if invalid_br.any():
@@ -249,7 +269,27 @@ def clean_dataframe(df: pd.DataFrame, vehicle_db) -> pd.DataFrame:
         "vdb_on_marketplace", "vdb_shop_is_gift", "vdb_shop_is_event",
     ]
     if all(c in df.columns for c in _vdb_flag_cols):
-        df["VehicleClass"] = df.apply(_derive_class, axis=1)
+        # Vectorized VehicleClass derivation (replaces slow df.apply)
+        import numpy as np
+        n = len(df)
+        vc = np.full(n, "Standard", dtype=object)
+        
+        is_prem = df["vdb_is_premium"].fillna(0).astype(int).values > 0
+        is_gift = df["vdb_shop_is_gift"].fillna(False).astype(bool).values
+        is_event = df["vdb_shop_is_event"].fillna(False).astype(bool).values
+        is_sq = df["vdb_squadron_vehicle"].fillna(0).astype(int).values > 0
+        is_mp = df["vdb_on_marketplace"].fillna(0).astype(int).values > 0
+        is_pack = df["vdb_is_pack"].fillna(0).astype(int).values > 0
+        
+        # Apply in priority order (later assignments override earlier)
+        vc[is_prem] = "Premium"
+        vc[is_gift] = "Gift"
+        vc[is_event] = "Event"
+        vc[is_sq] = "Squadron"
+        vc[is_mp] = "Marketplace"
+        vc[is_pack] = "Pack"
+        
+        df["VehicleClass"] = vc
     else:
         df["VehicleClass"] = "Standard"
 
