@@ -8,6 +8,19 @@
     :style="cardStyle"
     @click="$emit('click')"
   >
+    <div v-if="artUrl" class="pc-art" aria-hidden="true">
+      <img
+        v-if="artOk"
+        :src="artUrl"
+        alt=""
+        class="pc-art-img"
+        loading="lazy"
+        decoding="async"
+        draggable="false"
+        @error="artOk = false"
+      />
+    </div>
+
     <div class="pc-header">
       <v-icon class="pc-type-icon" size="13" :title="vehicle._branch">{{ typeIcon }}</v-icon>
       <v-icon v-if="classIcon" class="pc-class-icon" size="11" :style="{ color: brColor }">{{ classIcon }}</v-icon>
@@ -61,7 +74,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   VERDICT_COLORS,
@@ -70,6 +83,7 @@ import {
   CLASS_BR_COLOR,
 } from '../composables/constants.js'
 import { fmtBR } from '../composables/useVehicleFormatting.js'
+import { vehicleImageUrl } from '../composables/useVehicleImage.js'
 
 const { t } = useI18n()
 
@@ -102,6 +116,12 @@ const boostLabel = computed(() => {
   return               { text: t('progression_tab.prem_boost_weaker', { val }), color: 'var(--danger)' }
 })
 
+const artUrl = computed(() =>
+  vehicleImageUrl(props.vehicle.vdb_identifier, props.vehicle.Type)
+)
+const artOk = ref(true)
+watch(() => artUrl.value, () => { artOk.value = true })
+
 const cardStyle = computed(() => ({
   borderLeft:      `3px solid ${vc.value.border}`,
   backgroundColor: vc.value.bg,
@@ -123,6 +143,34 @@ const cardStyle = computed(() => ({
 .prog-card--grouped        { margin-bottom: 0; }
 .prog-card--excluded       { opacity: 0.5; filter: grayscale(0.4); }
 .prog-card--excluded:hover { opacity: 0.85; filter: grayscale(0.15); }
+
+/* art bleeds in from the right edge, fading under the text */
+.pc-art {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 58%;
+  overflow: hidden;
+  pointer-events: none;
+  border-radius: 0 2px 2px 0;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 62%);
+  mask-image: linear-gradient(90deg, transparent 0%, #000 62%);
+}
+.pc-art-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 68% center;
+  opacity: 0.30;
+  filter: saturate(0.55) contrast(1.05);
+  transition: opacity 0.18s;
+}
+.prog-card:hover .pc-art-img { opacity: 0.45; }
+
+.pc-header,
+.pc-stats,
+.pc-hint { position: relative; z-index: 1; }
 
 .pc-header     { display: flex; align-items: center; gap: 4px; margin-bottom: 4px; }
 .pc-type-icon  { flex-shrink: 0; opacity: 0.7; }
