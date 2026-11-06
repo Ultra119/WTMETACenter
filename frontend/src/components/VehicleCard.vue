@@ -72,8 +72,19 @@
               <span class="kv__v">{{ (modeVehicle['Сыграно игр'] ?? 0).toLocaleString() }}</span>
             </div>
             <div class="kv kv--ruled kv--eyebrow">
-              <span class="kv__k">{{ t('vehicle_card.wr') }}</span>
-              <span class="kv__v" :style="{ color: wrColor(modeVehicle.WR) }">{{ modeVehicle.WR?.toFixed(1) }}%</span>
+              <span class="kv__k">
+                {{ t('vehicle_card.wr') }}
+                <v-icon
+                  v-if="modeVehicle.WR_SAMPLE_OK === 0"
+                  size="11"
+                  class="low-sample"
+                  :title="t('common.low_sample')"
+                >mdi-alert-circle-outline</v-icon>
+              </span>
+              <span class="kv__v wr-value">
+                <span :style="{ color: wrColor(modeVehicle.WR) }">{{ modeVehicle.WR?.toFixed(1) }}%</span>
+                <span v-if="wrInterval" class="wr-ci mono">{{ wrInterval }}</span>
+              </span>
             </div>
             <div v-for="row in kdBreakdown" :key="row.key" class="kv kv--ruled kv--eyebrow">
               <span class="kv__k">{{ t(row.labelKey) }}</span>
@@ -353,6 +364,12 @@ const modeVehicle = computed(() =>
   vehicleByMode.value[activeMode.value] ?? veh.value
 )
 
+const wrInterval = computed(() => {
+  const v = modeVehicle.value
+  if (v?.WR_CI_LOW == null || v?.WR_CI_HIGH == null) return ''
+  return `${Number(v.WR_CI_LOW).toFixed(1)}–${Number(v.WR_CI_HIGH).toFixed(1)}`
+})
+
 const brByMode = computed(() =>
   Object.fromEntries(
     Object.entries(vehicleByMode.value)
@@ -438,4 +455,7 @@ function v(key) {
 .armor-table tbody tr + tr td { border-top: 1px solid var(--hairline); }
 .armor-label { color: var(--ink-muted) !important; text-align: left !important; }
 .chips-row   { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.wr-value    { display: inline-flex; align-items: baseline; gap: 6px; }
+.wr-ci       { font-size: 10px; color: var(--ink-faint); }
+.low-sample  { color: var(--c-warn); margin-left: 3px; vertical-align: middle; }
 </style>

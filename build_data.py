@@ -19,6 +19,7 @@ os.makedirs(DATA_DIR, exist_ok=True)
 sys.path.insert(0, os.path.join(PROJECT_DIR, "analytics"))
 sys.path.insert(0, PROJECT_DIR)
 
+from analytics.confidence import add_confidence
 from analytics.core      import AnalyticsCore
 from analytics.exporter  import write_dataset
 from analytics.loader    import invalid_periods
@@ -27,7 +28,8 @@ from analytics.constants import WT_BR_STEPS
 
 _KEEP_COLS = [
     "Name", "Nation", "BR", "Type", "Mode", "VehicleClass",
-    "Сыграно игр", "WR", "KD", "KD_GROUND", "KD_AIR", "KD_NAVAL",
+    "Сыграно игр", "WR", "WR_CI_LOW", "WR_CI_HIGH", "WR_SAMPLE_OK",
+    "KD", "KD_GROUND", "KD_AIR", "KD_NAVAL",
     "SL за игру", "RP за игру", "Net SL за игру",
     "META_SCORE", "FARM_SCORE",
     "vdb_hull_front",  "vdb_hull_side",  "vdb_hull_rear",
@@ -169,7 +171,7 @@ def _process_period(
                 "vehicle_classes": _ALL_VEHICLE_CLASSES,
             }
 
-            df_mode = core.calculate_meta(filters)
+            df_mode = add_confidence(core.calculate_meta(filters))
             if df_mode.empty:
                 print(f"   ℹ️   No data available: {mode} / '{period_label}'")
                 continue

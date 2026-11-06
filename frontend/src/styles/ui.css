@@ -257,6 +257,8 @@ a.ui-btn                        { text-decoration: none; }
 .wt-table .v-data-table__tr--hover td { background: rgba(94, 234, 212, 0.06) !important; }
 .cell-name       { font-weight: 500; color: var(--ink); }
 .cell-score      { font-weight: 600; }
+.wr-cell         { display: inline-flex; align-items: center; gap: 4px; }
+.wr-cell .low-sample { color: var(--c-warn); opacity: 0.9; }
 .cell-class-icon { margin-right: 4px; vertical-align: middle; opacity: 0.9; }
 
 /* Transitions */

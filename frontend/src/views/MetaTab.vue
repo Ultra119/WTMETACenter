@@ -62,7 +62,16 @@
           <span class="cell-score" :style="{ color: farmColor(item.FARM_SCORE) }">{{ item.FARM_SCORE?.toFixed(1) }}</span>
         </template>
         <template #item.WR="{ item }">
-          <span :style="{ color: wrColor(item.WR) }">{{ item.WR?.toFixed(1) }}</span>
+          <span class="wr-cell">
+            <span :style="{ color: wrColor(item.WR) }">{{ item.WR?.toFixed(1) }}</span>
+            <v-icon
+              v-if="item.WR_SAMPLE_OK === 0"
+              size="11"
+              class="low-sample"
+              :title="t('common.low_sample')"
+              :aria-label="t('common.low_sample')"
+            >mdi-alert-circle-outline</v-icon>
+          </span>
         </template>
         <template #item.net_sl="{ item }">
           <span :style="{ color: slColor(item.net_sl) }">{{ item.net_sl?.toLocaleString() }}</span>

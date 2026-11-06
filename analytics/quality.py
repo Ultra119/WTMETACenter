@@ -68,6 +68,17 @@ def check_records(checks: Checks, period: str, records: list[dict]) -> None:
     if below_gate:
         checks.fail(f"{period}: {below_gate} rows with no battles")
 
+    bad_ci = 0
+    for r in records:
+        lo, hi, wr = r.get("WR_CI_LOW"), r.get("WR_CI_HIGH"), r.get("WR")
+        if lo is None or hi is None or wr is None:
+            bad_ci += 1
+            continue
+        if not (lo <= hi) or not (lo <= wr <= hi):
+            bad_ci += 1
+    if bad_ci:
+        checks.fail(f"{period}: {bad_ci} rows with a WR interval that excludes WR")
+
     low_sample = sum(1 for r in records if (r.get("Сыграно игр") or 0) < 250)
     if low_sample and low_sample / len(records) > 0.75:
         checks.fail(
