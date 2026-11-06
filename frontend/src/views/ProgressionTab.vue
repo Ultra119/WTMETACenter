@@ -477,10 +477,14 @@ watchEffect(() => {
   const brTypes        = BRANCH_TYPES[_branch] ?? []
   const prefs          = _prefs
 
+  // shop.blkx marks Standard vehicles with a rank; when it is missing every rank
+  // is 0, and the old per-vehicle test then dropped the whole standard tree
+  const hasShopRank = allVehicles.some(v => (v.vdb_shop_rank ?? 0) > 0)
+
   const raw = allVehicles.filter(v =>
     v.Nation === selectedNation &&
     v.Mode   === selectedMode  &&
-    (v.VehicleClass !== STD_CLASS || (v.vdb_shop_rank ?? 0) > 0) &&
+    (!hasShopRank || v.VehicleClass !== STD_CLASS || (v.vdb_shop_rank ?? 0) > 0) &&
     brTypes.includes(v.Type)   &&
     (_showHidden || !v.vdb_shop_is_research_only) &&
     (!_search || (v.Name ?? '').toLowerCase().includes(_search))
