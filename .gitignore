@@ -5,3 +5,5 @@
 /dataset/units.csv
 /dataset/shop.blkx
 /.venv
+/settings.json
+/frontend/dist
