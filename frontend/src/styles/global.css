@@ -13,7 +13,7 @@
   --ink:       #E7E9EE;
   --ink-muted: rgba(231, 233, 238, 0.6);
   --ink-faint: rgba(231, 233, 238, 0.55);
-  --ink-dim:   rgba(231, 233, 238, 0.35);
+  --ink-dim:   rgba(231, 233, 238, 0.55);
 
   --hairline:        rgba(231, 233, 238, 0.12);
   --hairline-strong: rgba(231, 233, 238, 0.24);

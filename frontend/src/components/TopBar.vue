@@ -2,8 +2,11 @@
   <v-app-bar flat color="background" height="56" class="hairline-b" style="z-index: 1000;">
     <button
       v-if="!isHomePage"
+      type="button"
       class="ui-btn ui-btn--icon ui-btn--ghost ui-btn--lg ml-3"
       :title="sidebarOpen ? 'Hide sidebar' : 'Show sidebar'"
+      :aria-label="sidebarOpen ? 'Hide sidebar' : 'Show sidebar'"
+      :aria-expanded="sidebarOpen"
       @click="toggleSidebar()"
     >
       <span class="mdi" :class="sidebarOpen ? 'mdi-backburger' : 'mdi-menu'" />
@@ -47,7 +50,14 @@
           @keydown.up.prevent="moveUp"
           @keydown.enter.prevent="selectActive"
         />
-        <button v-if="query" class="ui-btn ui-btn--icon ui-btn--ghost ui-btn--xs" tabindex="-1" @mousedown.prevent="clearQuery">
+        <button
+          v-if="query"
+          type="button"
+          class="ui-btn ui-btn--icon ui-btn--ghost ui-btn--xs"
+          tabindex="-1"
+          aria-label="Clear search"
+          @mousedown.prevent="clearQuery"
+        >
           <span class="mdi mdi-close" />
         </button>
       </div>
@@ -107,8 +117,10 @@
     </v-btn-toggle>
 
     <button
+      type="button"
       class="ui-btn ui-btn--icon ui-btn--ghost ui-btn--lg ml-2"
       :title="t('about.btn_title')"
+      :aria-label="t('about.btn_title')"
       @click="aboutOpen = true"
     >
       <span class="mdi mdi-information-outline" />

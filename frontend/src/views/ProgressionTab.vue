@@ -52,8 +52,10 @@
               <template v-else>?</template>
             </span>
             <button
+              type="button"
               class="ui-btn ui-btn--icon ui-btn--xs"
               :disabled="(lineupPrefs[t] ?? 0) === 0"
+              :aria-label="`${prefDisplay[t]?.label ?? t}: −1`"
               @click="decPref(t)"
             >−</button>
             <span
@@ -61,7 +63,9 @@
               :class="(lineupPrefs[t] ?? 0) > 0 ? 'text-primary' : 't-dim'"
             >{{ lineupPrefs[t] ?? 0 }}</span>
             <button
+              type="button"
               class="ui-btn ui-btn--icon ui-btn--xs"
+              :aria-label="`${prefDisplay[t]?.label ?? t}: +1`"
               @click="incPref(t)"
             >+</button>
           </div>
@@ -74,7 +78,7 @@
             'tint tint--warn': totalPrefUsed <   DEFAULT_LINEUP_SLOTS,
           }"
         >{{ totalPrefUsed }}</span>
-        <button class="ui-btn ui-btn--icon ui-btn--xs" :title="$t('progression_tab.reset_defaults')" @click="resetLineupPrefs"><v-icon size="14">mdi-restore</v-icon></button>
+        <button type="button" class="ui-btn ui-btn--icon ui-btn--xs" :title="$t('progression_tab.reset_defaults')" :aria-label="$t('progression_tab.reset_defaults')" @click="resetLineupPrefs"><v-icon size="14" aria-hidden="true">mdi-restore</v-icon></button>
       </div>
     </div>
 

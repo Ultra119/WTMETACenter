@@ -25,6 +25,8 @@
           class="ui-btn ui-btn--icon mr-1"
           :class="{ 'is-active': showStatsPanel }"
           :title="t('vehicle_card.stats')"
+          :aria-label="t('vehicle_card.stats')"
+          :aria-expanded="showStatsPanel"
           @click="showStatsPanel = !showStatsPanel"
         >
           <span class="mdi mdi-chart-line" style="font-size:13px;" />

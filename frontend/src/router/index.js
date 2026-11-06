@@ -16,9 +16,15 @@ const routes = [
   { path: '/progression', component: ProgressionTab,  name: 'progression' },
   { path: '/cost',        component: CostTreeTab,     name: 'cost'        },
   { path: '/history',     component: HistoryTab,      name: 'history'     },
+  { path: '/:pathMatch(.*)*', redirect: '/meta' },
 ]
 
 export default createRouter({
   history: createWebHashHistory(),
   routes,
+  scrollBehavior(to, from, saved) {
+    if (saved) return saved
+    if (to.path === from.path) return {}
+    return { top: 0 }
+  },
 })

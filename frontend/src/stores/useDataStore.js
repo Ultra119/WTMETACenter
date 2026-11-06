@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, shallowRef, computed, watch } from 'vue'
+import { useDataset } from '../composables/useDataset.js'
 
 export const FALLBACK_BR_STEPS = [
   1.0,1.3,1.7, 2.0,2.3,2.7, 3.0,3.3,3.7, 4.0,4.3,4.7,
@@ -67,12 +68,12 @@ export function formatPeriodLabel(p) {
 
 export const useDataStore = defineStore('data', () => {
 
-  const allVehicles = ref([])
-  const metaInfo    = ref(null)
-  const loading     = ref(false)
-  const loadError   = ref(null)
+  const dataset = useDataset()
 
-  const _basePath = ref('')
+  const allVehicles = ref([])
+  const metaInfo    = dataset.metaInfo
+  const loading     = dataset.loading
+  const loadError   = dataset.error
 
   const tabFilterConfig = ref(null)
 
@@ -119,74 +120,10 @@ export const useDataStore = defineStore('data', () => {
   const metaTabActive = ref(false)
   const historyTabActive = ref(false)
 
-  const _attrsAC  = new AbortController()
-  let _vehiclesReady = null
-  let _periodAC  = new AbortController()
-
-  function _cacheBust() {
-    const hash = metaInfo.value?.dataset_hash ?? ''
-    return hash ? `?v=${hash.slice(0, 8)}` : ''
-  }
-
-  async function _loadVehicleAttrs() {
-    if (_vehiclesReady) return _vehiclesReady
-    _vehiclesReady = (async () => {
-      const res = await fetch(`${_basePath.value}/data/vehicles.json${_cacheBust()}`, { signal: _attrsAC.signal })
-      if (!res.ok) throw new Error(`vehicles.json: ${res.status}`)
-      return res.json()
-    })()
-    try {
-      return await _vehiclesReady
-    } catch (e) {
-      _vehiclesReady = null
-      throw e
-    }
-  }
-
-  function _decodeStats(mode, blob, attrs) {
-    const columns = blob.columns ?? []
-    const ids     = blob.identifier ?? []
-    const rows    = blob.rows ?? []
-    const out     = new Array(rows.length)
-
-    for (let i = 0; i < rows.length; i++) {
-      const values = rows[i]
-      const id     = ids[i]
-      const base   = attrs[id]
-      const row    = base ? { ...base } : {}
-      for (let c = 0; c < columns.length; c++) {
-        const v = values[c]
-        if (v !== null) row[columns[c]] = v
-      }
-      row.vdb_identifier = id
-      row.Mode           = mode
-      out[i] = row
-    }
-    return out
-  }
-
-  async function _loadPeriod(period, signal) {
-    const index  = metaInfo.value?.index
-    const entry  = index?.periods?.[period]
-    if (!entry) throw new Error(`period ${period} is not in index.json`)
-
-    const attrs  = await _loadVehicleAttrs()
-    const modes  = Object.keys(entry.modes ?? {})
-    const blobs  = await Promise.all(modes.map(async m => {
-      const res = await fetch(`${_basePath.value}/data/stats/${period}/${m}.json${_cacheBust()}`, { signal })
-      if (!res.ok) throw new Error(`stats/${period}/${m}.json: ${res.status}`)
-      return [m, await res.json()]
-    }))
-
-    return blobs.flatMap(([m, blob]) => _decodeStats(m, blob, attrs))
-  }
-
   async function _loadVehicles() {
     const period = currentPeriod.value
-    const ac     = new AbortController()
-    _periodAC.abort()
-    _periodAC = ac
-    const rows = await _loadPeriod(period, ac.signal)
+    const signal = dataset.abortPeriods()
+    const rows   = await dataset.getPeriod(period, signal)
     if (period !== currentPeriod.value) return
     allVehicles.value = rows
     dataMaxBr.value   = maxBrOf(rows)
@@ -215,19 +152,10 @@ export const useDataStore = defineStore('data', () => {
   let _seenPeriod = null
 
   async function loadData(basePath = '') {
-    _basePath.value  = basePath
-    loading.value    = true
-    loadError.value  = null
     try {
-      const metaRes = await fetch(`${basePath}/meta_info.json`)
-      if (!metaRes.ok) throw new Error(`meta_info.json: ${metaRes.status}`)
-      metaInfo.value = await metaRes.json()
+      const meta = await dataset.load(basePath)
 
-      const indexRes = await fetch(`${basePath}/data/index.json${_cacheBust()}`)
-      if (!indexRes.ok) throw new Error(`data/index.json: ${indexRes.status}`)
-      metaInfo.value = { ...metaInfo.value, index: await indexRes.json() }
-
-      const available = metaInfo.value?.periods ?? ['All']
+      const available = meta?.periods ?? ['All']
 
       let next = currentPeriod.value
 
@@ -245,14 +173,9 @@ export const useDataStore = defineStore('data', () => {
       await _loadVehicles()
     } catch (e) {
       if (e.name === 'AbortError') return
-      loadError.value = e.message
       console.error('[DataStore]', e)
-    } finally {
-      loading.value = false
     }
   }
-
-  const _periodCache = new Map()
 
   function _periodToDate(p) {
     const parts = String(p).split('-')
@@ -263,11 +186,7 @@ export const useDataStore = defineStore('data', () => {
 
   async function _getPeriodVehicles(period, signal) {
     if (period === currentPeriod.value) return allVehicles.value
-    if (_periodCache.has(period)) return _periodCache.get(period)
-
-    const data = await _loadPeriod(period, signal)
-    _periodCache.set(period, data)
-    return data
+    return dataset.getPeriod(period, signal)
   }
 
   async function fetchVehicleHistory({ name, nation, type, mode, signal }) {
@@ -364,6 +283,10 @@ export const useDataStore = defineStore('data', () => {
 
   const filtering = ref(false)
 
+  const isBusy = computed(() =>
+    loading.value || filtering.value || allVehicles.value.length === 0
+  )
+
   const nations = computed(() => {
     const raw = metaInfo.value?.nations ?? []
     return ['All', ...raw]
@@ -375,6 +298,7 @@ export const useDataStore = defineStore('data', () => {
     mode, minBattles, brRange, classes,
     showGround, showAviation, showHelicopters, showLargeFleet, showSmallFleet,
     filteredVehicles, activeTypes, nations, filtering,
+    isBusy,
     loadData, clearLoadError,
     fetchVehicleHistory,
     tabFilterConfig, setTabFilters, clearTabFilters,

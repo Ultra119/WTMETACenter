@@ -69,6 +69,7 @@ import {
   CLASS_PREFIX,
   CLASS_BR_COLOR,
 } from '../composables/constants.js'
+import { fmtBR } from '../composables/useVehicleFormatting.js'
 
 const { t } = useI18n()
 
@@ -82,7 +83,7 @@ const vc = computed(() => VERDICT_COLORS[props.vehicle.Verdict] ?? VERDICT_COLOR
 
 const vehicleName = computed(() => props.vehicle.Name ?? '')
 const classIcon   = computed(() => CLASS_PREFIX[props.vehicle.VehicleClass] || null)
-const brStr   = computed(() => parseFloat(props.vehicle.BR           || 0).toFixed(1))
+const brStr   = computed(() => fmtBR(props.vehicle.BR))
 const wrStr   = computed(() => parseFloat(props.vehicle.WR           || 0).toFixed(1))
 const kdStr   = computed(() => parseFloat(props.vehicle.KD           || 0).toFixed(1))
 const metaStr = computed(() => parseFloat(props.vehicle._localScore  || 0).toFixed(0))

@@ -26,7 +26,7 @@
     <v-main>
       <v-tabs
         v-if="showNav"
-        v-model="activeTab"
+        :model-value="activeTab"
         bg-color="background"
         color="primary"
         density="compact"
@@ -78,8 +78,6 @@ function toggleSidebar() {
 provide('sidebarOpen',   sidebarOpen)
 provide('toggleSidebar', toggleSidebar)
 
-const activeTab = ref('/meta')
-
 const tabs = [
   { to: '/meta',        icon: 'mdi-trophy',                   labelKey: 'tabs.meta'        },
   { to: '/brackets',    icon: 'mdi-view-grid',                labelKey: 'tabs.brackets'    },
@@ -88,6 +86,11 @@ const tabs = [
   { to: '/cost',        icon: 'mdi-chart-bar',                labelKey: 'tabs.cost'        },
   { to: '/history',     icon: 'mdi-clock-time-eight-outline', labelKey: 'tabs.history'     },
 ]
+
+const activeTab = computed(() => {
+  const path = route.path
+  return tabs.some(tab => tab.to === path) ? path : '/meta'
+})
 
 const modalOpen       = ref(false)
 const selectedVehicle = ref(null)

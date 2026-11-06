@@ -4,7 +4,17 @@
     @mouseenter="onEnter"
     @mouseleave="onLeave"
   >
-    <span class="ui-btn ui-btn--icon ui-btn--xs" :class="{ 'is-active': visible }">!</span>
+    <button
+      type="button"
+      class="ui-btn ui-btn--icon ui-btn--xs"
+      :class="{ 'is-active': visible }"
+      :aria-label="label"
+      :aria-expanded="visible"
+      @focus="onEnter"
+      @blur="onLeave"
+      @click="toggle"
+      @keydown.escape="close"
+    >!</button>
     <div
       class="popover infotip-box"
       :class="[`infotip-box--${align}`, { 'infotip-box--visible': visible }]"
@@ -23,6 +33,7 @@ import { ref } from 'vue'
 const props = defineProps({
   align: { type: String, default: 'right' }, // 'right' | 'left' | 'center'
   width: { type: String, default: '280px'  },
+  label: { type: String, default: 'More information' },
 })
 
 const visible  = ref(false)
@@ -37,6 +48,16 @@ function onLeave() {
   closeTimer = setTimeout(() => {
     visible.value = false
   }, 300)
+}
+
+function toggle() {
+  clearTimeout(closeTimer)
+  visible.value = !visible.value
+}
+
+function close() {
+  clearTimeout(closeTimer)
+  visible.value = false
 }
 </script>
 

@@ -68,17 +68,28 @@
         <div v-if="cfg.minBattles" class="sidebar-section">
           <div class="eyebrow sidebar-label">{{ t('sidebar.min_battles') }}</div>
           <div class="ui-field ui-field--flush mt-1">
-            <button class="ui-btn ui-btn--icon ui-btn--ghost" @click="store.minBattles = Math.max(0, store.minBattles - 100)">
-              <span class="mdi mdi-minus" />
+            <button
+              type="button"
+              class="ui-btn ui-btn--icon ui-btn--ghost"
+              :aria-label="t('sidebar.min_battles') + ' −100'"
+              @click="store.minBattles = Math.max(0, store.minBattles - 100)"
+            >
+              <span class="mdi mdi-minus" aria-hidden="true" />
             </button>
             <input
               v-model.number="store.minBattles"
               type="number"
+              :aria-label="t('sidebar.min_battles')"
               min="0"
               step="100"
             />
-            <button class="ui-btn ui-btn--icon ui-btn--ghost" @click="store.minBattles += 100">
-              <span class="mdi mdi-plus" />
+            <button
+              type="button"
+              class="ui-btn ui-btn--icon ui-btn--ghost"
+              :aria-label="t('sidebar.min_battles') + ' +100'"
+              @click="store.minBattles += 100"
+            >
+              <span class="mdi mdi-plus" aria-hidden="true" />
             </button>
           </div>
         </div>
@@ -140,7 +151,7 @@
         <div class="sidebar-info mono t-faint">
           <div>
             <v-icon size="11" style="opacity:.6;margin-right:3px">mdi-database</v-icon>
-            {{ t('common.records', { n: store.metaInfo.total_records?.toLocaleString() }) }}
+            <span aria-live="polite">{{ t('common.records', { n: store.metaInfo.total_records?.toLocaleString() }) }}</span>
           </div>
           <div>
             <v-icon size="11" style="opacity:.6;margin-right:3px">mdi-clock-outline</v-icon>

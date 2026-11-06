@@ -15,7 +15,7 @@
           style="max-width:220px"
         />
         <InfoTip align="right" class="ml-auto">
-          <p><b>{{ filtered.length }}</b> {{ t('common.vehicle').toLowerCase() }} · BR {{ store.brRange[0].toFixed(1) }}–{{ store.brRange[1].toFixed(1) }} · {{ store.mode }}</p>
+          <p aria-live="polite"><b>{{ filtered.length }}</b> {{ t('common.vehicle').toLowerCase() }} · BR {{ fmtBR(store.brRange[0]) }}–{{ fmtBR(store.brRange[1]) }} · {{ store.mode }}</p>
           <p>{{ t('meta_tab.tip_click') }}</p>
           <p style="margin-top:8px">
             {{ t('meta_tab.tip_colors') }}&nbsp;
@@ -27,7 +27,9 @@
       </div>
     </div>
 
-    <div class="table-wrap">
+    <LoadingSkeleton v-if="store.isBusy && !store.allVehicles.length" :rows="10" :label="t('common.loading')" />
+
+    <div v-else class="table-wrap">
       <v-data-table
         :headers="headers"
         :items="tableRows"
@@ -80,6 +82,7 @@ import {
   fmtType, fmtNation, fmtBR,
   metaColor, farmColor, wrColor, slColor, normRow,
 } from '../composables/useVehicleFormatting.js'
+import LoadingSkeleton from '../components/LoadingSkeleton.vue'
 import InfoTip from '../components/InfoTip.vue'
 
 const { t }       = useI18n()
