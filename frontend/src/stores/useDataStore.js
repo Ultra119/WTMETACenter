@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, shallowRef, computed, watch, watchEffect } from 'vue'
+import { ref, shallowRef, computed, watch } from 'vue'
 
 export const WT_BR_STEPS = [
   1.0,1.3,1.7, 2.0,2.3,2.7, 3.0,3.3,3.7, 4.0,4.3,4.7,
@@ -9,6 +9,10 @@ export const WT_BR_STEPS = [
 
 const BR_MIN = Math.min(...WT_BR_STEPS)
 const BR_MAX = Math.max(...WT_BR_STEPS)
+
+// stable identities so the computed does not invalidate downstream watchers
+const EMPTY_ROWS  = Object.freeze([])
+const EMPTY_TYPES = new Set()
 
 const TYPE_CATEGORIES = {
   Ground:      ['medium_tank','light_tank','heavy_tank','tank_destroyer','spaa'],
@@ -216,46 +220,38 @@ export const useDataStore = defineStore('data', () => {
     if (showHelicopters.value) wanted.add('Helicopters')
     if (showLargeFleet.value)  wanted.add('LargeFleet')
     if (showSmallFleet.value)  wanted.add('SmallFleet')
-    if (wanted.size === 0) return []
+    if (wanted.size === 0) return EMPTY_TYPES
 
     const all = metaInfo.value?.types ?? []
-    return all.filter(t => {
+    return new Set(all.filter(t => {
       const cat = typeToCategory(t)
       return cat ? wanted.has(cat) : true
-    })
+    }))
   })
 
-  const filteredVehicles = shallowRef([])
-  const filtering = ref(false)
+  const filteredVehicles = computed(() => {
+    const vehicles = allVehicles.value
+    if (!vehicles.length) return EMPTY_ROWS
 
-  let _filterVersion = 0
-
-  watchEffect(() => {
-    const vehicles    = allVehicles.value
     const currentMode = mode.value
     const brMin       = _brRange.value[0]
     const brMax       = _brRange.value[1]
     const minB        = _minBattles.value
-    const cls         = [...classes.value]
-    const types       = activeTypes.value
+    const cls         = classes.value
+    const typeSet     = activeTypes.value
 
-    const version = ++_filterVersion
-
-    filtering.value = true
-
-    setTimeout(() => {
-      if (version !== _filterVersion) return
-      filteredVehicles.value = !vehicles.length ? [] : vehicles.filter(v =>
-        v.Mode === currentMode &&
-        v.BR   >= brMin &&
-        v.BR   <= brMax &&
-        (v['Сыграно игр'] ?? 0) >= minB &&
-        cls.includes(v.VehicleClass ?? 'Standard') &&
-        types.includes(v.Type)
-      )
-      filtering.value = false
-    }, 0)
+    return vehicles.filter(v =>
+      v.Mode === currentMode &&
+      v.BR   >= brMin &&
+      v.BR   <= brMax &&
+      (v['Сыграно игр'] ?? 0) >= minB &&
+      cls.includes(v.VehicleClass ?? 'Standard') &&
+      typeSet.has(v.Type)
+    )
   })
+
+  // filtering is synchronous now; the flag only covers period loads
+  const filtering = ref(false)
 
   const nations = computed(() => {
     const raw = metaInfo.value?.nations ?? []

@@ -151,7 +151,7 @@ const filtered = computed(() => {
   list = list.filter(v => store.classes.includes(v.VehicleClass ?? 'Standard'))
 
   const activeTypes = store.activeTypes
-  list = list.filter(v => activeTypes.includes(v.Type))
+  list = list.filter(v => activeTypes.has(v.Type))
 
   if (nation.value !== 'All') {
     list = list.filter(v => v.Nation === nation.value)
