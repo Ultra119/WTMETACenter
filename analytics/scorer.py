@@ -61,9 +61,85 @@ def _compute_net_sl(df: pd.DataFrame) -> pd.Series:
     return df["SL за игру"].where(~has_vdb, df["SL за игру"] - repair_per_game)
 
 
+_SL_MUL_COL_BY_MODE: dict[str, str] = {
+    "Realistic":  "vdb_sl_mul_realistic",
+    "Arcade":     "vdb_sl_mul_arcade",
+    "Simulator":  "vdb_sl_mul_simulator",
+}
+
+_MIN_SL_MUL           = 0.3
+_DEFAULT_MUL_EXPONENT = 1.35
+_MIN_EXPONENT_ROWS    = 80
+
+
+def _sl_multiplier(df: pd.DataFrame) -> pd.Series:
+    mul = pd.Series(np.nan, index=df.index)
+
+    if "Mode" in df.columns:
+        for mode_name, col_name in _SL_MUL_COL_BY_MODE.items():
+            if col_name in df.columns:
+                mask = df["Mode"] == mode_name
+                mul = mul.where(~mask, df[col_name].astype(float))
+
+    for col_name in _SL_MUL_COL_BY_MODE.values():
+        if col_name in df.columns:
+            mul = mul.fillna(df[col_name].astype(float))
+
+    return mul.fillna(1.0).clip(lower=_MIN_SL_MUL)
+
+
+def _premium_residual(values: pd.Series, df: pd.DataFrame) -> float:
+    """Signed premium edge left in `values` after controlling for performance."""
+    y = np.log(values.values)
+    X = np.column_stack([
+        np.ones(len(y)),
+        df["WR"].astype(float).values,
+        df["_kills_raw"].astype(float).values,
+        df["_deaths_raw"].astype(float).values,
+        (df["VehicleClass"] != "Standard").astype(float).values,
+    ])
+    coef, *_ = np.linalg.lstsq(X, y, rcond=None)
+    return float(coef[4])
+
+
+def _fit_mul_exponent(sub: pd.DataFrame, mul: pd.Series) -> float:
+    """Pick the multiplier exponent that cancels the residual premium edge."""
+    best_abs, best_a = None, _DEFAULT_MUL_EXPONENT
+
+    for a in np.arange(0.6, 2.01, 0.05):
+        values = sub["SL за игру"].astype(float) / mul.loc[sub.index] ** a
+        if not np.isfinite(values).all() or (values <= 0).any():
+            continue
+        residual = _premium_residual(values, sub)
+        if best_abs is None or abs(residual) < best_abs:
+            best_abs, best_a = abs(residual), round(float(a), 2)
+
+    return best_a
+
+
+_EXPONENT_CACHE: dict = {}
+
+
 def _compute_activity(df: pd.DataFrame) -> pd.Series:
-    # spawns per battle: how much of a match the vehicle is actually on the field
-    return df["Возрождения"] / df["Сыграно игр"].clip(lower=1)
+    """Battle earnings with the income multiplier normalised out.
+
+    Dividing by `mul` once still left a ~20% premium edge, because the
+    multiplier tracks class as much as BR. The exponent is fitted per vehicle
+    type so the edge cancels instead of being assumed away.
+    """
+    mul = _sl_multiplier(df)
+    exponent = pd.Series(_DEFAULT_MUL_EXPONENT, index=df.index)
+
+    if "Type" in df.columns and "VehicleClass" in df.columns:
+        usable = df[(df["SL за игру"] > 0) & mul.notna()]
+        for vtype, sub in usable.groupby("Type"):
+            if len(sub) < _MIN_EXPONENT_ROWS:
+                continue
+            if vtype not in _EXPONENT_CACHE:
+                _EXPONENT_CACHE[vtype] = _fit_mul_exponent(sub, mul)
+            exponent.loc[df["Type"] == vtype] = _EXPONENT_CACHE[vtype]
+
+    return df["SL за игру"].astype(float) / mul ** exponent
 
 
 def score(df: pd.DataFrame, settings: dict) -> pd.DataFrame:
@@ -97,6 +173,11 @@ def score(df: pd.DataFrame, settings: dict) -> pd.DataFrame:
     df["KD_GROUND"] = df["Наземные убийства"]  / deaths_for_kd
     df["KD_AIR"]    = df["Воздушные убийства"] / deaths_for_kd
     df["KD_NAVAL"]  = df["Морские убийства"]   / deaths_for_kd
+
+    df["_kills_raw"] = (
+        df["Наземные убийства"] + df["Воздушные убийства"] + df["Морские убийства"]
+    ) / df["Сыграно игр"].clip(lower=1)
+    df["_deaths_raw"] = df["Смерти"] / df["Сыграно игр"].clip(lower=1)
 
     df["_sl_eff"] = _compute_net_sl(df)
     df["_act_raw"] = _compute_activity(df)
