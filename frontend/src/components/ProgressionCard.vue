@@ -161,7 +161,7 @@ const cardStyle = computed(() => ({
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: 68% center;
+  object-position: center;
   opacity: 0.30;
   filter: saturate(0.55) contrast(1.05);
   transition: opacity 0.18s;
