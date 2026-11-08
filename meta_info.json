@@ -1,6 +1,6 @@
 {
-  "generated_at": "2026-10-15T11:48:56.108569+00:00",
-  "dataset_hash": "be5654f3161aa7d18ad59fdc57c9c07e1f7e68bc16bfb17f36216756af8a0c37",
+  "generated_at": "2026-11-08T13:08:30.288437+00:00",
+  "dataset_hash": "19bdb0e3753c04e72e70894389b60926ccef5993c15f7c2d1fadbb5c7f8de33f",
   "periods": [
     "All",
     "09-2026",
@@ -100,9 +100,9 @@
     "Gift",
     "Event"
   ],
-  "total_records": 9676,
+  "total_records": 9079,
   "period_records": {
-    "All": 9676,
+    "All": 9079,
     "09-2026": 9056,
     "08-2026": 8912,
     "07-2026": 8920,
